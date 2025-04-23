@@ -1,0 +1,28 @@
+{
+    "name": "@ultraslayyy/file-transfer",
+    "version": "1.0.0",
+    "main": "index.js",
+    "keywords": [
+        "cli",
+        "terminal",
+        "console"
+    ],
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/ultraslayyy/i-am-bored.git"
+    },
+    "author": "ultraslayyy",
+    "license": "MIT",
+    "bin": {
+        "ultra-file-transfer": "bin/p2p.js"
+    },
+    "description": "",
+    "dependencies": {
+        "@types/node": "^22.14.1",
+        "chalk": "^5.4.1",
+        "commander": "^13.1.0",
+        "net": "^1.0.2",
+        "os": "^0.1.2",
+        "path": "^0.12.7"
+    }
+}
