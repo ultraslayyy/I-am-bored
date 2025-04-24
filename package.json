@@ -1,6 +1,6 @@
 {
     "name": "@ultraslayyy/file-transfer",
-    "version": "1.0.0",
+    "version": "1.0.1",
     "main": "index.js",
     "keywords": [
         "cli",
@@ -14,15 +14,19 @@
     "author": "ultraslayyy",
     "license": "MIT",
     "bin": {
-        "ultra-file-transfer": "bin/p2p.js"
+        "ultra-file-transfer": "bin/file-transfer.js"
     },
     "description": "",
     "dependencies": {
         "@types/node": "^22.14.1",
         "chalk": "^5.4.1",
+        "cli-progress": "^3.12.0",
         "commander": "^13.1.0",
         "net": "^1.0.2",
         "os": "^0.1.2",
         "path": "^0.12.7"
+    },
+    "devDependencies": {
+        "@types/cli-progress": "^3.11.6"
     }
 }
