@@ -1,0 +1,34 @@
+{
+  "name": "vex",
+  "version": "0.0.1",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "build": "tsc",
+    "start": "ts-node src/index.ts"
+  },
+  "bin": {
+    "vex": "./dist/index.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ultraslayyy/i-am-bored.git"
+  },
+  "keywords": [],
+  "author": "ultraslayyy",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/ultraslayyy/i-am-bored/issues"
+  },
+  "homepage": "https://github.com/ultraslayyy/i-am-bored#readme",
+  "devDependencies": {
+    "@types/node": "^24.0.14",
+    "typescript": "^5.8.3"
+  },
+  "dependencies": {
+    "fs-extra": "^11.3.0",
+    "tar": "^7.4.3",
+    "ts-node": "^10.9.2"
+  }
+}
