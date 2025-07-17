@@ -23,12 +23,17 @@
   },
   "homepage": "https://github.com/ultraslayyy/i-am-bored#readme",
   "devDependencies": {
+    "@types/fs-extra": "^11.0.4",
     "@types/node": "^24.0.14",
+    "@types/semver": "^7.7.0",
+    "@types/tar-stream": "^3.1.4",
     "typescript": "^5.8.3"
   },
   "dependencies": {
     "fs-extra": "^11.3.0",
+    "semver": "^7.7.2",
     "tar": "^7.4.3",
+    "tar-stream": "^3.1.7",
     "ts-node": "^10.9.2"
   }
 }
