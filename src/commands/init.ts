@@ -54,7 +54,7 @@ export async function init(argv: string[], override?: boolean) {
     let json;
 
     if (args['y'] || args['yes']) {
-        const obj = JSON.parse(defaultPackageJson({ name: dirName }));
+        const obj = JSON.parse(defaultPackageJson({ name: dirName.toLowerCase() }));
         json = JSON.stringify(obj, null, 2);
     } else {
         const name = await askQuestion('Package name', dirName);
@@ -68,7 +68,7 @@ export async function init(argv: string[], override?: boolean) {
         const moduleType = await askMultiple(['commonjs', 'module'], 'Type: ');
 
         const obj = JSON.parse(defaultPackageJson({
-            name,
+            name: name.toLowerCase(),
             version,
             desc,
             main,

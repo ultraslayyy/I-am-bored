@@ -33,13 +33,30 @@ export function updateLockfile(pkg: string, version: string, metadata: any, type
 
         fs.writeFileSync(LOCKFILE_PATH, JSON.stringify(data, null, 2));
     } else if (type === 'npm') {
-        let data: npmLockfile;
+        let data: tempNpmLockfile = {
+            packages: {}
+        };
         let packageJson: PackageJson;
 
         if (fs.existsSync(LOCKFILE_PATH)) {
             data = JSON.parse(fs.readFileSync(LOCKFILE_PATH, 'utf-8'));
-        } else {
-            return;
+        }
+
+        if (fs.existsSync('package.json')) {
+            packageJson = JSON.parse(fs.readFileSync('package.json', 'utf-8'));
+        } else return;
+
+        data.name = packageJson.name;
+        data.version = packageJson.version;
+        data.lockfileVersion = 3;
+
+        data.packages[""] = {
+            name: packageJson.name,
+            version: packageJson.version,
+            license: packageJson.license,
+            dependencies: packageJson.dependencies,
+            bin: packageJson.bin,
+            devDependencies: packageJson.devDependencies
         }
 
         data.packages[pkg] = {
@@ -56,23 +73,6 @@ export function updateLockfile(pkg: string, version: string, metadata: any, type
             peerDependencies: metadata.peerDependencies,
             peerDependenciesMeta: metadata.peerDependenciesMeta
         }
-
-        if (fs.existsSync('package.json')) {
-            packageJson = JSON.parse(fs.readFileSync('package.json', 'utf-8'));
-        } else return;
-
-        data.packages[""] = {
-            name: packageJson.name,
-            version: packageJson.version,
-            license: packageJson.license,
-            dependencies: packageJson.dependencies,
-            bin: packageJson.bin,
-            devDependencies: packageJson.devDependencies
-        }
-
-        data.name = packageJson.name;
-        data.version = packageJson.version;
-        data.lockfileVersion = 3;
 
         fs.writeFileSync(LOCKFILE_PATH, JSON.stringify(data, null, 2));
     }
@@ -186,4 +186,95 @@ interface PackageJson {
     }
     [entry: string]: any;
 
+}
+
+interface tempNpmLockfile {
+    name?: string;
+    version?: string;
+    lockfileVersion?: number;
+    requires?: boolean;
+    packages: {
+        [pkg: string]: {
+            version: string;
+            resolved: string;
+            integrity: string;
+            cpu?: string[];
+            dev?: boolean;
+            license: string;
+            workspaces?: string[];
+            optional?: boolean;
+            os?: string[];
+            dependencies?: {
+                [dep: string]: string;
+            }
+            bin?: {
+                [bin: string]: string;
+            }
+            engines?: {
+                [engine: string]: string;
+            }
+            funding?: {
+                type?: string;
+                url: string;
+            }
+            optionalDependencies?: {
+                [optDep: string]: string;
+            }
+            peerDependencies?: {
+                [peerDep: string]: string;
+            }
+            peerDependenciesMeta?: {
+                [peerDepMeta: string]: {
+                    optional: boolean;
+                }
+            }
+        } | {
+            version: string;
+            resolved: string;
+            integrity: string;
+            cpu?: string[];
+            dev?: boolean;
+            funding?: {
+                type?: string;
+                url: string;
+            }[];
+            license: string;
+            workspaces?: string[];
+            optional?: boolean;
+            os?: string[];
+            dependencies?: {
+                [dep: string]: string;
+            }
+            bin?: {
+                [bin: string]: string;
+            }
+            engines?: {
+                [engine: string]: string;
+            }
+            optionalDependencies?: {
+                [optDep: string]: string;
+            }
+            peerDependencies?: {
+                [peerDep: string]: string;
+            }
+            peerDependenciesMeta?: {
+                [peerDepMeta: string]: {
+                    optional: boolean;
+                }
+            }
+        } | {
+            name: string;
+            version: string;
+            license: string;
+            dependencies?: {
+                [dep: string]: string;
+            }
+            bin?: {
+                [bin: string]: string;
+            }
+            devDependencies?: {
+                [devDep: string]: string;
+            }
+        }
+    }
 }

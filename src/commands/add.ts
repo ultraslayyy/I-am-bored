@@ -8,14 +8,21 @@ import semver from 'semver';
 
 const REGISTRY_URL = 'https://registry.npmjs.org';
 const installed = new Set<string>();
+let unpackedSize: number = 0;
+let packagesNumber: number = 0;
 
-export async function addPackage(packages: Record<DepType, string[]>, isRoot: boolean = true) {
+export async function addPackage(packages: Record<DepType, string[]>, isRoot: boolean = true, layer: number = 0, prefixLines: boolean[] = [], first: boolean = true, depFirst: boolean = true) {
     const depTypes: DepType[] = ['dependencies', 'devDependencies', 'peerDependencies'];
 
     for (const depType of depTypes) {
         const pkgs = packages[depType];
-        for (let pkg of pkgs) {
+        for (let i = 0; i < pkgs.length; i++) {
+            let pkg = pkgs[i];
             let version = 'latest';
+
+            if (pkg.indexOf('@npm:') !== -1) {
+                pkg = pkg.split('@npm:')[1];
+            }
             
             if (pkg.startsWith('@')) {
                 const atIndex = pkg.indexOf('@', 1);
@@ -39,7 +46,11 @@ export async function addPackage(packages: Record<DepType, string[]>, isRoot: bo
             if (installed.has(installKey)) return;
             installed.add(installKey);
 
-            console.log(`Installing ${installKey}...`);
+            const isLast = i === pkgs.length - 1;
+            //const treePrefix = prefixLines.map(last => (last ? '    ' : '│   ')).join('') + (isRoot && first ? '┌── ' : isLast ? '└── ' : '├── ');
+            const treePrefix = prefixLines.map(last => (last ? '    ' : '│   ')).join('') + (isLast ? '└── ' : '├── ');
+            if (isRoot && depFirst) console.log(`${depType}`);
+            console.log(treePrefix + `${pkg}@${version}`);
 
             const metaRes = await fetch(`${REGISTRY_URL}/${pkg}`);
             if (!metaRes.ok) {
@@ -84,17 +95,39 @@ export async function addPackage(packages: Record<DepType, string[]>, isRoot: bo
             const buffer = Buffer.from(await res.arrayBuffer());
             await extractTarball(buffer, extractPath);
 
-            console.log(`Installed ${pkg}@${resolvedVersion} to ${extractPath}`);
+            // if (isRoot) console.log(`Installed ${pkg}@${resolvedVersion} to ${extractPath}`);
             updateLockfile(pkg, resolvedVersion, versionMeta);
 
             if (isRoot) await updatePackageJson(pkg, resolvedVersion, depType);
 
+            unpackedSize = unpackedSize + (versionMeta.dist.unpackedSize ?? 0);
+            packagesNumber = packagesNumber + 1;
+
             const deps = versionMeta.dependencies || {}
-            for (const [dep, depVer] of Object.entries(deps)) {
-                console.log(`Resolving dependency: ${dep}@${depVer}`);
-                await addPackage({ dependencies: [`${dep}@${depVer}`], devDependencies: [], peerDependencies: [] }, false);
+            
+            if (Object.keys(deps).length > 0) {
+                depFirst = false;
+
+                await addPackage({
+                    dependencies: Object.entries(deps).map(([k, v]) => `${k}@${v}`),
+                    devDependencies: [],
+                    peerDependencies: []
+                },
+                false,
+                layer + 1,
+                [...prefixLines, isLast],
+                false);
             }
+
+            first = false;
         }
+        depFirst = true;
+    }
+    if (isRoot) {
+        console.log('\n\n');
+        console.log('Stats');
+        console.log(`Size: ${unpackedSize} (${unpackedSize / (1024 * 1024)} MB)`);
+        console.log(`Packages: ${packagesNumber}`);
     }
 }
 
@@ -158,7 +191,7 @@ async function updatePackageJson(pkg: string, version: string, depType: DepType)
     packageJson[depType][pkg] = `^${version}`;
     await fs.writeJson(packageJsonPath, packageJson, { spaces: 2 });
 
-    console.log(`Updated package.json with ${pkg}@^${version}`);
+    // console.log(`Updated package.json with ${pkg}@^${version}`);
 }
 
 type DepType = 'dependencies' | 'devDependencies' | 'peerDependencies';
