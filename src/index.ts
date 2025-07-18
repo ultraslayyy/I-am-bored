@@ -8,6 +8,7 @@ const [, , command, ...args] = process.argv;
 async function main() {
     switch (command) {
         case 'install':
+        case 'i':
             installPackages(args);
             break;
         case 'add':
