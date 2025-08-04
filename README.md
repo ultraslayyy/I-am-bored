@@ -7,7 +7,7 @@ First, install dependencies
 
 ```bash
 sudo apt update
-sudo apt install build-essential nasm grub-pc-bin xorriso qemu-system-i386
+sudo apt install build-essential nasm grub-pc-bin xorriso mtools qemu-system-i386
 ```
 
 Then build and run the ISO
