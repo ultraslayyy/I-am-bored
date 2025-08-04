@@ -25,26 +25,25 @@ jobs:
     - name: Build ISO
       run: make
 
+    - name: Delete old release (if exists)
+      run: |
+        gh release delete ultraos-latest --yes || true
+        git push origin :refs/tags/ultraos-latest || true
+      env:
+        GITHUB_TOKEN: ${{ secrets.TOKEN }}
+
     - name: Create new tag
       run: |
-        git tag ultraos-latest
-        git push origin ultraos-latest
+        git tag -f ultraos-latest
+        git push --force origin ultraos-latest
 
-    - name: Create release for tag
+    - name: Create release fwith ISO
       uses: softprops/action-gh-release@v1
       with:
         tag_name: ultraos-latest
         name: OS Build (Latest)
         body: |
           This is the latest build of the `os` branch.
-      env:
-        GITHUB-TOKEN: ${{ secrets.TOKEN }}
-
-    - name: Upload ISO artifact
-      uses: softprops/action-gh-release@v1
-      with:
-        tag_name: ultraos-latest
-        name: OS Build (Latest)
         files: ultraos.iso
       env:
         GITHUB_TOKEN: ${{ secrets.TOKEN }}
