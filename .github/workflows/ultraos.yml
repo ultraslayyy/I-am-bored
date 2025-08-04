@@ -1,0 +1,29 @@
+name: Build UltraOS
+
+on:
+  push:
+    branches: [ os ]
+  pull_request:
+    branches: [ os ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v3
+
+    - name: Install dependencies
+      run: |
+        sudo apt update
+        sudo apt install -y build-essential nasm grub-pc-bin xorriso
+
+    - name: Build ISO
+      run: make
+
+    - name: Upload ISO artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: ultraos.iso
+        path: ultraos.iso
