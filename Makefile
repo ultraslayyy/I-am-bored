@@ -22,7 +22,7 @@ $(KERNEL_ELF): kernel/boot.o kernel/kernel.o kernel/linker.ld
 	$(LD) -m elf_i386 -T kernel/linker.ld -o $@ kernel/boot.o kernel/kernel.o
 
 run: $(ISO)
-	qemu-system-i386 -boot d -cdrom $(ISO) -m 512
+	qemu-system-i386 -boot d -cdrom $(ISO) -m 512 -net none
 
 clean:
 	rm -rf kernel/*.o kernel/*.elf iso *.iso
