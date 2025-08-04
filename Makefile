@@ -1,7 +1,7 @@
 CC = gcc
 LD = ld
 
-ISO = myos.iso
+ISO = ultraos.iso
 KERNEL_ELF = kernel/kernel.elf
 
 all: $(ISO)
