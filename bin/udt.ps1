@@ -11,17 +11,17 @@ $ret=0
 if (Test-Path "$basedir/node$exe") {
   # Support pipeline input
   if ($MyInvocation.ExpectingInput) {
-    $input | & "$basedir/node$exe"  "$basedir/node_modules/ultra-dev-tools/bin/udt.js" $args
+    $input | & "$basedir/node$exe"  "$basedir/node_modules/ultra-dev-tools/bin/udt-cli.js" $args
   } else {
-    & "$basedir/node$exe"  "$basedir/node_modules/ultra-dev-tools/bin/udt.js" $args
+    & "$basedir/node$exe"  "$basedir/node_modules/ultra-dev-tools/bin/udt-cli.js" $args
   }
   $ret=$LASTEXITCODE
 } else {
   # Support pipeline input
   if ($MyInvocation.ExpectingInput) {
-    $input | & "node$exe"  "$basedir/node_modules/ultra-dev-tools/bin/udt.js" $args
+    $input | & "node$exe"  "$basedir/node_modules/ultra-dev-tools/bin/udt-cli.js" $args
   } else {
-    & "node$exe"  "$basedir/node_modules/ultra-dev-tools/bin/udt.js" $args
+    & "node$exe"  "$basedir/node_modules/ultra-dev-tools/bin/udt-cli.js" $args
   }
   $ret=$LASTEXITCODE
 }

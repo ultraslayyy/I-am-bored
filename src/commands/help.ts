@@ -6,7 +6,7 @@ export default class help extends Command {
     static commandName = 'help';
     static description = 'Show help';
     static params: Param[] = [
-        { name: 'command', type: 'string', positional: true, description: 'Show help for a command. Equivalent to "vex <command> -h"' },
+        { name: 'command', type: 'string', positional: true, description: 'Show help for a command. Equivalent to "udt <command> -h"' },
         { name: 'all', type: 'boolean', alias: 'a', description: 'Show usages for all commands' }
     ];
     static usage = ['udt help [<command>]'];
