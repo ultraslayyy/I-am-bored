@@ -1,10 +1,19 @@
-import { Column } from './column.js';
-import { DataType } from './types.js';
+import {
+    type ColumnOptions,
+    ColumnType,
 
-export function text(opts = {}) {
-    return Column(DataType.TEXT, { ...opts });
-}
+    SerialColumn,
+    TextColumn,
+    TimestampColumn,
+    VarcharColumn
+} from './column-types.js';
 
-export function serial(opts = {}) {
-    return Column(DataType.SERIAL, { ...opts });
-}
+import { TsVectorColumn, type TsVectorOptions } from './custom-columns/ts_vector.js';
+
+export function text(name: string, opts?: ColumnOptions) { return new TextColumn(name, opts); }
+export function varchar(name: string, length: number, opts?: ColumnOptions) { return new VarcharColumn(name, length, opts) }
+export function serial(name: string, opts?: ColumnOptions) { return new SerialColumn(name, opts) }
+export function timestamp(name: string, opts?: ColumnOptions) { return new TimestampColumn(name, opts); }
+export function ts_vector(name: string, tsvectorOpts: TsVectorOptions, opts?: ColumnOptions) { return new TsVectorColumn(name, tsvectorOpts, opts )}
+
+export { ColumnType as CustomType }
