@@ -4,7 +4,7 @@
 #include <string.h>
 #include "builtins.h"
 #include <conio.h>
-#include "utils/utils.h"
+#include "utils.history.h"
 
 #define MAX_INPUT 1024
 #define MAX_ARGS 64
