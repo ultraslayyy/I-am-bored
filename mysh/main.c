@@ -3,6 +3,8 @@
 #include <stdlib.h>
 #include <string.h>
 #include "builtins.h"
+#include <conio.h>
+#include "utils/utils.h"
 
 #define MAX_INPUT 1024
 #define MAX_ARGS 64
@@ -13,12 +15,10 @@ int main() {
     while (1) {
         char cwd[MAX_INPUT];
         GetCurrentDirectory(MAX_INPUT, cwd);
-        printf("\033[32m%s\033[0m$ ", cwd);
-        fflush(stdout);
-
-        if (!fgets(input, sizeof(input), stdin)) {
-            break;
-        }
+        
+        char prompt[MAX_INPUT];
+        snprintf(prompt, sizeof(prompt), "\033[32m%s\033[0m$ ", cwd);
+        read_input_with_history(input, sizeof(input), prompt);
 
         input[strcspn(input, "\r\n")] = 0;
 

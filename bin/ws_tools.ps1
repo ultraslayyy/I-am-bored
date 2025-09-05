@@ -5,7 +5,7 @@ param (
 
 switch ($command) {
     "build" {
-        gcc ..\mysh\main.c ..\mysh\cd.c ..\mysh\exit.c -o ..\mysh.exe
+        gcc ..\mysh\main.c ..\mysh\cd.c ..\mysh\exit.c ..\mysh\utils\history.c -o ..\mysh.exe
     }
     "run" {
         if ($option) {
