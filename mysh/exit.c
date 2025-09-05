@@ -2,6 +2,6 @@
 #include <stdio.h>
 #include "builtins.h"
 
-int builtin_exit(int argc, char **argv) {
+int builtin_exit() {
     exit(0);
 }

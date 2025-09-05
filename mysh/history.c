@@ -1,0 +1,8 @@
+#include <windows.h>
+#include <stdio.h>
+#include "builtins.h"
+#include "utils/utils.h"
+
+int builtin_history() {
+    print_history();
+}

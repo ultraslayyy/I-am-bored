@@ -37,10 +37,16 @@ int main() {
         args[argc] = NULL;
 
         if (strcmp(args[0], "exit") == 0) {
-            builtin_exit(argc, args);
+            builtin_exit();
             continue;
         } else if (strcmp(args[0], "cd") == 0) {
             builtin_cd(argc, args);
+            continue;
+        } else if (strcmp(args[0], "pwd") == 0) {
+            builtin_pwd();
+            continue;
+        } else if (strcmp(args[0], "history") == 0) {
+            builtin_history();
             continue;
         }
 

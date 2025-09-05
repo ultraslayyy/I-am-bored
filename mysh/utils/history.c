@@ -94,3 +94,9 @@ void read_input_with_history(char *buffer, size_t size, const char *prompt) {
         }
     }
 }
+
+void print_history() {
+    for (int i = 0; i < history_count; i++) {
+        printf("%4d  %s\n", i + 1, history[i]);
+    }
+}
