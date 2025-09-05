@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include "builtins.h"
 
 #define MAX_INPUT 1024
 #define MAX_ARGS 64
@@ -36,15 +37,10 @@ int main() {
         args[argc] = NULL;
 
         if (strcmp(args[0], "exit") == 0) {
-            break;
+            builtin_exit(argc, args);
+            continue;
         } else if (strcmp(args[0], "cd") == 0) {
-            if (argc < 2) {
-                printf("cd: missing argument\n");
-            } else {
-                if (!SetCurrentDirectory(args[1])) {
-                    printf("cd: cannot change directory to '$s'\n", args[1]);
-                }
-            }
+            builtin_cd(argc, args);
             continue;
         }
 

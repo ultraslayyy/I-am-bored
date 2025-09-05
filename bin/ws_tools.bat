@@ -1,10 +1,10 @@
 @echo off
 if "%1"=="build" (
-    gcc ../src/win_shell.c -o ../win_shell.exe
+    gcc ../mysh/main.c ../mysh/cd.c ../mysh/exit.c -o ../mysh.exe
 ) else if "%1"=="run" (
     if "%2"=="-o" (
-        start ../win_shell.exe
-    ) else "../win_shell.exe"
+        start ../mysh.exe
+    ) else "../mysh.exe"
 ) else (
     echo Command not recognised
 )

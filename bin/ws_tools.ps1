@@ -5,13 +5,13 @@ param (
 
 switch ($command) {
     "build" {
-        gcc ..\src\win_shell.c -o ..\win_shell.exe
+        gcc ..\mysh\main.c ..\mysh\cd.c ..\mysh\exit.c -o ..\mysh.exe
     }
     "run" {
         if ($option) {
-            Start-Process ..\win_shell.exe
+            Start-Process ..\mysh.exe
         } else {
-            & ..\win_shell.exe
+            & ..\mysh.exe
         }
     }
     default {
