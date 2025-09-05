@@ -36,6 +36,65 @@ int main() {
         }
         args[argc] = NULL;
 
+        char *input_file = NULL;
+        char *output_file = NULL;
+
+        for (int i = 0; i < argc; i++) {
+            if (strcmp(args[i], "<") == 0 && i + 1 < argc) {
+                input_file = args[i + 1];
+                args[i] = NULL;
+                argc = i;
+                break;
+            } else if (strcmp(args[i], ">") == 0 && i + 1 < argc) {
+                output_file = args[i + 1];
+                args[i] = NULL;
+                argc = i;
+                break;
+            }
+        }
+
+        HANDLE hInput = NULL, hOutput = NULL;
+
+        SECURITY_ATTRIBUTES sa;
+        sa.nLength = sizeof(sa);
+        sa.lpSecurityDescriptor = NULL;
+        sa.bInheritHandle = TRUE;
+
+        if (input_file) {
+            hInput = CreateFile(
+                input_file,
+                GENERIC_READ,
+                FILE_SHARE_READ,
+                &sa,
+                OPEN_EXISTING,
+                FILE_ATTRIBUTE_NORMAL,
+                NULL
+            );
+
+            if (hInput == INVALID_HANDLE_VALUE) {
+                printf("Cannot open input file: %s\n", input_file);
+                continue;
+            }
+        }
+
+        if (output_file) {
+            hOutput = CreateFile(
+                output_file,
+                GENERIC_WRITE,
+                FILE_SHARE_READ,
+                &sa,
+                CREATE_ALWAYS,
+                FILE_ATTRIBUTE_NORMAL,
+                NULL
+            );
+
+            if (hOutput == INVALID_HANDLE_VALUE) {
+                printf("Cannot open output file: %s\n", output_file);
+                if (hInput) CloseHandle(hInput);
+                continue;
+            }
+        }
+
         if (strcmp(args[0], "exit") == 0) {
             builtin_exit();
             continue;
@@ -50,6 +109,19 @@ int main() {
             continue;
         }
 
+        // Startup process
+        STARTUPINFO si;
+        PROCESS_INFORMATION pi;
+        ZeroMemory(&si, sizeof(si));
+        si.cb = sizeof(si);
+
+        si.dwFlags |= STARTF_USESTDHANDLES;
+        si.hStdInput = input_file ? hInput : GetStdHandle(STD_INPUT_HANDLE);
+        si.hStdOutput = output_file ? hOutput : GetStdHandle(STD_OUTPUT_HANDLE);
+        si.hStdError = GetStdHandle(STD_ERROR_HANDLE);
+
+        ZeroMemory(&pi, sizeof(pi));
+
         char cmdline[MAX_INPUT] = "";
         for (int i = 0; i < argc; i++) {
             strcat(cmdline, args[i]);
@@ -57,19 +129,12 @@ int main() {
                 strcat(cmdline, " ");
         }
 
-        // Startup process
-        STARTUPINFO si;
-        PROCESS_INFORMATION pi;
-        ZeroMemory(&si, sizeof(si));
-        si.cb = sizeof(si);
-        ZeroMemory(&pi, sizeof(pi));
-
         if (!CreateProcess(
             NULL,
             cmdline,
             NULL,
             NULL,
-            FALSE,
+            TRUE,
             0,
             NULL,
             NULL,
@@ -77,6 +142,8 @@ int main() {
             &pi
         )) {
             printf("Failed to run command: %d\n", GetLastError());
+            if (hInput) CloseHandle(hInput);
+            if (hOutput) CloseHandle(hOutput);
             continue;
         }
 
@@ -84,6 +151,8 @@ int main() {
 
         CloseHandle(pi.hProcess);
         CloseHandle(pi.hThread);
+        if (hInput) CloseHandle(hInput);
+        if (hOutput) CloseHandle(hOutput);
     }
 
     return 0;
