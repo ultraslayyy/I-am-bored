@@ -15,7 +15,7 @@ int main() {
     while (1) {
         char cwd[MAX_INPUT];
         GetCurrentDirectory(MAX_INPUT, cwd);
-        
+
         char prompt[MAX_INPUT];
         snprintf(prompt, sizeof(prompt), "\033[32m%s\033[0m$ ", cwd);
         read_input_with_history(input, sizeof(input), prompt);
@@ -38,6 +38,7 @@ int main() {
 
         char *input_file = NULL;
         char *output_file = NULL;
+        int append_mode = 0;
 
         for (int i = 0; i < argc; i++) {
             if (strcmp(args[i], "<") == 0 && i + 1 < argc) {
@@ -48,6 +49,11 @@ int main() {
             } else if (strcmp(args[i], ">") == 0 && i + 1 < argc) {
                 output_file = args[i + 1];
                 args[i] = NULL;
+                argc = i;
+                break;
+            } else if (strcmp(args[i], ">>") == 0 && i + 1 < argc) {
+                output_file = args[i + 1];
+                append_mode = 1;
                 argc = i;
                 break;
             }
@@ -78,15 +84,27 @@ int main() {
         }
 
         if (output_file) {
-            hOutput = CreateFile(
-                output_file,
-                GENERIC_WRITE,
-                FILE_SHARE_READ,
-                &sa,
-                CREATE_ALWAYS,
-                FILE_ATTRIBUTE_NORMAL,
-                NULL
-            );
+            if (append_mode) {
+                hOutput = CreateFile(
+                    output_file,
+                    FILE_APPEND_DATA,
+                    FILE_SHARE_READ | FILE_SHARE_WRITE,
+                    &sa,
+                    OPEN_ALWAYS,
+                    FILE_ATTRIBUTE_NORMAL,
+                    NULL
+                );
+            } else {
+                hOutput = CreateFile(
+                    output_file,
+                    GENERIC_WRITE,
+                    FILE_SHARE_READ,
+                    &sa,
+                    CREATE_ALWAYS,
+                    FILE_ATTRIBUTE_NORMAL,
+                    NULL
+                );
+            }
 
             if (hOutput == INVALID_HANDLE_VALUE) {
                 printf("Cannot open output file: %s\n", output_file);
