@@ -44,18 +44,21 @@ int main() {
             if (strcmp(args[i], "<") == 0 && i + 1 < argc) {
                 input_file = args[i + 1];
                 args[i] = NULL;
-                argc = i;
-                break;
+                for (int j = i + 2; j <= argc; j++) args[j - 2] = args[j];
+                argc -= 2;
+                i--;
             } else if (strcmp(args[i], ">") == 0 && i + 1 < argc) {
                 output_file = args[i + 1];
                 args[i] = NULL;
-                argc = i;
-                break;
+                for (int j = i + 2; j <= argc; j++) args[j - 2] = args[j];
+                argc -= 2;
+                i--;
             } else if (strcmp(args[i], ">>") == 0 && i + 1 < argc) {
                 output_file = args[i + 1];
                 append_mode = 1;
-                argc = i;
-                break;
+                for (int j = i + 2; j <= argc; j++) args[j - 2] = args[j];
+                argc -= 2;
+                i--;
             }
         }
 
