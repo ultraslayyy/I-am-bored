@@ -129,12 +129,17 @@ export const varchar: (columnName?: string, options?: PgVarcharConfig) => PgVarc
 
 //#region INDEXES
 
+export type IndexMethod = 'brin' | 'btree' | 'gin' | 'gist' | 'hash' | 'hnsw' | 'ivfflat' | 'spgist' | (string & {});
+
 export interface IndexBase<Columns extends ColumnBase<any, any> = ColumnBase<any, any>> {
-    on<Col0 extends Columns, Cols extends Columns[]>(column_0: Col0, ...columns: Cols): IndexExtendedBase<Columns>;
+    on<Col0 extends Columns, Cols extends Columns[]>(column_0: Col0 | SQL<unknown>, ...columns: Cols | SQL<unknown>[]): IndexExtendedBase<Columns>;
+    using<Col0 extends Columns, Cols extends Columns[]>(method: IndexMethod, column_0: Col0 | SQL<unknown>, ...columns: Cols | SQL<unknown>[]): IndexExtendedBase<Columns>;
 }
 
 export interface IndexExtendedBase<Columns extends ColumnBase<any, any> = ColumnBase<any, any>> {
-    where(condition: SQL<unknown>): IndexExtendedBase;
+    concurrently(): IndexExtendedBase<Columns>;
+    where(condition: SQL<unknown>): IndexExtendedBase<Columns>;
+    with(obj: Record<string, any>): IndexExtendedBase<Columns>;
 }
 
 export const index: <Columns extends ColumnBase<any, any> = ColumnBase<any, any>>(name: string | undefined) => IndexBase<Columns>;
