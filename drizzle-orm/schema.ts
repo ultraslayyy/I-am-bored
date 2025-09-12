@@ -1,4 +1,4 @@
-import { boolean, customType, index, pgEnum, pgTable, text, timestamp, uniqueIndex, uuid } from './types/pg-core';
+import { boolean, customType, index, jsonb, pgEnum, pgTable, text, timestamp, uniqueIndex, uuid } from './types/pg-core';
 import { sql } from './types';
 
 export const themeOptions = pgEnum('theme', ['light', 'dark', 'system']);

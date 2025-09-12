@@ -87,6 +87,8 @@ export interface ColumnReferencesConfig {
     onUpdate?: DeleteAction
 }
 
+type RebuildColumn<C extends ColumnBase<any, any>, T> = C extends ColumnBase<any, infer Self> ? ColumnBase<T, Self> : never;
+
 export interface ColumnBase<T, Self extends ColumnBase<any, any>> {
     brand: 'Column';
     $type: T;
@@ -102,6 +104,10 @@ export interface ColumnBase<T, Self extends ColumnBase<any, any>> {
 
 export interface PgBoolean extends ColumnBase<boolean, PgBoolean> {}
 export interface PgInteger extends ColumnBase<number, PgInteger> {}
+export interface PgJsonb<T = unknown> extends ColumnBase<T, PgJsonb<T>> {
+    defaultJson(value: T): PgJsonb<T>;
+    _type<U>(): PgJsonb<U>;
+}
 export interface PgText extends ColumnBase<string, PgText> {}
 export interface PgTimestamp extends ColumnBase<Date, PgTimestamp> {
     defaultNow(): PgTimestamp;
@@ -117,6 +123,7 @@ export interface PgVarcharConfig {
 export const boolean: (columnName?: string) => PgBoolean;
 export const inet: (columnName?: string) => PgText;
 export const integer: (columnName?: string) => PgInteger;
+export const jsonb: (columnName?: string) => PgJsonb;
 export const serial: (columnName?: string) => PgInteger;
 export const text: (columnName?: string) => PgText;
 export const timestamp: (columnName?: string) => PgTimestamp;
