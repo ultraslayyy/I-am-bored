@@ -1,6 +1,6 @@
 @echo off
 if "%1"=="build" (
-    gcc ../mysh/main.c ../mysh/cd.c ../mysh/exit.c ../mysh/pwd.c ../mysh/history.c ../mysh/utils/history.c -o ../mysh.exe
+    gcc ..\mysh\src\main.c ..\mysh\src\builtins\*.c ..\mysh\src\utils\*.c -I..\mysh\include -o ..\mysh.exe
 ) else if "%1"=="run" (
     if "%2"=="-o" (
         start ../mysh.exe
