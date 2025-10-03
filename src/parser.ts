@@ -8,7 +8,7 @@ export function parseFile(path: string): File {
 }
 
 export function parseSource(src: string, filename = '<input>'): File {
-    return babelParse(src, {
+    const ast = babelParse(src, {
         sourceType: 'module',
         plugins: [
             'jsx',
@@ -22,4 +22,7 @@ export function parseSource(src: string, filename = '<input>'): File {
         ],
         sourceFilename: filename
     });
+
+    fs.writeFileSync('test.json', JSON.stringify(ast));
+    return ast;
 }
