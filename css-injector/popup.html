@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Custom CSS Manager</title>
+  <style>
+    textarea {
+      width: 100%;
+      height: 100px;
+    }
+    li {
+      margin: 5px 0;
+    }
+    .rule {
+      border: 1px solid #ccc;
+      padding: 5px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .pattern-input {
+      width: 80%;
+      margin-bottom: 5px;
+    }
+    .remove-pattern {
+      margin-left: 5px;
+    }
+    .rule-label {
+      flex: 1;
+      margin-left: 10px;
+    }
+    .rule-controls {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+  </style>
+</head>
+<body>
+  <h1>Manage CSS Rules</h1>
+
+  <div id="patternsContainer">
+    <input type="text" class="pattern-input" placeholder="Site pattern (e.g. * or https://*.example.com/*)">
+  </div>
+  <button id="addPatternBtn">Add another pattern</button><br><br>
+
+  <textarea id="cssInput" placeholder="Enter CSS here"></textarea><br>
+  <input type="file" id="fileInput" accept=".css"><br>
+
+  <label>
+    <input type="checkbox" id="livePreview">
+    Live Preview on current tab
+  </label><br><br>
+
+  <button id="addBtn">Add CSS Rule</button>
+
+  <h2>Saved Rules</h2>
+  <ul id="rulesList"></ul>
+
+  <h2>Import / Export</h2>
+  <button id="exportBtn">Export Rules</button>
+  <input type="file" id="importFile" accept=".json"><br>
+
+  <script src="popup.js"></script>
+</body>
+</html>
