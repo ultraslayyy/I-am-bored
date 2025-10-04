@@ -1,0 +1,27 @@
+{
+  "name": "i-am-bored",
+  "version": "0.0.1",
+  "description": "",
+  "main": "dist/builds/build.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ultraslayyy/i-am-bored.git"
+  },
+  "keywords": [],
+  "author": "ultraslayyy <ultra@ultraslayyy.xyz>",
+  "license": "MIT",
+  "type": "module",
+  "bugs": {
+    "url": "https://github.com/ultraslayyy/i-am-bored/issues"
+  },
+  "homepage": "https://github.com/ultraslayyy/i-am-bored#readme",
+  "devDependencies": {
+    "@types/node": "^24.3.1",
+    "esbuild": "^0.25.9",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.9.2"
+  }
+}
