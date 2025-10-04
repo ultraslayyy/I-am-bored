@@ -1,0 +1,25 @@
+{
+    "name": "ip-limiter",
+    "version": "1.0.0",
+    "description": "Simple IP-based rate limiter middleware for express, that I made because I was bored.",
+    "main": "./index.js",
+    "types": "./index.d.ts",
+    "exports": {
+        ".": {
+            "import": "./index.js",
+            "types": "./index.d.ts"
+        }
+    },
+    "type": "module",
+    "keywords": [
+        "express",
+        "rate-limit",
+        "middleware",
+        "ip"
+    ],
+    "author": "ultraslayyy",
+    "license": "MIT",
+    "engines": {
+        "node": ">=14"
+    }
+}
