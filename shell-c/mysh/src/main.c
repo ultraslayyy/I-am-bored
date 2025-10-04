@@ -9,6 +9,54 @@
 #define MAX_INPUT 1024
 #define MAX_ARGS 64
 
+int parse_args(char *input, char **args, int max_args) {
+    int argc = 0;
+    char *p = input;
+
+    while (*p && argc < max_args - 1) {
+        while (*p == ' ') p++;
+        if (!*p) break;
+
+        char *start = p;
+        int in_quotes = 0;
+        char quote_char = 0;
+
+        while (*p) {
+            if (in_quotes) {
+                if (*p == quote_char) {
+                    in_quotes = 0;
+                }
+            } else {
+                if (*p == '"' || *p == '\'') {
+                    in_quotes = 1;
+                    quote_char = *p;
+                } else if (*p == ' ') {
+                    break;
+                }
+            }
+            p++;
+        }
+
+        int len = p - start;
+        char *arg = (char *)malloc(len + 1);
+        strncpy(arg, start, len);
+        arg[len] = '\0';
+
+        if ((arg[0] == '"' && arg[len - 1] == '"') ||
+            (arg[0] == '\'' && arg[len - 1] == '\'')) {
+            arg[len - 1] = '\0';
+            memmove(arg, arg + 1, len - 1);
+        }
+
+        args[argc++] = arg;
+
+        if (*p == ' ') p++;
+    }
+
+    args[argc] = NULL;
+    return argc;
+}
+
 int main() {
     char input[MAX_INPUT];
 
@@ -27,14 +75,23 @@ int main() {
         }
 
         char *args[MAX_ARGS];
-        int argc = 0;
+        int argc = parse_args(input, args, MAX_ARGS);
+        if (argc == 0) continue;
 
-        char *token = strtok(input, " ");
-        while (token != NULL && argc < MAX_ARGS - 1) {
-            args[argc++] = token;
-            token = strtok(NULL, " ");
+        const char *alias_val = alias_lookup(args[0]);
+        if (alias_val) {
+            char expanded[MAX_INPUT];
+            snprintf(expanded, sizeof(expanded), "%s", alias_val);
+
+            char combined[MAX_INPUT];
+            snprintf(combined, sizeof(combined), "%s", expanded);
+            for (int i = 1; i < argc; i++) {
+                strcat(combined, " ");
+                strcat(combined, args[i]);
+            }
+
+            argc = parse_args(combined, args, MAX_ARGS);
         }
-        args[argc] = NULL;
 
         char *input_file = NULL;
         char *output_file = NULL;
@@ -128,6 +185,12 @@ int main() {
         } else if (strcmp(args[0], "history") == 0) {
             builtin_history();
             continue;
+        } else if (strcmp(args[0], "alias") == 0) {
+            builtin_alias(argc, args);
+            continue;
+        } else if (strcmp(args[0], "unalias") == 0) {
+            builtin_unalias(argc, args);
+            continue;
         }
 
         // Startup process
@@ -150,7 +213,7 @@ int main() {
                 strcat(cmdline, " ");
         }
 
-        if (!CreateProcess(
+        BOOL success = CreateProcess(
             NULL,
             cmdline,
             NULL,
@@ -161,7 +224,32 @@ int main() {
             NULL,
             &si,
             &pi
-        )) {
+        );
+
+        if (!success && GetLastError() == ERROR_FILE_NOT_FOUND) {
+            char wrapped[MAX_INPUT * 2];
+            snprintf(wrapped, sizeof(wrapped), "cmd.exe /C %s", cmdline);
+
+            success = CreateProcess(
+                NULL,
+                wrapped,
+                NULL,
+                NULL,
+                TRUE,
+                0,
+                NULL,
+                NULL,
+                &si,
+                &pi
+            );
+
+            if (!success) {
+                printf("Failed to run command: %d\n", GetLastError());
+                if (hInput) CloseHandle(hInput);
+                if (hOutput) CloseHandle(hOutput);
+                continue;
+            }
+        } else if (!success) {
             printf("Failed to run command: %d\n", GetLastError());
             if (hInput) CloseHandle(hInput);
             if (hOutput) CloseHandle(hOutput);
