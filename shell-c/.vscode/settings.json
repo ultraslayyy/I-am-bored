@@ -1,0 +1,7 @@
+{
+    "files.associations": {
+        "builtins.h": "c",
+        "utils.h": "c",
+        "windows.h": "c"
+    }
+}
