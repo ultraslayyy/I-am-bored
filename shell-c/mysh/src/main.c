@@ -262,6 +262,10 @@ int main() {
         CloseHandle(pi.hThread);
         if (hInput) CloseHandle(hInput);
         if (hOutput) CloseHandle(hOutput);
+
+        for (int i = 0; i < argc; i++) {
+            free(args[i]);
+        }
     }
 
     return 0;
