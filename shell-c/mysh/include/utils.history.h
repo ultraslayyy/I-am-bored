@@ -1,3 +1,4 @@
+#include <stddef.h>
 #ifndef UTILS_HISTORY_H
 #define UTILS_HISTORY_H
 

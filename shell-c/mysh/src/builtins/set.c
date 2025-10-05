@@ -1,5 +1,11 @@
-#include <windows.h>
 #include <stdio.h>
+#include <string.h>
+#ifdef _WIN32
+#include <windows.h>
+#else
+#include <stdlib.h>
+#include <errno.h>
+#endif
 #include "builtins.h"
 
 int builtin_set(int argc, char **argv) {
@@ -16,10 +22,18 @@ int builtin_set(int argc, char **argv) {
     *eq = '\0';
     char *name = argv[1];
     char *value = eq + 1;
+
+#ifdef _WIN32
     if (!SetEnvironmentVariableA(name, value)) {
         printf("set: failed to set variable '%s'\n", name);
         return 1;
     }
+#else
+    if (setenv(name, value, 1) != 0) {
+        printf("set: failed to set variable '%s': %s\n", name, strerror(errno));
+        return 1;
+    }
+#endif
 
     return 0;
 }

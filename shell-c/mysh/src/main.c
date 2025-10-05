@@ -1,9 +1,19 @@
-#include <windows.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "builtins.h"
+#ifdef _WIN32
+#include <windows.h>
 #include <conio.h>
+#else
+#include <unistd.h>
+#include <sys/types.h>
+#include <sys/wait.h>
+#include <fcntl.h>
+#include <errno.h>
+#include <limits.h>
+#endif
+
+#include "builtins.h"
 #include "utils.history.h"
 
 #define MAX_INPUT 1024
@@ -62,7 +72,14 @@ int main() {
 
     while (1) {
         char cwd[MAX_INPUT];
+
+#ifdef _WIN32
         GetCurrentDirectory(MAX_INPUT, cwd);
+#else
+        if (!getcwd(cwd, sizeof(cwd))) {
+            strncpy(cwd, "?", sizeof(cwd));
+        }
+#endif
 
         char prompt[MAX_INPUT];
         snprintf(prompt, sizeof(prompt), "\033[32m%s\033[0m$ ", cwd);
@@ -119,6 +136,7 @@ int main() {
             }
         }
 
+#ifdef _WIN32
         HANDLE hInput = NULL, hOutput = NULL;
 
         SECURITY_ATTRIBUTES sa;
@@ -268,6 +286,79 @@ int main() {
         CloseHandle(pi.hThread);
         if (hInput) CloseHandle(hInput);
         if (hOutput) CloseHandle(hOutput);
+#else
+        int in_fd = -1, out_fd = -1
+
+        if (input_file) {
+            in_fd = open(input_file, O_RDONLY);
+            if (in_fd < 0) {
+                fprintf(stderr, "Cannot open input file: %s: %s\n", input_file, sterror(errno));
+                for (int i = 0; i < argc; i++) {
+                    free(args[i]);
+                }
+                continue;
+            }
+        }
+
+        if (output_file) {
+            if (append_mode) {
+                out_fd = open(output_file, O_WRONLY | O_CREAT | O_APPEND, 0666);
+            } else {
+                out_fd = open(output_file, O_WRONLY | O_CREAT | O_TRUNC, 0666);
+            }
+            if (out_fd < 0) {
+                fprintf(stderr, "Cannot open output file: %s: %s\n", output_file, strerror(errno));
+                if (in_vd >= 0) close(in_fd);
+                for (int i = 0; i < argc; i++) {
+                    free(args[i]);
+                }
+                continue;
+            }
+        }
+
+        char cmdline[MAX_INPUT] = "";
+        for (int i = 0; i < argc; i++) {
+            strncat(cmdline, args[i], sizeof(cmdline) - strlen(cmdline) - 1);
+            if (i < argc - 1) strncat(cmdline, "", sizeof(cmdline) - strlen(cmdline) - 1);
+        }
+
+        pid_t pid = fork();
+        if (pid < 0) {
+            fprintf(stderr, "fork failed: %s\n", strerror(errno));
+            if (in_fd >= 0) close(in_fd);
+            if (out_fd >= 0) close(out_fd);
+            for (int i = 0; i < argc; i++) {
+                free(args[i]);
+            }
+            continue;
+        } else if (pid == 0) {
+            if (in_fd >= 0) {
+                if (dup2(in_fd, STDIN_FILENO) < 0) {
+                    fprintf(stderr, "dup2 stdin failed: %s\n", strerror(errno));
+                    _exit(127);
+                }
+            }
+            if (out_fd >= 0) {
+                if (dup2(out_fd, STDOUT_FILENO) < 0) {
+                    fprintf(stderr, "dup2 stdout failed: %s\n", strerror(errno));
+                    _exit(127);
+                }
+            }
+
+            if (in_fd >= 0) close(in_fd);
+            if (out_fd >= 0) close(out_fd);
+
+            execvp(args[0], args);
+            execlp("sh", "sh", "-c", cmdline, (char *)NULL);
+            fprintf(stderr, "Failed to run command: %s\n", strerror(errno));
+            _exit(127);
+        } else {
+            int status = 0;
+            waitpid(pid, &status, 0);
+            if (in_fd >= 0) close(in_fd);
+            if (out_fd >= 0) close(out_fd);
+        }
+#endif
 
         for (int i = 0; i < argc; i++) {
             free(args[i]);

@@ -5,11 +5,14 @@ param (
 
 switch ($command) {
     "build" {
-        gcc $(find ..\mysh\src -name '*.c') -I..\mysh\include -o ..\mysh.exe
-
+        if ($options -eq "--linux") {
+            gcc ../mysh/src/main.c ../mysh/src/builtins/*.c ../mysh/src/utils/*.c -I../mysh/include -o ../mysh-linux
+        } else {
+            gcc ..\mysh\src\main.c ..\mysh\src\builtins\*.c ..\mysh\src\utils\*.c -I..\mysh\include -o ..\mysh-win32.exe
+        }
     }
     "run" {
-        if ($option) {
+        if ($option -eq "-o") {
             Start-Process ..\mysh.exe
         } else {
             & ..\mysh.exe
