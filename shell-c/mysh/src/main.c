@@ -191,6 +191,12 @@ int main() {
         } else if (strcmp(args[0], "unalias") == 0) {
             builtin_unalias(argc, args);
             continue;
+        } else if (strcmp(args[0], "set") == 0) {
+            builtin_set(argc, args);
+            continue;
+        } else if (strcmp(args[0], "env") == 0) {
+            builtin_env();
+            continue;
         }
 
         // Startup process
