@@ -1,6 +1,6 @@
 {
   "manifest_version": 3,
-  "name": "Custom CSS Injector",
+  "name": "CSS Injector",
   "version": "1.0",
   "description": "Apply your own CSS files to specific websites.",
   "permissions": ["storage", "scripting", "tabs", "webNavigation"],

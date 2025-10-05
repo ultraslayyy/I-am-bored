@@ -16,7 +16,7 @@ const keysPressed = new Set<string>();
 
 process.stdin.on('data', (rawkey) => {
     const key = rawkey.toString();
-    if (key === '\u0003') process.exit();
+    if (key === '\u0003') process.exit(); // Escape
     keysPressed.add(key);
     setTimeout(() => keysPressed.delete(key), 100);
 });
