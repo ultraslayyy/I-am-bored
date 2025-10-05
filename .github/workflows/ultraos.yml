@@ -1,0 +1,50 @@
+name: Build UltraOS
+
+on:
+  push:
+    branches: [ os ]
+  pull_request:
+    branches: [ os ]
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    if: false
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    - name: Install dependencies
+      run: |
+        sudo apt update
+        sudo apt install -y build-essential nasm grub-pc-bin xorriso mtools
+
+    - name: Build ISO
+      run: make
+
+    - name: Delete old release (if exists)
+      run: |
+        gh release delete ultraos-latest --yes || true
+        git push origin :refs/tags/ultraos-latest || true
+      env:
+        GITHUB_TOKEN: ${{ secrets.TOKEN }}
+
+    - name: Create new tag
+      run: |
+        git tag -f ultraos-latest
+        git push --force origin ultraos-latest
+
+    - name: Create release fwith ISO
+      uses: softprops/action-gh-release@v1
+      with:
+        tag_name: ultraos-latest
+        name: OS Build (Latest)
+        body: |
+          This is the latest build of the `os` branch.
+        files: ultraos.iso
+      env:
+        GITHUB_TOKEN: ${{ secrets.TOKEN }}
