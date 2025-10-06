@@ -72,7 +72,6 @@ flowchart TD
         P2[Win86]
         P3[WinArm64]
         FD[FrameworkDependent?]
-        FI[FINAL?]
         MI[MakeInstaller?]
     end
 
@@ -107,7 +106,6 @@ flowchart TD
     C --> F
 
     %% Installer flow
-    FI -->|Yes| MI
     MI -->|Yes| D
     MI -->|Yes| E
     MI -->|Yes| F
