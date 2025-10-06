@@ -1,4 +1,3 @@
-!include "LogicLib.nsh"
 !define APPVERSION "0.1.0"
 
 !ifdef Platform
