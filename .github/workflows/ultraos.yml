@@ -20,10 +20,24 @@ permissions:
 jobs:
   build:
     runs-on: ubuntu-latest
+    outputs:
+      skip: ${{ steps.check.outputs.skip }}
 
     steps:
     - name: Checkout code
       uses: actions/checkout@v3
+
+    - name: Check if os folder changed
+      id: check
+      run: |
+        CHANGED=$(git diff --name-only ${{ github.event.before }} ${{ github.sha }} | grep '^os/' || true)
+        if [ -z "$CHANGED" ]; then
+          echo "No changes in os/ folder, skipping build."
+          echo "skip=true" >> $GITHUB_OUTPUT
+        else
+          echo "Changes detected in os/, continuing build."
+          echo "skip=false" >> $GITHUB_OUTPUT
+        fi
 
     - name: Install dependencies
       run: |
