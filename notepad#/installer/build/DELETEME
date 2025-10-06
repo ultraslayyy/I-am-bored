@@ -1,0 +1,2 @@
+This is just a temporary file I include with this repo to make sure that the build/ directly exists, since NSIS can't create directories for its outputs.
+DO NOT DELETE THE build/ DIRECTORY, ONLY THIS FILE.

@@ -1175,7 +1175,11 @@ public class ToolsGeneratePopup : Form
 
     private void InputBox_TextChanged(object? sender, EventArgs e)
     {
-        if (string.IsNullOrWhiteSpace(outputBox.Text)) return;
+        if (string.IsNullOrWhiteSpace(outputBox.Text))
+        {
+            outputBox.Text = "";
+        }
+
         if (hashedType == HashAlgorithms.MD5)
         {
             outputBox.Text = ComputeHash(inputBox.Text, MD5.Create());
