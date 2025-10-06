@@ -118,14 +118,7 @@ flowchart TD
 ### NSIS Installer
 Installers are built with [NSIS](#prerequisites). Make sure NSIS is installed and `makensis.exe` is in your PATH.
 
-The script uses the `Platform` define to select the correct publish folder:
-```nsis
-!ifdef Platform
-  StrCpy $INSTDIR "..\publish\$Platform"
-!else
-  StrCpy $INSTDIR "..\publish\win-x64"
-!endif
-```
+The script uses the `Platform` define to select the correct publish folder.
 <!-- - Before you say anything yes the installer file is an almost 1:1 copy of the Notepad++ one. I wanted them as close as possible, and I didn't want to spend a long time trying to remake it. -->
 - Use `/DPlatform=win-x64` (or `win-x86`, `win-arm64`) when calling `makensis` directly. e.g.:
   ```bash
