@@ -39,6 +39,10 @@ jobs:
           echo "skip=false" >> $GITHUB_OUTPUT
         fi
 
+    - name: Stop if nothing changed
+      if: steps.check.outputs.skip == 'true'
+      run: exit 0
+
     - name: Install dependencies
       run: |
         sudo apt update
