@@ -64,6 +64,57 @@ You can combine options
 
 All output paths and settings are defined in `Properties/PublishProfiles/*.pubxml`.
 
+### Build Workflow Diagram
+```mermaid
+flowchart TD
+    subgraph PS["publish-all.ps1"]
+        P1[Win64]
+        P2[Win86]
+        P3[WinArm64]
+        FD[FrameworkDependent?]
+        MI[MakeInstaller?]
+    end
+
+    subgraph Profiles["Publish Profiles (.pubxml)"]
+        A[Win64]
+        B[Win86]
+        C[WinArm64]
+    end
+
+    subgraph Output["Publish Output Folders"]
+        D[win-x64]
+        E[win-x86]
+        F[win-arm64]
+    end
+
+    subgraph Installer["NSIS Installer"]
+        G[Installer for Win64]
+        H[Installer for Win86]
+        I[Installer for WinArm64]
+    end
+
+    %% Publish flow
+    P1 --> A
+    P2 --> B
+    P3 --> C
+    FD -->|Yes| A
+    FD -->|Yes| B
+    FD -->|Yes| C
+
+    A --> D
+    B --> E
+    C --> F
+
+    %% Installer flow
+    MI -->|Yes| D
+    MI -->|Yes| E
+    MI -->|Yes| F
+
+    D --> G
+    E --> H
+    F --> I
+```
+
 ### NSIS Installer
 Installers are built with [NSIS](#prerequisites). Make sure NSIS is installed and `makensis.exe` is in your PATH.
 
