@@ -36,10 +36,15 @@ publish/
 > ```bash
 > --self-contained false
 > ```
-Example:
-```bash
-dotnet publish /p:PublishProfile=Win64 --self-contained false
-```
+> Example:
+> ```bash
+> dotnet publish /p:PublishProfile=Win64 --self-contained false
+> ```
+> You can also use
+> ```bash
+> /p:PublishSingleFile=true
+> ```
+> To publish a single file, for easier distribution
 
 ### Multi-Platform Build + Installer
 To build for **all three platforms**, use the included PowerShell script:
