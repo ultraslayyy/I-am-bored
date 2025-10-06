@@ -1,5 +1,5 @@
 # Notepad#
-A remake of [Notepad++](https://notepad-plus-plus.org/) but in C# (get it because Notepad**++** is made in C**++**, so C**#** = Notepad**#**. Very funny).
+A remake of [Notepad++](https://notepad-plus-plus.org/) but in C# (get it because Notepad<b>++</b> is made in C<b>++</b>, so C<b>#</b> = Notepad<b>#</b>. Very funny).
 This is Windows only (like Notepad++).
 
 ## Prerequisites
