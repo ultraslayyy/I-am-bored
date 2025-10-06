@@ -11,5 +11,5 @@
   <ItemGroup>
     <PackageReference Include="Scintilla5.NET" Version="6.0.1" />
   </ItemGroup>
-  
+
 </Project>
