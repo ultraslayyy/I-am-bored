@@ -1,6 +1,8 @@
 param(
+    [switch]$SingleFile,
     [switch]$FrameworkDependent,
-    [switch]$MakeInstaller
+    [switch]$MakeInstaller,
+    [switch]$FINAL
 )
 
 Set-Location src
@@ -14,17 +16,33 @@ foreach ($pprofile in $profiles) {
         "WinArm64" { $platformFolder = "win-arm64" }
         default    { $platformFolder = $pprofile }
     }
+    
+    $publicArgs = @("/p:PublishProfile=$pprofile")
     if ($FrameworkDependent) {
-        Write-Host "Publishing $pprofile (framework-dependent) into publish\$platformFolder..."
-        dotnet publish /p:PublishProfile=$pprofile --self-contained false
+       $publishArgs += "/p:SelfContained=false"
     } else {
-        Write-Host "Publishing $pprofile (self-contained) into publish\$platformFolder..."
-        dotnet publish /p:PublishProfile=$pprofile
+        $publishArgs += "/p:SelfContained=true"
     }
+    if ($SingleFile) {
+        $publishArgs += "/p:PublishSingleFile=true"
+        if (-not $FrameworkDependent) { $publishArgs += "/p:PublishTrimmed=true" }
+    }
+    $publishArgs += "/p:PublishReadyToRun=true"
+    Write-Host "Publishing $pprofile ($($publishArgs -join ', ')) into publish\$platformFolder..."
+    dotnet publish $publishArgs
+
     if ($MakeInstaller) {
-        Write-Host "Building installer for $pprofile into installer/Output..."
-        Set-Location ..\installer
-        makensis /DPlatform=$platformFolder Installer.nsi
+        $installerPath = "..\installer"
+        if (-not (Test-Path "$installerPath/build")) { New-Item -ItemType Directory "$installerPath/build" }
+        Push-Location ..\installer
+        if ($FINAL) {
+            Write-Host "Building installer for $pprofile into installer/Output (FINAL)..."
+            makensis /DPlatform=$platformFolder /DFINAL Installer.nsi
+        } else {
+            Write-Host "Building installer for $pprofile into installer/Output..."
+            makensis /DPlatform=$platformFolder Installer.nsi
+        }
+        Pop-Location
     }
 }
 

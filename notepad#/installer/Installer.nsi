@@ -1,5 +1,11 @@
 !define APPVERSION "0.1.0"
 
+!ifdef Final
+    SetCompressor /SOLID lzma /FINAL
+!else
+    SetCompressor /SOLID lzma
+!endif
+
 !ifdef Platform
     !if "${Platform}" == "win-x64"
         OutFile "./build/ns.${APPVERSION}.Installer.x64.exe"

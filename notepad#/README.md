@@ -72,6 +72,7 @@ flowchart TD
         P2[Win86]
         P3[WinArm64]
         FD[FrameworkDependent?]
+        FI[FINAL?]
         MI[MakeInstaller?]
     end
 
@@ -106,6 +107,7 @@ flowchart TD
     C --> F
 
     %% Installer flow
+    FI -->|Yes| MI
     MI -->|Yes| D
     MI -->|Yes| E
     MI -->|Yes| F
@@ -132,6 +134,7 @@ The script uses the `Platform` define to select the correct publish folder:
   makensis /DPlatform=win-x64
   ```
 - When using `./publish-all.ps1 -MakeInsaller`, the script automatically sets this for each platform.
+- Use `/DFINAL` when calling `makensis` to add `/FINAL` to the compressor, reducing file size
 
 ### Running the App
 After building, navigate to the output folder for your target platform:
