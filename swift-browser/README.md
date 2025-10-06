@@ -1,6 +1,9 @@
 # Swift
 > [!IMPORTANT]
-> This have moved to it's own repository: [ultraslayyy/Swift](https://github.com/ultraslayyy/Swift), therefore there will be no updates here anymore
+> This have moved to it's own repository: [ultraslayyy/Swift](https://github.com/ultraslayyy/Swift), therefore there will be no updates here anymore.
+> I am merely keeping this here due to the idea, and the fact that this was a branch. Definitely not because I'm too lazy to delete this now that it's here
+
+---
 
 Swift is a browser with a focus on speed and efficiency. It focuses on decluttering, only including the essentials, with other features like extensions disabled by default (there is a chrome extension support Swift extension. More on that later). For this reason, some features, like the aforementioned extensions disabled by default for speed reasons, a button for them not even visible until one is installed.
 

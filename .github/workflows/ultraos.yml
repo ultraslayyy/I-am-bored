@@ -2,21 +2,46 @@ name: Build UltraOS
 
 on:
   push:
-    branches: [ os ]
+    branches: [ info ]
+    paths:
+      - 'os/Makefile'
+      - 'os/grub/**'
+      - 'os/kernel/**'
   pull_request:
-    branches: [ os ]
+    branches: [ info ]
+    paths:
+      - 'os/Makefile'
+      - 'os/grub/**'
+      - 'os/kernel/**'
 
 permissions:
   contents: write
 
 jobs:
   build:
-    if: false
     runs-on: ubuntu-latest
+    outputs:
+      skip: ${{ steps.check.outputs.skip }}
 
     steps:
     - name: Checkout code
       uses: actions/checkout@v3
+
+    - name: Check if os folder changed
+      id: check
+      run: |
+        CHANGED=$(git diff --name-only ${{ github.event.before }} ${{ github.sha }} | grep '^os/' || true)
+        if [ -z "$CHANGED" ]; then
+          echo "No changes in os/ folder, skipping build."
+          echo "skip=true" >> $GITHUB_OUTPUT
+        else
+          echo "Changes detected in os/, continuing build."
+          echo "skip=false" >> $GITHUB_OUTPUT
+        fi
+
+    - name: Stop if nothing changed
+      if: steps.check.outputs.skip == 'true'
+      run: exit 0
 
     - name: Install dependencies
       run: |
@@ -24,6 +49,7 @@ jobs:
         sudo apt install -y build-essential nasm grub-pc-bin xorriso mtools
 
     - name: Build ISO
+      working-directory: os
       run: make
 
     - name: Delete old release (if exists)
@@ -38,13 +64,13 @@ jobs:
         git tag -f ultraos-latest
         git push --force origin ultraos-latest
 
-    - name: Create release fwith ISO
+    - name: Create release with ISO
       uses: softprops/action-gh-release@v1
       with:
         tag_name: ultraos-latest
         name: OS Build (Latest)
         body: |
-          This is the latest build of the `os` branch.
-        files: ultraos.iso
+          This is the latest build of the `os` folder.
+        files: os/ultraos.iso
       env:
         GITHUB_TOKEN: ${{ secrets.TOKEN }}

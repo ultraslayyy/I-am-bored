@@ -1,5 +1,5 @@
 # Notepad#
-A remake of [Notepad++](https://notepad-plus-plus.org/) but in C# (get it because Notepad**++** is made in C**++**, so C**#** = Notepad**#**. Very funny).
+A remake of [Notepad++](https://notepad-plus-plus.org/) but in C# (get it because Notepad<b>++</b> is made in C<b>++</b>, so C<b>#</b> = Notepad<b>#</b>. Very funny).
 This is Windows only (like Notepad++).
 
 ## Prerequisites
@@ -36,10 +36,15 @@ publish/
 > ```bash
 > --self-contained false
 > ```
-Example:
-```bash
-dotnet publish /p:PublishProfile=Win64 --self-contained false
-```
+> Example:
+> ```bash
+> dotnet publish /p:PublishProfile=Win64 --self-contained false
+> ```
+> You can also use
+> ```bash
+> /p:PublishSingleFile=true
+> ```
+> To publish a single file, for easier distribution
 
 ### Multi-Platform Build + Installer
 To build for **all three platforms**, use the included PowerShell script:
@@ -72,7 +77,6 @@ flowchart TD
         P2[Win86]
         P3[WinArm64]
         FD[FrameworkDependent?]
-        FI[FINAL?]
         MI[MakeInstaller?]
     end
 
@@ -107,7 +111,6 @@ flowchart TD
     C --> F
 
     %% Installer flow
-    FI -->|Yes| MI
     MI -->|Yes| D
     MI -->|Yes| E
     MI -->|Yes| F
@@ -120,14 +123,7 @@ flowchart TD
 ### NSIS Installer
 Installers are built with [NSIS](#prerequisites). Make sure NSIS is installed and `makensis.exe` is in your PATH.
 
-The script uses the `Platform` define to select the correct publish folder:
-```nsis
-!ifdef Platform
-  StrCpy $INSTDIR "..\publish\$Platform"
-!else
-  StrCpy $INSTDIR "..\publish\win-x64"
-!endif
-```
+The script uses the `Platform` define to select the correct publish folder.
 <!-- - Before you say anything yes the installer file is an almost 1:1 copy of the Notepad++ one. I wanted them as close as possible, and I didn't want to spend a long time trying to remake it. -->
 - Use `/DPlatform=win-x64` (or `win-x86`, `win-arm64`) when calling `makensis` directly. e.g.:
   ```bash
