@@ -1,6 +1,9 @@
 import { Table } from '../dist/table';
-import { uuid } from '../dist/column-builders';
+import { Enum } from '../dist/enum';
+import { uuid, serial } from '../dist/column-builders';
 
-const users = new Table('users', {
-    id: uuid('id').defaultRandom()
+export const themeOptions = new Enum('theme', ['light', 'dark', 'system']);
+
+export const users = new Table('users', {
+    id: uuid('id', { primaryKey: true }).defaultRandom()
 });

@@ -1,13 +1,13 @@
 import { loadConfig, type ResolvedConfig } from './config.js';
 import { bundleRequire } from 'bundle-require';
-import { requiredExtensions } from './column.js';
+import { requiredExtensions } from './requiredExtensions.js';
 
 function isEnum(v: any): v is { toSQL: () => string; name: string; values: string[] } {
     return (
         v &&
-        typeof v === "object" &&
-        typeof v.toSQL === "function" &&
-        typeof v.name === "string" &&
+        typeof v === 'object' &&
+        typeof v.toSQL === 'function' &&
+        typeof v.name === 'string' &&
         Array.isArray((v as any).values)
     );
 }
@@ -15,10 +15,10 @@ function isEnum(v: any): v is { toSQL: () => string; name: string; values: strin
 function isTable(v: any): v is { toSQL: () => string; name: string; columns: Record<string, any> } {
     return (
         v &&
-        typeof v === "object" &&
-        typeof v.toSQL === "function" &&
-        typeof v.name === "string" &&
-        v.columns && typeof v.columns === "object"
+        typeof v === 'object' &&
+        typeof v.toSQL === 'function' &&
+        typeof v.name === 'string' &&
+        v.columns && typeof v.columns === 'object'
     );
 }
 
@@ -31,11 +31,12 @@ export async function generate(cwd = process.cwd(), explicitConfig?: string): Pr
     const exportsArray = Object.values(schemaModule);
 
     const parts: string[] = [];
-    for (const v of exportsArray) if (isEnum(v)) parts.push((v as any).toSQL());
-    for (const v of exportsArray) if (isTable(v)) parts.push((v as any).toSQL());
+    for (const v of exportsArray) {
+        if (isEnum(v) || isTable(v))
+            parts.push(v.toSQL());
+    }
 
-    const extSQL = Array.from(requiredExtensions).map(
-        ext => `CREATE EXTENSION IF NOT EXISTS "${ext}";`
-    );
+    console.log(requiredExtensions);
+    const extSQL = Array.from(requiredExtensions).map(ext => `CREATE EXTENSION IF NOT EXISTS "${ext}";`);
     return (extSQL.join('\n') + (extSQL.length ? '\n\n' : '') + parts.join('\n\n')) + (parts.length ? '\n' : '');
 }

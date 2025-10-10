@@ -1,4 +1,4 @@
-import { requiredExtensions } from './column.js';
+import { requiredExtensions } from './requiredExtensions.js';
 
 export type ColumnOptions = {
     primaryKey?: boolean;
@@ -53,15 +53,24 @@ export class TimestampColumn extends ColumnType {
     toSQL(name: string): string {
         return this.applyCommonOptions(`${name} TIMESTAMP`);
     }
+
+    defaultNow(): this {
+        this.options.default = () => `now()`;
+        return this;
+    }
 }
 
 export class UuidColumn extends ColumnType {
     toSQL(name: string): string {
+        if (typeof this.options.default === 'function') {
+            requiredExtensions.add('pgcrypto');
+        }
         return this.applyCommonOptions(`${name} uuid`)
     }
 
     defaultRandom(): this {
         this.options.default = () => `gen_random_uuid()`;
+        requiredExtensions.add('pgcrypto');
         return this;
     }
 }

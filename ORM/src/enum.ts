@@ -11,6 +11,6 @@ export class Enum {
     }
 
     toSQL(): string {
-        return `CREATE TYPE ${this.name} AS ENUM (${this.values.map((v) => `'${v}'`).join(', ')})`;
+        return `CREATE TYPE public.${this.name} AS ENUM (${this.values.map((v) => `'${v}'`).join(', ')})`;
     }
 }
