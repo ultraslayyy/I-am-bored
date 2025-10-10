@@ -1,5 +1,6 @@
 import { loadConfig, type ResolvedConfig } from './config.js';
 import { bundleRequire } from 'bundle-require';
+import { requiredExtensions } from './column.js';
 
 function isEnum(v: any): v is { toSQL: () => string; name: string; values: string[] } {
     return (
@@ -33,5 +34,8 @@ export async function generate(cwd = process.cwd(), explicitConfig?: string): Pr
     for (const v of exportsArray) if (isEnum(v)) parts.push((v as any).toSQL());
     for (const v of exportsArray) if (isTable(v)) parts.push((v as any).toSQL());
 
-    return parts.join('\n\n') + (parts.length ? '\n' : '');
+    const extSQL = Array.from(requiredExtensions).map(
+        ext => `CREATE EXTENSION IF NOT EXISTS "${ext}";`
+    );
+    return (extSQL.join('\n') + (extSQL.length ? '\n\n' : '') + parts.join('\n\n')) + (parts.length ? '\n' : '');
 }

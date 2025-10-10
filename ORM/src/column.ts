@@ -8,6 +8,8 @@ export type ColumnOptions = {
     default?: string | number;
 }
 
+export const requiredExtensions = new Set<string>();
+
 export class ColumnClass {
     constructor(
         public type: DataType | Enum,
@@ -15,6 +17,10 @@ export class ColumnClass {
     ) {}
 
     toSQL(name: string): string {
+        if ((this.type as any)?.name === 'uuid' && this.options.default === 'random') {
+            requiredExtensions.add('pgcrypto');
+        }
+
         let sql = `${name} ${this.type instanceof Enum ? this.type.name : this.type}`;
         if (this.options.primaryKey) sql += ' PRIMARY KEY';
         if (this.options.unique) sql += ' UNIQUE';

@@ -1,8 +1,10 @@
+import { requiredExtensions } from './column.js';
+
 export type ColumnOptions = {
     primaryKey?: boolean;
     unique?: boolean;
     notNull?: boolean;
-    default?: string | number;
+    default?: string | number | (() => string);
 }
 
 export abstract class ColumnType {
@@ -14,7 +16,13 @@ export abstract class ColumnType {
         if (this.options.primaryKey) sql += ' PRIMARY KEY';
         if (this.options.unique) sql += ' UNIQUE';
         if (this.options.notNull) sql += ' NOT NULL';
-        if (this.options.default !== undefined) sql += ` DEFAULT ${this.options.default}`;
+        if (this.options.default !== undefined) {
+            let defaultVal = this.options.default;
+            if (typeof defaultVal === 'function') {
+                defaultVal = defaultVal();
+            }
+            sql += ` DEFAULT ${defaultVal}`;
+        };
         return sql;
     }
 }
@@ -44,5 +52,16 @@ export class SerialColumn extends ColumnType {
 export class TimestampColumn extends ColumnType {
     toSQL(name: string): string {
         return this.applyCommonOptions(`${name} TIMESTAMP`);
+    }
+}
+
+export class UuidColumn extends ColumnType {
+    toSQL(name: string): string {
+        return this.applyCommonOptions(`${name} uuid`)
+    }
+
+    defaultRandom(): this {
+        this.options.default = () => `gen_random_uuid()`;
+        return this;
     }
 }
