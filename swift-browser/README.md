@@ -1,6 +1,6 @@
 # Swift
 > [!IMPORTANT]
-> This have moved to it's own repository: [ultraslayyy/Swift](https://github.com/ultraslayyy/Swift), therefore there will be no updates here anymore.
+> This have moved to it's own repository: [ultraslayyy/Lumin](https://github.com/ultraslayyy/Lumin), therefore there will be no updates here anymore.
 > I am merely keeping this here due to the idea, and the fact that this was a branch. Definitely not because I'm too lazy to delete this now that it's here
 
 ---
