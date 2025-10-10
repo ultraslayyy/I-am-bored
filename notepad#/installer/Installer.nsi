@@ -5,7 +5,7 @@
 !include "FileFunc.nsh"
 
 !define APPVERSION "0.1.0"
-!define APPNAME "Notepad# ${APPVERSION}"
+!define APPNAME "Notepad# v${APPVERSION}"
 
 SetCompressor /SOLID lzma
 
@@ -178,11 +178,23 @@ Section "-Main Program" SEC01
 
     WriteUninstaller "$INSTDIR\uninstall.exe"
     !ifdef WIN64
-        WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\Notepad#" "DisplayName" "Notepad# (64-bit x64)"
+        !ifdef CONTAINED
+            WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\Notepad#" "DisplayName" "Notepad# (64-bit x64) (contained)"
+        !else
+            WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\Notepad#" "DisplayName" "Notepad# (64-bit x64)"
+        !endif
     !else ifdef WinArm64
-        WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\Notepad#" "DisplayName" "Notepad# (ARM 64-bit)"
+        !ifdef CONTAINED
+            WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\Notepad#" "DisplayName" "Notepad# (ARM 64-bit) (contained)"
+        !else
+            WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\Notepad#" "DisplayName" "Notepad# (ARM 64-bit)"
+        !endif
     !else
-        WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\Notepad#" "DisplayName" "Notepad# (32-bit x86)"
+        !ifdef CONTAINED
+            WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\Notepad#" "DisplayName" "Notepad# (32-bit x86) (contained)"
+        !else
+            WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\Notepad#" "DisplayName" "Notepad# (32-bit x86)"
+        !endif
     !endif
     WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\Notepad#" "DisplayVersion" "${APPVERSION}"
     WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\Notepad#" "Publisher" "ultraslayyy"
@@ -199,6 +211,9 @@ Section "-Main Program" SEC01
 
     ${If} $CheckboxShortcut == ${BST_CHECKED}
         CreateShortcut "$DESKTOP\notepad#.lnk" "$INSTDIR\notepad#.exe"
+    ${EndIf}
+    ${If} $CheckboxNoAppData == ${BST_CHECKED}
+        File '.\components\doLocalConfig.xml'
     ${EndIf}
 SectionEnd
 

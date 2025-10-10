@@ -11,3 +11,13 @@ SectionGroup "Themes" ThemesComponent
         File ".\components\themes\Monokai.xml"
     SectionEnd
 SectionGroupEnd
+
+SectionGroup un.Themes
+    Section un.DarkModeDefault
+        Delete "$INSTDIR\themes\DarkModeDefault.xml"
+    SectionEnd
+
+    Section un.Monokai
+        Delete "$INSTDIR\themes\Monokai.xml"
+    SectionEnd
+SectionGroupEnd

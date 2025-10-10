@@ -6,3 +6,9 @@ SectionGroup "Function List Files" FunctionListComponent
         File ".\components\functionList\cs.xml"
     SectionEnd
 SectionGroupEnd
+
+SectionGroup un.FunctionListComponent
+    Section un.C#_FL
+        delete "$INSTDIR\functionList\cs.xml"
+    SectionEnd
+SectionGroupEnd
