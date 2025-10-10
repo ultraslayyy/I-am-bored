@@ -11,22 +11,15 @@ Set the `bin` folder as the working directory:
 ```bash
 cd bin
 ```
-**ON WINDOWS**
+**WINDOWS**
 ```bash
 ws_tools build
-```
-*OR building for linux*
-```sh
-ws_tools build --linux
 ```
 
 **ON LINUX**
 ```sh
 # Build for Linux
 ./ws_tools.sh build
-
-# Cross-compile for Windows (if mingw installed)
-./ws_tools.sh build --windows
 ```
 
 ### Run
