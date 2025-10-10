@@ -30,6 +30,10 @@ BrandingText "I use VSCode, not ts"
 
 InstType "Minimalistic"
 
+; --- Signing directives ---
+!finalize        'sign-install.bat "%1"' = 0
+!uninstfinalize  'sign-install.bat "%1"' = 0
+
 ; MUI Pages
 !insertmacro MUI_PAGE_WELCOME
 !insertmacro MUI_PAGE_LICENSE "LICENSE.txt"
