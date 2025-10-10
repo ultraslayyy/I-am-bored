@@ -18,7 +18,10 @@ addPatternBtn.addEventListener('click', () => {
     removeBtn.textContent = 'x';
     removeBtn.className = 'remove-pattern';
     removeBtn.type = "button";
-    removeBtn.addEventListener('click', () => { input.remove(); removeBtn.remove(); });
+    removeBtn.addEventListener('click', () => {
+        input.remove();
+        removeBtn.remove();
+    });
     patternsContainer.appendChild(input);
     patternsContainer.appendChild(removeBtn);
 });
@@ -188,9 +191,11 @@ importInput.addEventListener('change', async e => {
     reader.readAsText(file);
 });
 
+let liveTimeout;
 cssInput.addEventListener('input', () => {
     if (livePreview.checked) {
-        applyLivePreview(cssInput.value);
+        clearTimeout(liveTimeout);
+        liveTimeout = setTimeout(() => applyLivePreview(cssInput.value), 200);
     }
 });
 
@@ -203,35 +208,30 @@ livePreview.addEventListener('change', () => {
 });
 
 function applyLivePreview(css) {
-    chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+    chrome.tabs.query({ active: true, currentWindow: true }, async (tabs) => {
         if (!tabs[0]) return;
-        chrome.scripting.executeScript({
-            target: { tabId: tabs[0].id },
-            func: (css, id) => {
-                let style = document.getElementById(id);
-                if (!style) {
-                style = document.createElement("style");
-                style.id = id;
-                document.head.appendChild(style);
-                }
-                style.textContent = css;
-            },
-            args: [css, previewStyleId]
-        });
+
+        const tempRule = {
+            id: 'live-preview',
+            urlPatterns: ['*'],
+            css,
+            enabled: true
+        }
+
+        let { rules } = await chrome.storage.local.get('rules');
+        if (!rules) rules = [];
+
+        rules = rules.filter(r => r.id !== 'live-preview');
+        rules.push(tempRule);
+        await chrome.storage.local.set({ rules });
     });
 }
 
 function removeLivePreview() {
-    chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
-        if (!tabs[0]) return;
-        chrome.scripting.executeScript({
-            target: { tabId: tabs[0].id },
-            func: (id) => {
-                const style = document.getElementById(id);
-                if (style) style.remove();
-            },
-            args: [previewStyleId]
-        });
+    chrome.storage.local.get('rules', ({ rules }) => {
+        if (!rules) return;
+        rules = rules.filter(r => r.id !== 'live-preview');
+        chrome.storage.local.set({ rules });
     });
 }
 
