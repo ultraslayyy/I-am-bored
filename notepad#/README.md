@@ -6,6 +6,7 @@ This is Windows only (like Notepad++).
 - [**.NET-9**](<https://dotnet.microsoft.com/en-us/download/dotnet/9.0#:~:text=like%20Visual%20Studio).-,SDK%209.0.305,-Downloads%20for%20.NET>)
 - *Optional:* [**NSIS (Nullsoft Scriptable Install System)**](https://nsis.sourceforge.io/) *(if you're wishing to build the installer)*
 - Windows
+- *Optional*: [**Windows SDK**](https://developer.microsoft.com/en-us/windows/downloads/windows-sdk/) *(if you're wishing to sign the installer)*
 
 ## Running
 To run the program it's pretty simple. Run:
@@ -143,6 +144,10 @@ Then run:
 ```bash
 notepad#.exe
 ```
+
+### Signing
+Signing is handled automatically via [sign-install.bat](installer/sign-install.bat), using the [Windows SDK](#prerequisites) and its signtool.exe bin file.
+If the Windows SDK is not installed, signing is automatically skipped so it's not required
 
 ### Notes
 - All output paths and settings are defined in `Properties/PublishProfiles/*.pubxml`.
