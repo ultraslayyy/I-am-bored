@@ -3,6 +3,7 @@ using System.Security.Cryptography;
 using System.Text;
 using ScintillaNET;
 using System.Media;
+using System.Xml.Linq;
 
 namespace test;
 
@@ -97,16 +98,43 @@ public partial class MainForm : Form
         int currentPos = scintilla.CurrentPosition;
         int wordStartPost = scintilla.WordStartPosition(currentPos, true);
         int lenEntered = currentPos - wordStartPost;
-
-        if (lenEntered > 0 && !scintilla.AutoCActive)
+        if (File.Exists(@"autoCompletion\cs.xml"))
         {
-            string currentWord = scintilla.GetTextRange(wordStartPost, lenEntered);
+            XDocument doc = XDocument.Load("autoCompletion/cs.xml");
+            var keywords = doc.Descendants("KeyWord")
+                .Select(k => new
+                {
+                    Name = (string?)k.Attribute("name"),
+                    isFunction = ((string?)k.Attribute("Func")) == "yes",
+                    Overloads = k.Elements("Overload")
+                        .Select(o => new
+                        {
+                            ReturnType = (string?)o.Attribute("retVal"),
+                            Params = o.Elements("Param").Select(p => (string?)p.Attribute("name")).ToArray()
+                        }).ToArray()
+                })
+                .ToArray();
 
-            var matches = string.Join(" ", csharpKeywords.Where(k => k.StartsWith(currentWord, StringComparison.OrdinalIgnoreCase)));
-
-            if (!string.IsNullOrEmpty(matches))
+            if (lenEntered > 0 && !scintilla.AutoCActive)
             {
-                scintilla.AutoCShow(lenEntered, matches);
+                string currentWord = scintilla.GetTextRange(wordStartPost, lenEntered);
+
+                var matches = keywords
+                    .Where(k => k.Name!.StartsWith(currentWord, StringComparison.OrdinalIgnoreCase))
+                    .Select(k =>
+                    {
+                        if (!k.isFunction)
+                            return k.Name;
+
+                        return string.Join(" ", k.Overloads.Select(o =>
+                            $"{k.Name}({string.Join(", ", o.Params)})"));
+                    })
+                    .ToArray();
+
+                if (matches.Length > 0)
+                {
+                    scintilla.AutoCShow(lenEntered, string.Join(" ", matches));
+                }
             }
         }
     }
@@ -411,13 +439,15 @@ public partial class MainForm : Form
         helpMenu.DropDownItems.Add("About", null, (s, e) =>
             MessageBox.Show("Notepad#", "About"));
 
-        menu.Items.Add(fileMenu);
-        menu.Items.Add(editMenu);
-        menu.Items.Add(searchMenu);
-        menu.Items.Add(viewMenu);
-        menu.Items.Add(encodingMenu);
-        menu.Items.Add(toolsMenu);
-        menu.Items.Add(helpMenu);
+        menu.Items.AddRange([
+            fileMenu,
+            editMenu,
+            searchMenu,
+            viewMenu,
+            encodingMenu,
+            toolsMenu,
+            helpMenu
+        ]);
     }
 
     private void ToggleFullScreen()
@@ -610,18 +640,15 @@ public partial class MainForm : Form
         if (editor == null) return;
 
         using PrintDocument printDoc = new();
+        string textToPrint = editor.SelectedText.Length > 0 ? editor.SelectedText : editor.Text;
+        string[] lines = textToPrint.Split(["\r\n", "\n"], StringSplitOptions.None);
         int startPos = 0;
 
         printDoc.PrintPage += (s, ev) =>
         {
             int linesPrinted = 0;
-            int pageHeight = ev.MarginBounds.Height;
-
             int lineHeight = editor.Lines[0].Height;
-            int linesPerPage = pageHeight / lineHeight;
-
-            string textToPrint = editor.SelectedText.Length > 0 ? editor.SelectedText : editor.Text;
-            string[] lines = textToPrint.Split(["\r\n", "\n"], StringSplitOptions.None);
+            int linesPerPage = ev.MarginBounds.Height / lineHeight;
 
             for (int i = startPos; i < lines.Length && linesPrinted < linesPerPage; i++)
             {
@@ -639,14 +666,16 @@ public partial class MainForm : Form
             ev.HasMorePages = startPos < lines.Length;
         };
 
-        using PrintPreviewDialog dlg = new()
+        using PrintDialog dlg = new()
         {
-            Document = printDoc
+            Document = printDoc,
+            UseEXDialog = true
         };
 
         if (dlg.ShowDialog() == DialogResult.OK)
         {
             startPos = 0;
+            printDoc.PrinterSettings = dlg.PrinterSettings;
             printDoc.Print();
         }
     }

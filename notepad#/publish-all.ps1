@@ -1,12 +1,13 @@
 param(
     [switch]$SingleFile,
     [switch]$FrameworkDependent,
-    [switch]$MakeInstaller
+    [switch]$MakeInstaller,
+    [switch]$BothFramework
 )
 
 $originalDir = Get-Location
+$publishDir = Join-Path -Path $originalDir -ChildPath "publish"
 
-$publishDir = Join-Path -Path (Get-Location) -ChildPath "publish"
 if (Test-Path $publishDir) {
     Remove-Item -Recurse -Force $publishDir
 }
@@ -14,27 +15,38 @@ if (Test-Path $publishDir) {
 try {
     Set-Location src
 
-    $profiles = @('Win64', 'Win86', 'WinArm64')
+    if ($BothFramework) {
+        $profiles = @('Win64', 'Win86', 'WinArm64', 'Win64C', 'Win86C', 'WinArm64C')
+    } elseif ($FrameworkDependent) {
+        $profiles = @('Win64', 'Win86', 'WinArm64')
+    } else {
+        $profiles = @('Win64C', 'Win86C', 'WinArm64C')
+    }
 
-    foreach ($pprofile in $profiles) {
-        switch ($pprofile) {
-            "Win64"    { $platformFolder = "win-x64" }
-            "Win86"    { $platformFolder = "win-x86" }
-            "WinArm64" { $platformFolder = "win-arm64" }
-            default    { $platformFolder = $pprofile }
+    foreach ($instProfile in $profiles) {
+
+        switch ($instProfile) {
+            "Win64"    { $platformFolder = "win-x64";  $pprofile = "Win64" }
+            "Win64C"   { $platformFolder = "win-x64";  $pprofile = "Win64" }
+            "Win86"    { $platformFolder = "win-x86";  $pprofile = "Win86" }
+            "Win86C"   { $platformFolder = "win-x86";  $pprofile = "Win86" }
+            "WinArm64" { $platformFolder = "win-arm64"; $pprofile = "WinArm64" }
+            "WinArm64C"{ $platformFolder = "win-arm64"; $pprofile = "WinArm64" }
         }
 
         $publishArgs = @("/p:PublishProfile=$pprofile")
 
-        if ($FrameworkDependent) {
-            $publishArgs += "/p:SelfContained=false"
-        } else {
+        if ($instProfile -like "*C") {
             $publishArgs += "/p:SelfContained=true"
+        } else {
+            $publishArgs += "/p:SelfContained=false"
         }
 
         if ($SingleFile) {
             $publishArgs += "/p:PublishSingleFile=true"
-            if (-not $FrameworkDependent) { $publishArgs += "/p:PublishTrimmed=true" }
+            if ($instProfile -like "*C") {
+                $publishArgs += "/p:PublishTrimmed=true"
+            }
         }
 
         $publishArgs += "/p:PublishReadyToRun=true"
@@ -47,9 +59,16 @@ try {
             if (-not (Test-Path "$installerPath/build")) { 
                 New-Item -ItemType Directory "$installerPath/build" | Out-Null 
             }
-            Push-Location ..\installer
+
+            Push-Location $installerPath
             Write-Host "Building installer for $pprofile into installer/Output..."
-            makensis /D$pprofile Installer.nsi
+
+            if ($instProfile -like "*C") {
+                makensis /D$pprofile /DCONTAINED Installer.nsi
+            } else {
+                makensis /D$pprofile Installer.nsi
+            }
+
             Pop-Location
         }
     }

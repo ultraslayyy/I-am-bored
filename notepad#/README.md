@@ -78,6 +78,7 @@ flowchart TD
         P3[WinArm64]
         FD[FrameworkDependent?]
         MI[MakeInstaller?]
+        SF[SingleFile?]
     end
 
     subgraph Profiles["Publish Profiles (.pubxml)"]
@@ -111,6 +112,7 @@ flowchart TD
     C --> F
 
     %% Installer flow
+    SF -->|Yes| MI
     MI -->|Yes| D
     MI -->|Yes| E
     MI -->|Yes| F
