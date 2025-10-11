@@ -28,7 +28,6 @@ public partial class MainForm : Form
         InitializeTabs();
         InitializeMenu();
         AddNewTab();
-        AddNewTab();
         ResumeLayout(true);
     }
 
@@ -46,9 +45,14 @@ public partial class MainForm : Form
 
     private ToolStripMenuItem deleteItem = null!;
 
-    private void AddNewTab(string title = "Untitled", string text = "")
+    private void AddNewTab(string title = "new", string text = "")
     {
-        var page = new TabPage(title);
+        int num = 1;
+        for (int i = 0; i < tabControl.TabPages.Count; i++)
+        {
+            if (tabControl.TabPages[i].Text == $"{title} {num}") num++;
+        }
+        var page = new TabPage($"{title} {num}");
         var editor = new Scintilla
         {
             Dock = DockStyle.Fill,
