@@ -14,6 +14,7 @@ addPatternBtn.addEventListener('click', () => {
     input.type = 'text';
     input.className = 'pattern-input';
     input.placeholder = 'Site pattern (e.g. * or https://*.example.com/*)';
+
     const removeBtn = document.createElement('button');
     removeBtn.textContent = 'x';
     removeBtn.className = 'remove-pattern';
@@ -22,6 +23,7 @@ addPatternBtn.addEventListener('click', () => {
         input.remove();
         removeBtn.remove();
     });
+    
     patternsContainer.appendChild(input);
     patternsContainer.appendChild(removeBtn);
 });
