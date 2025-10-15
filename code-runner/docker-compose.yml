@@ -1,0 +1,64 @@
+version: '3.9'
+services:
+
+  typescript:
+    build:
+      context: .
+      dockerfile: Dockerfiles/Dockerfile.typescript
+    container_name: runner_typescript
+    working_dir: /app
+    volumes:
+      - ./code:/app
+    stdin_open: true
+    tty: true
+
+  pandas:
+    build:
+      context: .
+      dockerfile: Dockerfiles/Dockerfile.pandas
+    container_name: runner_pandas
+    working_dir: /app
+    volumes:
+      - ./code:/app
+    stdin_open: true
+    tty: true
+
+  mssql:
+    build:
+      context: .
+      dockerfile: Dockerfiles/Dockerfile.mssql
+    container_name: runner_mssql
+    ports:
+      - "1433:1433"
+    environment:
+      ACCEPT_EULA: "Y"
+      SA_PASSWORD: "StrongPassword123!"
+    volumes:
+      - ./code:/app
+    stdin_open: true
+    tty: true
+
+  oracle:
+    build:
+      context: .
+      dockerfile: Dockerfiles/Dockerfile.oracle
+    container_name: runner_oracle
+    ports:
+      - "1521:1521"
+    environment:
+      ORACLE_PASSWORD: "oracle"
+    volumes:
+      - ./code:/app
+    stdin_open: true
+    tty: true
+
+  kotlin:
+    build:
+      context: .
+      dockerfile: Dockerfiles/Dockerfile.kotlin
+    container_name: runner_kotlin
+    working_dir: /app
+    volumes:
+      - ./code:/app
+    stdin_open: true
+    tty: true

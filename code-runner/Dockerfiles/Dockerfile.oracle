@@ -1,0 +1,7 @@
+FROM gvenzl/oracle-xe
+
+ENV ORACLE_PASSWORD=oracle
+
+WORKDIR /app
+
+CMD ["bash"]
