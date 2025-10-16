@@ -101,7 +101,9 @@ export async function runCodeLocal({ code, language, testCases, filenamePrefix, 
     }
 }
 
-export async function runCodeDocker(code: string, language: string, input = '', filenamePrefix?: string): Promise<RunResult> {
+export async function runCodeDocker({ code, language, testCases, filenamePrefix }: { code: string, language: string, testCases: TestCase[], filenamePrefix?: string }): Promise<TestCaseResult[]>;
+export async function runCodeDocker({ code, language, filenamePrefix, input }: { code: string, language: string, filenamePrefix?: string, input: string }): Promise<RunResult>;
+export async function runCodeDocker({ code, language, testCases, filenamePrefix, input = '' }: { code: string, language: string, testCases?: TestCase[], filenamePrefix?: string, input?: string }): Promise<RunResult | TestCaseResult[]> {
     const lang = LANGS[language.toLowerCase()];
     if (!lang) throw new Error(`Unsupported language: ${language}`);
 
@@ -128,16 +130,36 @@ export async function runCodeDocker(code: string, language: string, input = '', 
         ? `docker exec -i ${containerOrImage} bash -c "echo \\\"$INPUT\\\" | ${runCmd}"`
         : `docker run --rm --network none --cpus=.5 -m 256m -v "${codeDir}:/app" -w /app ${containerOrImage} bash -c "echo \\\"$INPUT\\\" | ${runCmd}"`
 
-    const result = await execAsync(dockerCmd, input);
+    if (testCases) {
+        const results: TestCaseResult[] = [];
+        for (const test of testCases) {
+            const rawRes = await execAsync(dockerCmd, test.input);
+            const res = formatDockerTimeMem(rawRes);
+            const cleanedOut = res.stdout.trim();
+            const expected = test.expected?.trim();
+            results.push({
+                ...res,
+                input: test.input,
+                ...(expected ? { expected } : {}),
+                passed: expected ? cleanedOut === expected : false
+            });
+        }
+        return results;
+    } else {
+        const result = await execAsync(dockerCmd, input);
+        return formatDockerTimeMem(result);
+    }
 
-    let timeMs = 0;
-    let memoryKb = 0;
-    const timeMatch = result.stderr.match(/TIME:([\d.]+)/);
-    const memMatch = result.stderr.match(/MEM:(\d+)/);
-    if (timeMatch) timeMs = parseFloat(timeMatch[1]!) * 1000;
-    if (memMatch) memoryKb = parseInt(memMatch[1]!);
+    function formatDockerTimeMem(res: RunResult) {
+        let timeMs = 0;
+        let memoryKb = 0;
+        const timeMatch = res.stderr.match(/TIME:([\d.]+)/);
+        const memMatch = res.stderr.match(/MEM:(\d+)/);
+        if (timeMatch) timeMs = parseFloat(timeMatch[1]!) * 1000;
+        if (memMatch) memoryKb = parseInt(memMatch[1]!);
 
-    return { ...result, timeMs, memoryKb }
+        return { ...res, timeMs, memMatch }
+    }
 }
 
 function execAsync(cmd: string, input = ''): Promise<RunResult> {
