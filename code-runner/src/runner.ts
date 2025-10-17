@@ -3,7 +3,6 @@ import path from 'node:path';
 import { exec } from 'node:child_process';
 
 export interface TestCaseOptions {
-    // TODO
     parallel?: boolean;
     cases: TestCase[];
 }
@@ -90,18 +89,33 @@ export async function runCodeLocal({ code, language, testCases, filenamePrefix, 
     const runCmd = formatCmd(lang.run, filePath);
 
     if (testCases) {
-        const results: TestCaseResult[] = [];
-        for (const test of testCases.cases) {
-            const res = await execAsync(runCmd, test.input);
-            const cleanedOut = res.stdout.trim();
-            const expected = test.expected?.trim();
-            results.push({
-                ...res,
-                input: test.input,
-                ...(expected ? { expected } : {}),
-                passed: expected ? cleanedOut === expected : false
-            });
+        let results: TestCaseResult[] = [];
+        if (testCases.parallel) {
+            results = await Promise.all(testCases.cases.map(async (test): Promise<TestCaseResult> => {
+                const res = await execAsync(runCmd, test.input);
+                const cleanedOut = res.stdout.trim();
+                const expected = test.expected?.trim();
+                return {
+                    ...res,
+                    input: test.input,
+                    ...(expected ? { expected } : {}),
+                    passed: expected ? cleanedOut === expected : false
+                }
+            }));
+        } else {
+            for (const test of testCases.cases) {
+                const res = await execAsync(runCmd, test.input);
+                const cleanedOut = res.stdout.trim();
+                const expected = test.expected?.trim();
+                results.push({
+                    ...res,
+                    input: test.input,
+                    ...(expected ? { expected } : {}),
+                    passed: expected ? cleanedOut === expected : false
+                });
+            }
         }
+
         return results;
     } else {
         return execAsync(runCmd, input);
@@ -129,7 +143,7 @@ export async function runCodeDocker({ code, language, testCases, filenamePrefix,
     const uniqueId = Date.now() + '-' + Math.random().toString(36).slice(2, 8);
     const filePath = path.join(codeDir, `${filenamePrefix ?? 'run'}-${uniqueId}${lang.ext}`);
     fs.writeFileSync(filePath, code);
-    
+
     const runCmd = formatCmd(lang.run, `/app/${path.basename(filePath)}`);
 
     const dockerCmd = isCustom
@@ -137,19 +151,35 @@ export async function runCodeDocker({ code, language, testCases, filenamePrefix,
         : `docker run --rm --network none --cpus=.5 -m 256m -v "${codeDir}:/app" -w /app ${containerOrImage} bash -c "echo \\\"$INPUT\\\" | ${runCmd}"`
 
     if (testCases) {
-        const results: TestCaseResult[] = [];
-        for (const test of testCases.cases) {
-            const rawRes = await execAsync(dockerCmd, test.input);
-            const res = formatDockerTimeMem(rawRes);
-            const cleanedOut = res.stdout.trim();
-            const expected = test.expected?.trim();
-            results.push({
-                ...res,
-                input: test.input,
-                ...(expected ? { expected } : {}),
-                passed: expected ? cleanedOut === expected : false
-            });
+        let results: TestCaseResult[] = [];
+        if (testCases.parallel) {
+            results = await Promise.all(testCases.cases.map(async (test): Promise<TestCaseResult> => {
+                const rawRes = await execAsync(dockerCmd, test.input);
+                const res = formatDockerTimeMem(rawRes);
+                const cleanedOut = res.stdout.trim();
+                const expected = test.expected?.trim();
+                return {
+                    ...res,
+                    input: test.input,
+                    ...(expected ? { expected } : {}),
+                    passed: expected ? cleanedOut === expected : false
+                }
+            }));
+        } else {
+            for (const test of testCases.cases) {
+                const rawRes = await execAsync(dockerCmd, test.input);
+                const res = formatDockerTimeMem(rawRes);
+                const cleanedOut = res.stdout.trim();
+                const expected = test.expected?.trim();
+                results.push({
+                    ...res,
+                    input: test.input,
+                    ...(expected ? { expected } : {}),
+                    passed: expected ? cleanedOut === expected : false
+                });
+            }
         }
+
         return results;
     } else {
         const result = await execAsync(dockerCmd, input);
@@ -164,7 +194,7 @@ export async function runCodeDocker({ code, language, testCases, filenamePrefix,
         if (timeMatch) timeMs = parseFloat(timeMatch[1]!) * 1000;
         if (memMatch) memoryKb = parseInt(memMatch[1]!);
 
-        return { ...res, timeMs, memMatch }
+        return { ...res, timeMs, memoryKb }
     }
 }
 
