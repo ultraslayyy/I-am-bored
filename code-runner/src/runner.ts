@@ -35,7 +35,9 @@ interface LangConfig {
     dockerImage: string;
 }
 
-const LANGS: Record<string, LangConfig> = {
+type Lang = 'python' | 'python3' | 'javascript' | 'typescript' | 'cpp' | 'c' | 'java' | 'csharp' | 'go' | 'kotlin' | 'swift' | 'rust' | 'ruby' | 'php' | 'dart' | 'scala' | 'elixir' | 'erlang' | 'racket' | 'bash' | 'mysql' | 'ms sql' | 'postgres' | 'oracle' | 'pandas'
+
+const LANGS: Record<Lang, LangConfig> = {
     python:     { ext: '.py', run: 'python3 {file}', dockerImage: 'python:3.14' },
     python3:    { ext: '.py', run: 'python {file}', dockerImage: 'python:2.7.18' },
     javascript: { ext: '.js', run: 'node {file}', dockerImage: 'node:20' },
@@ -68,11 +70,10 @@ function formatCmd(template: string, filePath: string): string {
     return template.replace(/\{file\}/g, filePath).replace(/\{base\}/g, base);
 }
 
-export async function runCodeLocal({ code, language, testCases, filenamePrefix }: { code: string, language: string, testCases: TestCaseOptions, filenamePrefix?: string }): Promise<TestCaseResult[]>;
-export async function runCodeLocal({ code, language, filenamePrefix, input }: { code: string, language: string, filenamePrefix?: string, input: string }): Promise<RunResult>;
-export async function runCodeLocal({ code, language, testCases, filenamePrefix, input = '' }: { code: string, language: string, testCases?: TestCaseOptions, filenamePrefix?: string, input?: string }): Promise<RunResult | TestCaseResult[]> {
-    const lang = LANGS[language.toLowerCase()];
-    if (!lang) throw new Error(`Unsupported language: ${language}`);
+export async function runCodeLocal({ code, language, testCases, filenamePrefix }: { code: string, language: Lang, testCases: TestCaseOptions, filenamePrefix?: string }): Promise<TestCaseResult[]>;
+export async function runCodeLocal({ code, language, filenamePrefix, input }: { code: string, language: Lang, filenamePrefix?: string, input: string }): Promise<RunResult>;
+export async function runCodeLocal({ code, language, testCases, filenamePrefix, input = '' }: { code: string, language: Lang, testCases?: TestCaseOptions, filenamePrefix?: string, input?: string }): Promise<RunResult | TestCaseResult[]> {
+    const lang = LANGS[language];
 
     const tempDir = path.resolve('temp');
     if (!fs.existsSync(tempDir)) fs.mkdirSync(tempDir);
@@ -107,11 +108,10 @@ export async function runCodeLocal({ code, language, testCases, filenamePrefix, 
     }
 }
 
-export async function runCodeDocker({ code, language, testCases, filenamePrefix }: { code: string, language: string, testCases: TestCaseOptions, filenamePrefix?: string }): Promise<TestCaseResult[]>;
-export async function runCodeDocker({ code, language, filenamePrefix, input }: { code: string, language: string, filenamePrefix?: string, input: string }): Promise<RunResult>;
-export async function runCodeDocker({ code, language, testCases, filenamePrefix, input = '' }: { code: string, language: string, testCases?: TestCaseOptions, filenamePrefix?: string, input?: string }): Promise<RunResult | TestCaseResult[]> {
-    const lang = LANGS[language.toLowerCase()];
-    if (!lang) throw new Error(`Unsupported language: ${language}`);
+export async function runCodeDocker({ code, language, testCases, filenamePrefix }: { code: string, language: Lang, testCases: TestCaseOptions, filenamePrefix?: string }): Promise<TestCaseResult[]>;
+export async function runCodeDocker({ code, language, filenamePrefix, input }: { code: string, language: Lang, filenamePrefix?: string, input: string }): Promise<RunResult>;
+export async function runCodeDocker({ code, language, testCases, filenamePrefix, input = '' }: { code: string, language: Lang, testCases?: TestCaseOptions, filenamePrefix?: string, input?: string }): Promise<RunResult | TestCaseResult[]> {
+    const lang = LANGS[language];
 
     const customContainers: Record<string, string> = {
         typescript: 'runner_typescript',
