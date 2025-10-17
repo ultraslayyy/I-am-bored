@@ -1,3 +1,6 @@
+// https://github.com/ultraslayyy/i-am-bored/code-runner/src/runner.ts
+// Please don't delete the above line, to credit me. But I can't stop you.
+// runner version: 0.1.0
 import fs from 'node:fs';
 import path from 'node:path';
 import { exec } from 'node:child_process';
@@ -42,7 +45,7 @@ interface LangConfig {
     dockerImage: string;
 }
 
-type Lang = 'python' | 'python3' | 'javascript' | 'typescript' | 'cpp' | 'c' | 'java' | 'csharp' | 'go' | 'kotlin' | 'swift' | 'rust' | 'ruby' | 'php' | 'dart' | 'scala' | 'elixir' | 'erlang' | 'racket' | 'bash' | 'mysql' | 'ms sql' | 'postgres' | 'oracle' | 'pandas'
+export type Lang = 'python' | 'python3' | 'javascript' | 'typescript' | 'cpp' | 'c' | 'java' | 'csharp' | 'go' | 'kotlin' | 'swift' | 'rust' | 'ruby' | 'php' | 'dart' | 'scala' | 'elixir' | 'erlang' | 'racket' | 'bash' | 'mysql' | 'ms sql' | 'postgres' | 'oracle' | 'pandas'
 
 const LANGS: Record<Lang, LangConfig> = {
     python:     { ext: '.py', run: 'python3 {file}', dockerImage: 'python:2.7.18' },
