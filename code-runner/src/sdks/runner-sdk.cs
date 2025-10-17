@@ -1,4 +1,4 @@
-// https://github.com/ultraslayyy/i-am-bored/code-runner/src/sdks/runner-sdk.cs
+// https://github.com/ultraslayyy/I-am-bored/tree/info/code-runner/src/sdks/runner-sdk.cs
 // Please don't delete the above line, to credit me. But I can't stop you.
 using System.Diagnostics;
 using System.Net.Sockets;

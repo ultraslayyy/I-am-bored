@@ -1,4 +1,4 @@
-# https://github.com/ultraslayyy/i-am-bored/code-runner/src/sdks/runner-sdk.py
+# https://github.com/ultraslayyy/I-am-bored/tree/info/code-runner/src/sdks/runner-sdk.py
 # Please don't delete the above line, to credit me. But I can't stop you.
 import socket, json, subprocess, sys, threading
 from typing import Optional, List, Dict, Any, Union

@@ -1,4 +1,4 @@
-// https://github.com/ultraslayyy/i-am-bored/code-runner/src/runner.ts
+// https://github.com/ultraslayyy/I-am-bored/tree/info/code-runner/src/runner.ts
 // Please don't delete the above line, to credit me. But I can't stop you.
 // runner version: 0.1.0
 import fs from 'node:fs';

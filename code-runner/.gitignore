@@ -1,0 +1,4 @@
+src/rewrites/*.c
+src/rewrites/*.cpp
+src/rewrites/*.h
+src/rewrites/*.hpp

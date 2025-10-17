@@ -1,4 +1,4 @@
-// https://github.com/ultraslayyy/i-am-bored/code-runner/src/runner-server.ts
+// https://github.com/ultraslayyy/I-am-bored/tree/info/code-runner/src/runner-server.ts
 // Please don't delete the above line, to credit me. But I can't stop you.
 import net from 'node:net';
 import { runCodeLocal, runCodeDocker, type TestCaseOptions, type RunResult, type TestCaseResult, type Lang } from './runner.js';
