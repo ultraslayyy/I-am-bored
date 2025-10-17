@@ -4,6 +4,14 @@ import { exec } from 'node:child_process';
 
 export interface TestCaseOptions {
     parallel?: boolean;
+
+    /**
+     * Limit for number of simultaneous processes if parellel is true.
+     * @requires parallel
+     * @default 10
+     */
+    concurrencyLimit?: number;
+
     cases: TestCase[];
 }
 
@@ -37,8 +45,8 @@ interface LangConfig {
 type Lang = 'python' | 'python3' | 'javascript' | 'typescript' | 'cpp' | 'c' | 'java' | 'csharp' | 'go' | 'kotlin' | 'swift' | 'rust' | 'ruby' | 'php' | 'dart' | 'scala' | 'elixir' | 'erlang' | 'racket' | 'bash' | 'mysql' | 'ms sql' | 'postgres' | 'oracle' | 'pandas'
 
 const LANGS: Record<Lang, LangConfig> = {
-    python:     { ext: '.py', run: 'python3 {file}', dockerImage: 'python:3.14' },
-    python3:    { ext: '.py', run: 'python {file}', dockerImage: 'python:2.7.18' },
+    python:     { ext: '.py', run: 'python3 {file}', dockerImage: 'python:2.7.18' },
+    python3:    { ext: '.py', run: 'python {file}', dockerImage: 'python:3.14' },
     javascript: { ext: '.js', run: 'node {file}', dockerImage: 'node:20' },
     typescript: { ext: '.ts', compile: 'tsc {file}', run: 'node {base}.js', dockerImage: 'node:20' },
     cpp:        { ext: '.cpp', compile: 'g++ {file} -o {base}.out', run: './{base}.out', dockerImage: 'gcc:latest' },
@@ -57,7 +65,7 @@ const LANGS: Record<Lang, LangConfig> = {
     erlang:     { ext: '.erl', compile: 'erlc {file}', run: 'erl -noshell -s {base} main -s init stop', dockerImage: 'erlang:26' },
     racket:     { ext: '.rkt', run: 'racket {file}', dockerImage: 'racket/racket:latest' },
     bash:       { ext: '.sh', run: 'bash {file}', dockerImage: 'bash:latest' },
-    mysql:      { ext: '.sql', run: 'mysql -u root -e \'source {file}\'', dockerImage: 'mysql:8' },
+    mysql:      { ext: '.sql', run: "mysql -u root -e 'source {file}'", dockerImage: 'mysql:8' },
     'ms sql':   { ext: '.sql', run: 'sqlcmd -i {file}', dockerImage: 'mcr.microsoft.com/mssql/server:2022-latest' },
     postgres:   { ext: '.sql', run: 'psql -U postgres -f {file}', dockerImage: 'postgres:16' },
     oracle:     { ext: '.sql', run: "sqlplus -S user/pass@db @'{file}'", dockerImage: 'gvenzl/oracle-xe' },
@@ -70,12 +78,12 @@ function formatCmd(template: string, filePath: string): string {
 }
 
 export async function runCodeLocal({ code, language, testCases, filenamePrefix }: { code: string, language: Lang, testCases: TestCaseOptions, filenamePrefix?: string }): Promise<TestCaseResult[]>;
-export async function runCodeLocal({ code, language, filenamePrefix, input }: { code: string, language: Lang, filenamePrefix?: string, input: string }): Promise<RunResult>;
+export async function runCodeLocal({ code, language, filenamePrefix, input }: { code: string, language: Lang, filenamePrefix?: string, input?: string }): Promise<RunResult>;
 export async function runCodeLocal({ code, language, testCases, filenamePrefix, input = '' }: { code: string, language: Lang, testCases?: TestCaseOptions, filenamePrefix?: string, input?: string }): Promise<RunResult | TestCaseResult[]> {
     const lang = LANGS[language];
 
     const tempDir = path.resolve('temp');
-    if (!fs.existsSync(tempDir)) fs.mkdirSync(tempDir);
+    if (!fs.existsSync(tempDir)) fs.mkdirSync(tempDir, { recursive: true });
     const uniqueId = Date.now() + '-' + Math.random().toString(36).slice(2, 8);
     const filePath = path.join(tempDir, `${filenamePrefix ?? 'run'}-${uniqueId}${lang.ext}`);
     fs.writeFileSync(filePath, code);
@@ -91,7 +99,7 @@ export async function runCodeLocal({ code, language, testCases, filenamePrefix, 
     if (testCases) {
         let results: TestCaseResult[] = [];
         if (testCases.parallel) {
-            results = await Promise.all(testCases.cases.map(async (test): Promise<TestCaseResult> => {
+            const tasks = testCases.cases.map((test) => async (): Promise<TestCaseResult> => {
                 const res = await execAsync(runCmd, test.input);
                 const cleanedOut = res.stdout.trim();
                 const expected = test.expected?.trim();
@@ -101,7 +109,9 @@ export async function runCodeLocal({ code, language, testCases, filenamePrefix, 
                     ...(expected ? { expected } : {}),
                     passed: expected ? cleanedOut === expected : false
                 }
-            }));
+            });
+
+            results = await runWithLimit(tasks, testCases.concurrencyLimit ?? 10);
         } else {
             for (const test of testCases.cases) {
                 const res = await execAsync(runCmd, test.input);
@@ -153,7 +163,7 @@ export async function runCodeDocker({ code, language, testCases, filenamePrefix,
     if (testCases) {
         let results: TestCaseResult[] = [];
         if (testCases.parallel) {
-            results = await Promise.all(testCases.cases.map(async (test): Promise<TestCaseResult> => {
+            const tasks = testCases.cases.map((test) => async (): Promise<TestCaseResult> => {
                 const rawRes = await execAsync(dockerCmd, test.input);
                 const res = formatDockerTimeMem(rawRes);
                 const cleanedOut = res.stdout.trim();
@@ -164,7 +174,9 @@ export async function runCodeDocker({ code, language, testCases, filenamePrefix,
                     ...(expected ? { expected } : {}),
                     passed: expected ? cleanedOut === expected : false
                 }
-            }));
+            });
+            
+            results = await runWithLimit(tasks, testCases.concurrencyLimit ?? 10);
         } else {
             for (const test of testCases.cases) {
                 const rawRes = await execAsync(dockerCmd, test.input);
@@ -206,8 +218,8 @@ function execAsync(cmd: string, input = ''): Promise<RunResult> {
             const timeMs = Number(end - start) / 1e6;
 
             resolve({
-                stdout,
-                stderr,
+                stdout: stdout.slice(0, 8192),
+                stderr: stderr.slice(0, 8192),
                 exitCode: (error as any)?.code ?? 0,
                 success: !error,
                 timeMs,
@@ -218,5 +230,30 @@ function execAsync(cmd: string, input = ''): Promise<RunResult> {
             proc.stdin?.write(input);
             proc.stdin?.end();
         }
+    });
+}
+
+async function runWithLimit<T>(tasks: (() => Promise<T>)[], limit: number): Promise<T[]> {
+    const results: T[] = [];
+    let active = 0;
+    let index = 0;
+
+    return new Promise((resolve, reject) => {
+        const next = () => {
+            if (index === tasks.length && active === 0) return resolve(results);
+            while (active < limit && index < tasks.length) {
+                const currentIndex = index++;
+                const task = tasks[currentIndex];
+                active++;
+                task?.()
+                    .then(res => (results[currentIndex] = res))
+                    .catch(reject)
+                    .finally(() => {
+                        active--;
+                        next();
+                    });
+            }
+        }
+        next();
     });
 }
