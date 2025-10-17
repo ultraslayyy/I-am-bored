@@ -2,6 +2,12 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { exec } from 'node:child_process';
 
+export interface TestCaseOptions {
+    // TODO
+    parallel?: boolean;
+    cases: TestCase[];
+}
+
 export interface TestCase {
     input: string;
     expected?: string;
@@ -62,9 +68,9 @@ function formatCmd(template: string, filePath: string): string {
     return template.replace(/\{file\}/g, filePath).replace(/\{base\}/g, base);
 }
 
-export async function runCodeLocal({ code, language, testCases, filenamePrefix }: { code: string, language: string, testCases: TestCase[], filenamePrefix?: string }): Promise<TestCaseResult[]>;
+export async function runCodeLocal({ code, language, testCases, filenamePrefix }: { code: string, language: string, testCases: TestCaseOptions, filenamePrefix?: string }): Promise<TestCaseResult[]>;
 export async function runCodeLocal({ code, language, filenamePrefix, input }: { code: string, language: string, filenamePrefix?: string, input: string }): Promise<RunResult>;
-export async function runCodeLocal({ code, language, testCases, filenamePrefix, input = '' }: { code: string, language: string, testCases?: TestCase[], filenamePrefix?: string, input?: string }): Promise<RunResult | TestCaseResult[]> {
+export async function runCodeLocal({ code, language, testCases, filenamePrefix, input = '' }: { code: string, language: string, testCases?: TestCaseOptions, filenamePrefix?: string, input?: string }): Promise<RunResult | TestCaseResult[]> {
     const lang = LANGS[language.toLowerCase()];
     if (!lang) throw new Error(`Unsupported language: ${language}`);
 
@@ -84,7 +90,7 @@ export async function runCodeLocal({ code, language, testCases, filenamePrefix, 
 
     if (testCases) {
         const results: TestCaseResult[] = [];
-        for (const test of testCases) {
+        for (const test of testCases.cases) {
             const res = await execAsync(runCmd, test.input);
             const cleanedOut = res.stdout.trim();
             const expected = test.expected?.trim();
@@ -101,9 +107,9 @@ export async function runCodeLocal({ code, language, testCases, filenamePrefix, 
     }
 }
 
-export async function runCodeDocker({ code, language, testCases, filenamePrefix }: { code: string, language: string, testCases: TestCase[], filenamePrefix?: string }): Promise<TestCaseResult[]>;
+export async function runCodeDocker({ code, language, testCases, filenamePrefix }: { code: string, language: string, testCases: TestCaseOptions, filenamePrefix?: string }): Promise<TestCaseResult[]>;
 export async function runCodeDocker({ code, language, filenamePrefix, input }: { code: string, language: string, filenamePrefix?: string, input: string }): Promise<RunResult>;
-export async function runCodeDocker({ code, language, testCases, filenamePrefix, input = '' }: { code: string, language: string, testCases?: TestCase[], filenamePrefix?: string, input?: string }): Promise<RunResult | TestCaseResult[]> {
+export async function runCodeDocker({ code, language, testCases, filenamePrefix, input = '' }: { code: string, language: string, testCases?: TestCaseOptions, filenamePrefix?: string, input?: string }): Promise<RunResult | TestCaseResult[]> {
     const lang = LANGS[language.toLowerCase()];
     if (!lang) throw new Error(`Unsupported language: ${language}`);
 
@@ -132,7 +138,7 @@ export async function runCodeDocker({ code, language, testCases, filenamePrefix,
 
     if (testCases) {
         const results: TestCaseResult[] = [];
-        for (const test of testCases) {
+        for (const test of testCases.cases) {
             const rawRes = await execAsync(dockerCmd, test.input);
             const res = formatDockerTimeMem(rawRes);
             const cleanedOut = res.stdout.trim();
