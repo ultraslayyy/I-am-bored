@@ -1,7 +1,11 @@
 let activeEffect: (() => void) | null = null;
 const dependencyMap = new WeakMap();
 
-export function useState(initialValue: any) {
+type StateObject<T> = {
+    value: T;
+}
+
+export function useState<T>(initialValue: T): StateObject<T> {
     let value = initialValue;
     
     const handler = {
