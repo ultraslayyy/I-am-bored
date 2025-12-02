@@ -1,9 +1,0 @@
-{
-    "files.associations": {
-        "xstring": "cpp",
-        "optional": "cpp",
-        "runner.h": "c",
-        "string": "cpp",
-        "windows.h": "c"
-    }
-}
