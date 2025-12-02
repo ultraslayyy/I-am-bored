@@ -9,9 +9,9 @@ switch ($command) {
     }
     "run" {
         if ($option -eq "-o") {
-            Start-Process ..\mysh.exe
+            Start-Process ..\mysh-win32.exe
         } else {
-            & ..\mysh.exe
+            & ..\mysh-win32.exe
         }
     }
     default {
