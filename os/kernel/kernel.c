@@ -1,3 +1,5 @@
+#include <stdint.h>
+
 void kernel_main() {
     const char* msg = "MUM ARE YOU PROUD OF ME!?";
     char* vidmem = (char*) 0xb8000;
