@@ -1,6 +1,3 @@
-// g++ -c main.cpp -o main.o -I.
-// g++ main.o -o texasholdem ultras_utils.lib
-
 #include <iostream>
 #include <vector>
 #include <cstdlib>

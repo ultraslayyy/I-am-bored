@@ -34,7 +34,7 @@ goto :eof
 
 :BuildA
 echo === Building static library (.a) ===
-g++ -c ultras_utils.cpp -o ultras_utils.o -I.
+g++ -c ultras_utils.cpp -DULTRAS_UTILS_STATIC -o ultras_utils.o -I.
 ar rcs ultras_utils.a ultras_utils.o
 del ultras_utils.o
 goto :eof
@@ -46,9 +46,9 @@ if not exist ultras_utils.a (
     echo ultras_utils.a not found — building it first...
     call :BuildA
 )
-g++ -c main.cpp -o main.o -I.
+g++ -c main.cpp -DULTRAS_UTILS_STATIC -o main.o -I.
 g++ main.o ultras_utils.a -o texasholdem.exe -lws2_32
-del main.o
+del ultras_utils.a main.o
 goto :eof
 
 

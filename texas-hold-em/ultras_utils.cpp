@@ -1,6 +1,3 @@
-// g++ -c ultras_utils.cpp -DULTRAS_UTILS_EXPORTS -o ultras_utils.o -I.
-// g++ -shared -o ultras_utils.dll ultras_utils.o -Wl,--out-implib,ultras_utils.lib -lws2_32
-
 #include <fstream>
 #include <iostream>
 #include <vector>

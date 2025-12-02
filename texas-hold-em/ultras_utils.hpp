@@ -7,7 +7,9 @@
 
 #pragma comment(lib, "Ws2_32.lib")
 
-#ifdef ULTRAS_UTILS_EXPORTS
+#ifdef ULTRAS_UTILS_STATIC
+    #define ULTRAS_UTILS_API
+#elif defined(ULTRAS_UTILS_EXPORTS)
     #define ULTRAS_UTILS_API __declspec(dllexport)
 #else
     #define ULTRAS_UTILS_API __declspec(dllimport)
@@ -103,7 +105,7 @@ namespace uul {
         const std::string MAGENTA = "\x1b[35m";
         const std::string CLEAR_LINE = "\x1b[2K";
         
-        std::string moveUp(int n);
+        std::string ULTRAS_UTILS_API moveUp(int n);
     }
 
     class ULTRAS_UTILS_API CLI {
@@ -134,7 +136,7 @@ namespace uul {
          * @param path The path of the file.
          * @return The file data.
          */
-        std::string ReadFile(const std::string& path);
+        std::string ULTRAS_UTILS_API ReadFile(const std::string& path);
 
         /**
          * @brief Write to a file.
@@ -142,6 +144,6 @@ namespace uul {
          * @param data The data to write.
          * @return true if successful, false otherwise.
          */
-        bool WriteFile(std::string& path, const std::string& data);
+        bool ULTRAS_UTILS_API WriteFile(std::string& path, const std::string& data);
     }
 }
