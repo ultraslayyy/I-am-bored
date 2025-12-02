@@ -1,0 +1,1 @@
+export type ReverseString<S extends string> = S extends `${infer Head}${infer Rest}` ? `${ReverseString<Rest>}${Head}` : '';
