@@ -2,3 +2,10 @@
 *.a
 *.lib
 *.exe
+*.o
+config.json
+.clocignore
+
+# Random files
+fun.cpp
+c/

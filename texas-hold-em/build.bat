@@ -26,8 +26,8 @@ goto :eof
 
 :BuildEXE
 echo === Building EXE (DLL version) ===
-g++ -c main.cpp -o main.o -I.
-g++ main.o ultras_utils.lib -o texasholdem.exe -lws2_32
+g++ -c main.cpp -o main.o -I. -ffunction-sections -fdata-sections
+g++ main.o ultras_utils.lib -o texasholdem.exe -lws2_32 -Wl,--gc-sections
 del main.o ultras_utils.lib
 goto :eof
 

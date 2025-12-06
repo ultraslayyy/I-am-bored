@@ -1,4 +1,6 @@
+#include <cstdint>
 #include <fstream>
+#include <sstream>
 #include <iostream>
 #include <vector>
 
@@ -206,6 +208,8 @@ namespace uul {
     }
 
     bool Server::StartDiscoveryListener(int port) {
+        std::vector<int> test;
+
         if (udp_discovery_socket_ != INVALID_SOCKET) {
             std::cerr << "UDP listener already running or socket not cleaned up." << std::endl;
             return false;
@@ -268,6 +272,58 @@ namespace uul {
                 }
             }
         }
+    }
+
+    bool Server::SendRequest(SOCKET s, const std::string& message) {
+        if (s == INVALID_SOCKET) return false;
+
+        uint32_t length = static_cast<uint32_t>(message.length());
+        uint32_t net_length = htonl(length);
+
+        int bytes_sent = send(s, reinterpret_cast<const char*>(&net_length), sizeof(net_length), 0);
+        if (bytes_sent == SOCKET_ERROR) {
+            std::cerr << "Failed to send message length: " << WSAGetLastError() << std::endl;
+            return false;
+        }
+
+        if (length > 0) {
+            bytes_sent = send(s, message.c_str(), length, 0);
+            if (bytes_sent == SOCKET_ERROR) {
+                std::cerr << "Failed to send message body: " << WSAGetLastError() << std::endl;
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    std::string Server::ReceiveRequest(SOCKET s) {
+        if (s == INVALID_SOCKET) return "";
+
+        uint32_t net_length = 0;
+        int bytes_received = recv(s, reinterpret_cast<char*>(&net_length), sizeof(net_length), 0);
+        
+        if (bytes_received <= 0) {
+            return "";
+        }
+
+        uint32_t length = ntohl(net_length);
+        if (length == 0) return "";
+
+        std::string message;
+        message.resize(length);
+
+        uint32_t total_received = 0;
+        while (total_received < length) {
+            bytes_received = recv(s, &message[total_received], length - total_received, 0);
+            if (bytes_received <= 0) {
+                std::cerr << "Error receiving message body or connection closed." << std::endl;
+                return "";
+            }
+            total_received += bytes_received;
+        }
+
+        return message;
     }
 
     #pragma endregion Server
@@ -352,24 +408,44 @@ namespace uul {
 
     #pragma endregion CLI
 
-    namespace File {
-        std::string ReadFile(const std::string& path) {
-            std::string fileData;
+    #pragma region File
 
-            std::ifstream inFile(path);
-            if (inFile.is_open()) {
-                inFile >> fileData;
-                inFile.close();
-            }
+    std::string File::ReadFile(const std::string& path) {
+        std::string fileData;
+        std::ifstream is(path);
 
-            return fileData;
+        if (!is.is_open()) {
+            std::cerr << "Error: Could not open file for static reading: " << path << std::endl;
+            return "";
         }
 
-        bool WriteFile(std::string& path, const std::string& data) {
-            std::ofstream outFile(path);
-            outFile << data;
-            outFile.close();
+        try {
+            std::stringstream buffer;
+            buffer << is.rdbuf();
+            fileData = buffer.str();
+        } catch (const std::exception& e) {
+            std::cerr << "Error during static file reading: " << e.what() << std::endl;
+            return "";
+        }
+
+        return fileData;
+    }
+
+    bool File::WriteFile(std::string& path, const std::string& data) {
+        std::ofstream os(path, std::ios_base::trunc);
+        
+        if (!os.is_open()) {
+            std::cerr << "Error: Could not open file for static writing: " << path << std::endl;
+            return false;
+        }
+
+        if (os << data) {
             return true;
+        } else {
+            std::cerr << "Error: Failed to perform statuc file write: " << path << std::endl;
+            return false;
         }
     }
+
+    #pragma endregion File
 }

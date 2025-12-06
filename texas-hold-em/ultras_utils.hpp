@@ -3,6 +3,11 @@
 #include <iostream>
 #include <string>
 #include <vector>
+#include <functional>
+#include <type_traits>
+#include <iostream>
+#include <sstream>
+#include <fstream>
 #include <winsock2.h>
 
 #pragma comment(lib, "Ws2_32.lib")
@@ -16,9 +21,6 @@
 #endif
 
 namespace uul {
-    constexpr int DEFAULT_PORT = 54000;
-    constexpr int DEFAULT_BUFFER_LENGTH = 512;
-
     /**
      * @brief Core utility class for managing network operations
      * 
@@ -28,6 +30,9 @@ namespace uul {
     class ULTRAS_UTILS_API Server {
     public:
         Server();
+
+        static constexpr int DEFAULT_PORT = 54000;
+        static constexpr int DEFAULT_BUFFER_LENGTH = 512;
 
         /**
          * @brief Initializes the Winsock library (called first).
@@ -86,6 +91,9 @@ namespace uul {
          */
         bool StartDiscoveryListener(int port = DEFAULT_PORT);
 
+        /**
+         * @brief Run the loop to run discovery
+         */
         void RunDiscoveryLoop();
 
     private:
@@ -124,19 +132,38 @@ namespace uul {
          * @brief Enables UTF-8 characters in terminal.
          */
         static void EnableUTF8();
+
+        /**
+         * @brief Move caret to (X, Y)
+         * @param x X value
+         * @param y Y value
+         */
+        void goToXY(int x, int y);
+
+        /**
+         * @brief Get the current position of the caret
+         * @return The position of the caret as a COORD (.X, .Y)
+         */
+        COORD getCursorPosition();
+
     private:
         HANDLE hConsole;
-        void goToXY(int x, int y);
-        COORD getCursorPosition();
     };
 
-    namespace File {
+    class ULTRAS_UTILS_API File {
+    private:
+        std::string path_;
+        bool success_ = false;
+
+    public:
+        File(const std::string& path) : path_(path) {};
+
         /**
          * @brief Read a file from a path.
          * @param path The path of the file.
          * @return The file data.
          */
-        std::string ULTRAS_UTILS_API ReadFile(const std::string& path);
+        static std::string ReadFile(const std::string& path);
 
         /**
          * @brief Write to a file.
@@ -144,6 +171,89 @@ namespace uul {
          * @param data The data to write.
          * @return true if successful, false otherwise.
          */
-        bool ULTRAS_UTILS_API WriteFile(std::string& path, const std::string& data);
+        static bool WriteFile(std::string& path, const std::string& data);
+
+
+        /**
+         * @brief Whether the last operation was successful.
+         * @return true if successful, false otherwise.
+         */
+        bool wasSuccessful() const { return success_; }
+
+        /**
+         * @brief Get the `ofstream` of the file.
+         * @return File's `ofstream`.
+         */
+        std::ofstream getOutputStream() const { return std::ofstream(path_, std::ios_base::out); };
+
+        /**
+         * @brief Get the `ifstream` of the file.
+         * @return File's `ifstream`.
+         */
+        std::ifstream getInputStream() const { return std::ifstream(path_); };
+
+        operator bool() const { return !path_.empty(); };
+
+        template <typename T>
+        friend File& operator<<(File&, const T& data);
+
+        template <typename T>
+        friend File& operator>>(File& file, T& data);
+    };
+
+    template <typename T>
+    File& operator<<(File& file, const T& data) {
+        std::ofstream os(file.path_, std::ios_base::app);
+        file.success_ = false;
+        
+        if (!os.is_open()) {
+            std::cerr << "Error: Could not open file for writing (append): " << file.path_ << std::endl;
+            return file;
+        }
+
+        if (os << data) {
+            file.success_ = true;
+        } else {
+            std::cerr << "Error: Failed to write data to file: " << file.path_ << std::endl;
+        }
+        
+        return file;
+    }
+
+    template <typename T>
+    File& operator>>(File& file, T& data) {
+        file.success_ = false;
+
+        if constexpr (std::is_same_v<T, std::string>) {
+            std::ifstream is = file.getInputStream();
+            if (!is.is_open()) {
+                std::cerr << "Error: Could not open file for reading: " << file.path_ << std::endl;
+                return file;
+            }
+
+            try {
+                std::stringstream buffer;
+                buffer << is.rdbuf();
+                data = static_cast<std::string&>(data) = buffer.str();
+                file.success_ = true;
+            } catch (const std::exception& e) {
+                std::cerr << "Error during file reading: " << e.what() << std::endl;
+            }
+        } else {
+            std::ifstream is = file.getInputStream();
+
+            if (!is.is_open()) {
+                std::cerr << "Error: Could not open file for reading: " << file.path_ << std::endl;
+                return file;
+            }
+
+            if (is >> data) {
+                file.success_ = true;
+            } else {
+                std::cerr << "Error: Failed to extract token of specific type." << std::endl;
+            }
+        }
+
+        return file;
     }
 }
