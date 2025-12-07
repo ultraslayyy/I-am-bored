@@ -28,11 +28,23 @@ build a-full
 build clean
 ```
 
+Note: If you do a build that uses the DLL, the DLL must be distributed alongside the .exe
+
 ## Usage
 Just run `texasholdem.exe` to play.
 
 ### Creating a game
 When you hit `Create Game` on main menu, it turns that terminal instance into the game server. If you also want to play on the same computer, you'll have to run the executable again and join from that (keep the other open).
 
+You can also start a game by running the exe from a CLI tool, through:
+```sh
+texasholdem server
+```
+
 ### Joining a game
 Pretty self-explanatory tbh.
+
+You can also join games by launching the exe through a CLI tool, through:
+```sh
+texasholdem join <ip>
+```
