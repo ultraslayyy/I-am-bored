@@ -5,9 +5,9 @@
   "main": "index.js",
   "scripts": {
     "build:addon": "node-gyp configure build",
-    "build:wasm": "emcc src/wasm.cpp -O3 -s EXPORTED_FUNCTIONS='[\"_add\"]' -s STANDALONE_WASM -o wasm-build/ultra.wasm",
+    "build:wasm": "node scripts/build-wasm.js",
     "build": "npm run build:addon && npm run build:wasm",
-    "clean": "rd /s /q build"
+    "clean": "rd /s /q build && rd /s /q wasm-build"
   },
   "keywords": [],
   "author": "ultraslayyy <ultra@ultraslayyy.xyz>",

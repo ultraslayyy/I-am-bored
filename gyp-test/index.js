@@ -37,8 +37,7 @@ async function initWasm() {
         hypot: wasmExports._hypot_wasm,
         PI: wasmExports._PI,
         E: wasmExports._E,
-        toBase64: wasmExports._toBase64,
-        fromBase64: wasmExports._fromBase64
+        toBase64: wasmExports._toBase64
     }
 }
 
