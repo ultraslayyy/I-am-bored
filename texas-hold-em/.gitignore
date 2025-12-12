@@ -6,6 +6,5 @@
 config.json
 .clocignore
 
-# Random files
-fun.cpp
+# C remakes shhh
 c/

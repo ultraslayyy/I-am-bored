@@ -1024,7 +1024,7 @@ void mainMenu() {
 
 #pragma region Main
 
-int main() {
+int main(int argc, char* argv[]) {
     cliHandler.EnableUTF8();
 
     std::string loadSettingsError;
@@ -1036,9 +1036,16 @@ int main() {
 
         ShowWindowsErrorDialog(title, message);
     }
-    mainMenu();
+
+    if (argc > 1 && std::string(argv[1]) == "server") {
+        createGame();
+    } else if (argc > 2 && std::string(argv[1]) == "join" && isValidIPv4(std::string(argv[2]))) {
+        clientJoinGame(std::string(argv[2]));
+    } else {
+        mainMenu();
+    }
 
     return 0;
 }
-
+    
 #pragma endregion Main
