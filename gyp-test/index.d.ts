@@ -1,0 +1,10 @@
+export function add(a: number, b: number): number | Promise<number>;
+export function subtract(a: number, b: number): number | Promise<number>;
+export function multiply(a: number, b: number): number | Promise<number>;
+export function divide(a: number, b: number): number | Promise<number>;
+export function power(a: number, b: number): number | Promise<number>;
+export function sqrt(a: number): number | Promise<number>;
+export function hypot(a: number, b: number): number | Promise<number>;
+export function PI(): 3.14159265358979323846 | Promise<3.14159265358979323846>;
+export function E(): 2.7182818284590452354 | Promise<2.7182818284590452354>;
+export function toBase64(str: string): string | Promise<string>;

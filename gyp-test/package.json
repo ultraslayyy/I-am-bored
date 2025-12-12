@@ -1,0 +1,18 @@
+{
+  "name": "gyp-test",
+  "version": "0.0.1",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "build:addon": "node-gyp configure build",
+    "build:wasm": "emcc src/wasm.cpp -O3 -s EXPORTED_FUNCTIONS='[\"_add\"]' -s STANDALONE_WASM -o wasm-build/ultra.wasm",
+    "build": "npm run build:addon && npm run build:wasm",
+    "clean": "rd /s /q build"
+  },
+  "keywords": [],
+  "author": "ultraslayyy <ultra@ultraslayyy.xyz>",
+  "license": "MIT",
+  "dependencies": {
+    "node-addon-api": "^8.5.0"
+  }
+}

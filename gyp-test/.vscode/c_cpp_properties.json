@@ -1,0 +1,15 @@
+{
+    "configurations": [
+        {
+            "name": "Win32",
+            "includePath": [
+                "${workspaceFolder}/**",
+                "C:/Users/angus/AppData/Local/node-gyp/Cache/24.8.0/include/node"
+                // "C:/Users/Angus/AppData/Local/node-gyp/Cache/22.14.0/include/node"
+            ],
+            "cppStandard": "c++17",
+            "intelliSenseMode": "windows-msvc-x86"
+        }
+    ],
+    "version": 4
+}
