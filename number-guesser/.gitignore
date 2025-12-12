@@ -1,0 +1,5 @@
+rust/target
+c#/obj
+c#/bin
+typescript/node_modules
+typescript/package-lock.json
