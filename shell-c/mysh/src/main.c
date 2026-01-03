@@ -212,6 +212,8 @@ int main() {
         } else if (strcmp(args[0], "set") == 0) {
             builtin_set(argc, args);
             continue;
+        } else if (strcmp(args[0], "unset") == 0) {
+            builtin_unset(argc, args);
         } else if (strcmp(args[0], "env") == 0) {
             builtin_env();
             continue;
