@@ -13,7 +13,7 @@ int main() {
         printf("Guess: ");
         if (sscanf(input, "%d", &guess) != 1) {
             printf("Please enter a valid number\n");
-            break;
+            continue;
         }
 
         if (guess > num) {
@@ -25,4 +25,5 @@ int main() {
             break;
         }
     }
+    return 0;
 }

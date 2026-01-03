@@ -2,7 +2,6 @@
 
 int main() {
     srand(time(0));
-
     int num, guess;
     num = rand() % 101;
 
@@ -10,7 +9,7 @@ int main() {
         std::cout << "Guess: ";
         if (!(std::cin >> guess)) {
             std::cout << "Please enter a valid number" << std::endl;
-            break;
+            continue;
         }
 
         if (guess > num) {

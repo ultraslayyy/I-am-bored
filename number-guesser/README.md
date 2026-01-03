@@ -1,3 +1,49 @@
+## Current Languages
+The current languages I've written this in are:
+- [Assembly (x86 NASM)](./main.asm)
+- [Bourne Shell](./main.sh)
+- [C](./main.c)
+- [C#](./c#/Program.cs)
+- [C++](./main.cpp)
+- [Clojure](./main.clj)
+- [Dart](./main.dart)
+- [DOS Batch](./main.bat)
+- [Elixir](./main.exs)
+- [Fortran](./main.f90)
+- [Go](./go/main.go)
+- [Haskell](./main.hs)
+- [Java](./Main.java)
+- [JavaScript](./main.js)
+- [Julia](./main.jl)
+- [Kotlin](./Main.kt)
+- [Lisp](./main.lisp)
+- [Lua](./main.lua)
+- [Objective-C](./main.m)
+- [PHP](./main.php)
+- [Perl](./main.pl)
+- [PL/SQL](./main.pls)
+- [Powershell](./main.ps1)
+- [Python](./main.py)
+- [R](./main.r)
+- [Ruby](./main.rb)
+- [Rust](./rust/src/main.rs)
+- [Scala](./main.scala)
+- [Swift](./main.swift)
+- [TypeScript](./typescript/main.ts)
+- [Zig](./main.zig)
+
+### Todo
+- Prolog
+- COBOL
+- Groovy
+- Visual Basic
+- F#
+- Nim
+- Crystal
+- OCaml
+- VHDL or Verilog
+- CoffeeScript
+
 ## Rules
 - Non-built-in dependencies are **prohibited**
 - Structure
@@ -23,7 +69,7 @@
     ```
     - Outside of this, empty lines are **not** allowed, besides between `num` and `guess` declaration, **if** `num` *declaration & assignment* takes 3 or more lines.
     - If the input is invalid (`[input validation]`), the message returned must be: `Please enter a valid number`, and then reprompt (`continue`). If validation is done inline (e.g. Swift's `guard`), this can be skipped
-  - Only **one** helper function is allowed, and must be placed above the declaration of `main()`. That helper function is **only allowed to contain random number generation logic**, if complicated in that language. This is discouraged as it increases line count. Always look for the easiest solution, as to avoid helpers
+  - Only **one** helper function is allowed, and must be placed above the declaration of `main()`. That helper function is **only allowed to contain random number generation logic**, if complicated in that language (Haskell is an exception, where it's required for the loop). This is discouraged as it increases line count. Always look for the easiest solution, as to avoid helpers.
 - Input/Output
   - Input prompt must explicitly ask for an input, with the prompt `Guess: `
   - Output feedback must be one of:
