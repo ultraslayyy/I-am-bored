@@ -46,7 +46,7 @@ The current languages I've written this in are:
 
 ## Rules
 - Non-built-in dependencies are **prohibited**
-- Structure
+- Structure (alot of languages don't care about this, so I can't for some)
   - Declare **one** `main()` function, which must be the sole entrypoint of the code, and run at the start of the file.
   - Must be in this structure:
     ```
