@@ -7,7 +7,7 @@ sub main {
     my $guess;
 
     while (1) {
-        print "Guess: "
+        print "Guess: ";
         chomp($guess = <STDIN>);
 
         if ($guess !~ /^\d+$/) {

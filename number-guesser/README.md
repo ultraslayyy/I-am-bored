@@ -6,12 +6,17 @@ The current languages I've written this in are:
 - [C#](./c#/Program.cs)
 - [C++](./main.cpp)
 - [Clojure](./main.clj)
+- [COBOL](./main.cbl)
+- [CoffeeScript](./main.coffee)
 - [Dart](./main.dart)
+- [Dartmouth BASIC](./main.bas)
 - [DOS Batch](./main.bat)
 - [Elixir](./main.exs)
 - [Fortran](./main.f90)
 - [Go](./go/main.go)
+- [Groovy](./main.groovy)
 - [Haskell](./main.hs)
+- [HolyC](./main.HC)
 - [Java](./Main.java)
 - [JavaScript](./main.js)
 - [Julia](./main.jl)
@@ -19,10 +24,11 @@ The current languages I've written this in are:
 - [Lisp](./main.lisp)
 - [Lua](./main.lua)
 - [Objective-C](./main.m)
-- [PHP](./main.php)
 - [Perl](./main.pl)
+- [PHP](./main.php)
 - [PL/SQL](./main.pls)
 - [Powershell](./main.ps1)
+- [Prolog](./main.pro)
 - [Python](./main.py)
 - [R](./main.r)
 - [Ruby](./main.rb)
@@ -33,7 +39,6 @@ The current languages I've written this in are:
 - [Zig](./main.zig)
 
 ### Todo
-- Prolog
 - COBOL
 - Groovy
 - Visual Basic
@@ -42,7 +47,6 @@ The current languages I've written this in are:
 - Crystal
 - OCaml
 - VHDL or Verilog
-- CoffeeScript
 
 ## Rules
 - Non-built-in dependencies are **prohibited**
