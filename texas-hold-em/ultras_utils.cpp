@@ -234,7 +234,6 @@ namespace uul {
         }
 
         std::cout << "UDP discovery listener started on port " << port << "." << std::endl;
-    
         return true;
     }
 
@@ -247,7 +246,7 @@ namespace uul {
         char recv_buf[512];
         sockaddr_in client_addr;
         int client_addr_size = sizeof(client_addr);
-        const std::string SERVER_INFO = "My ULTRAS Game Server | Map: City | Players: 1/5"; 
+        const std::string SERVER_INFO = "My Ultra Game Server"; 
         
         std::cout << "UDP discovery loop is active." << std::endl;
 
@@ -258,7 +257,6 @@ namespace uul {
                 recv_buf[bytes_received] = '\0';
                 
                 if (strcmp(recv_buf, "LAN_GAME_SEARCH") == 0) {
-                    
                     const char* reply_data = SERVER_INFO.c_str();
                     sendto(udp_discovery_socket_, reply_data, (int)SERVER_INFO.length(), 0, (SOCKADDR*)&client_addr, client_addr_size);
                 }
@@ -364,7 +362,7 @@ namespace uul {
             goToXY(0, startPos.Y);
             std::cout << ANSI::CLEAR_LINE << question << std::endl;
 
-            for (int i = 0; i < options.size(); i++) {
+            for (size_t i = 0; i < options.size(); i++) {
                 std::cout << ANSI::CLEAR_LINE;
                 const std::string prefix = (selected == i) ? ANSI::CYAN + "> " + ANSI::RESET : "  ";
                 std::cout << prefix << options[i] << std::endl;

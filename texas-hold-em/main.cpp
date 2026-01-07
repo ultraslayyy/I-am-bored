@@ -183,8 +183,7 @@ std::string genCard() {
 
 void broadcastRequest(std::vector<std::reference_wrapper<Player>>& players, std::string msg) {
     for (size_t i = 0; i < players.size(); ++i) {
-        serverHandler.SendRequest(players[i].get().getSocket(), msg)
-        ;
+        serverHandler.SendRequest(players[i].get().getSocket(), msg);
     }
 }
 
@@ -1047,5 +1046,5 @@ int main(int argc, char* argv[]) {
 
     return 0;
 }
-    
+
 #pragma endregion Main

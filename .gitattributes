@@ -1,2 +1,3 @@
 *.pubxml linguist-language=XML
 texas-hold-em/include/json.hpp linguist-vendored
+texas-hold-em/c/json/* linguist-vendored

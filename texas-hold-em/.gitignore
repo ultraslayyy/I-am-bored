@@ -5,6 +5,3 @@
 *.o
 config.json
 .clocignore
-
-# C remakes shhh
-c/
