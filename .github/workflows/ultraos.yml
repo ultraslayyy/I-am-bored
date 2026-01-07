@@ -46,7 +46,10 @@ jobs:
     - name: Install dependencies
       run: |
         sudo apt update
-        sudo apt install -y build-essential nasm grub-pc-bin xorriso mtools
+        sudo apt install -y build-essential nasm grub-pc-bin xorriso mtools python3
+
+    - name: Generate vfs.c
+      run: python3 scripts/vfs.py
 
     - name: Build ISO
       working-directory: os
