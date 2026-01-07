@@ -39,8 +39,6 @@ The current languages I've written this in are:
 - [Zig](./main.zig)
 
 ### Todo
-- COBOL
-- Groovy
 - Visual Basic
 - F#
 - Nim
