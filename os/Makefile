@@ -41,6 +41,9 @@ $(BUILD_DIR)/%.o: kernel/%.s
 run: $(ISO)
 	qemu-system-i386 -cdrom $(ISO) -m 512 -net none
 
+run-fs: $(ISO)
+	qemu-system-i386 -cdrom $(ISO) -m 512 -net none -vga std -full-screen -display sdl
+
 clean:
 	rm -rf $(BUILD_DIR) $(ISO_DIR) *.iso
 

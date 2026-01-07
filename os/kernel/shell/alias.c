@@ -48,19 +48,19 @@ const char *alias_lookup(const char *name) {
     return 0;
 }
 
-void alias_list(size_t *cursor_pos) {
+void alias_list() {
     for (size_t i = 0; i < alias_count; i++) {
         const char *p = "alias ";
-        while (*p) put_char(*p++, cursor_pos, 0x07);
+        while (*p) put_char(*p++, DEFAULT_ATTR);
 
         p = aliases[i].name;
-        while (*p) put_char(*p++, cursor_pos, 0x07);
+        while (*p) put_char(*p++, DEFAULT_ATTR);
 
-        put_char('=', cursor_pos, 0x07);
+        put_char('=', DEFAULT_ATTR);
 
         p = aliases[i].value;
-        while (*p) put_char(*p++, cursor_pos, 0x07);
+        while (*p) put_char(*p++, DEFAULT_ATTR);
 
-        put_char('\n', cursor_pos, 0x07);
+        put_char('\n', DEFAULT_ATTR);
     }
 }

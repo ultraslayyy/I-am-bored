@@ -1,29 +1,47 @@
 #include <io/kernel_io.h>
+#include <drivers/video/vga.h>
 #include <shell/shell.h>
 #include <lib/string.h>
 
-void handle_input_char(char c, char *input_buffer, size_t *input_pos, const char *prompt, size_t *cursor_pos) {
-    if (c == '\b' && *input_pos > 0) {
-        (*input_pos)--;
-        if (*cursor_pos > 0) {
-            (*cursor_pos)--;
-            put_char(' ', cursor_pos, 0x07);
-            (*cursor_pos)--;
+void handle_input_char(char c, char *input_buffer, size_t *input_pos, const char *prompt) {
+    if (c == '\b') {
+        if (*input_pos > 0) {
+            (*input_pos)--;
+
+            if (cursor_col > 0) {
+                cursor_col--;
+            } else if (cursor_row > 0) {
+                cursor_row--;
+                cursor_col = VGA_WIDTH - 1;
+            }
+
+            text_buffer[cursor_row].chars[cursor_col] = ' ';
+            text_buffer[cursor_row].attrs[cursor_col] = DEFAULT_ATTR;
+
+            update_screen();
         }
         return;
     }
 
     if (c == '\n') {
-        put_char('\n', cursor_pos, 0x07);
         input_buffer[*input_pos] = 0;
-        process_command(input_buffer, cursor_pos);
-        *input_pos = 0;
-        put_string(prompt, cursor_pos, 0x07);
+        (*input_pos) = 0;
+
+        cursor_col = 0;
+        cursor_row++;
+        if (cursor_row >= BUFFER_HEIGHT) cursor_row = BUFFER_HEIGHT - 1;
+        if (cursor_row >= buffer_lines) buffer_lines = cursor_row + 1;
+
+        scroll_viewport();
+        update_screen();
+
+        process_command(input_buffer);
+        put_string(prompt, DEFAULT_ATTR);
         return;
     }
 
     if (*input_pos < MAX_INPUT - 1) {
         input_buffer[(*input_pos)++] = c;
-        put_char(c, cursor_pos, 0x1F);
+        put_char(c, 0x1F);
     }
 }

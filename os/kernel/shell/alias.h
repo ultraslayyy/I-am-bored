@@ -9,4 +9,4 @@ void alias_init(void);
 void alias_set(const char *name, const char *value);
 void alias_unset(const char *name);
 const char *alias_lookup(const char *name);
-void alias_list(size_t *cursor_pos);
+void alias_list();

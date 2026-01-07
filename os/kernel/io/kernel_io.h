@@ -1,7 +1,26 @@
 #pragma once
 #include <stddef.h>
 #include <stdint.h>
+#include <drivers/video/vga.h>
 
-void put_char(char c, size_t *cursor_pos, uint8_t attr);
-void put_string(const char *str, size_t *cursor_pos, uint8_t attr);
-void clear_screen(size_t *cursor_pos);
+#define DEFAULT_ATTR 0x07
+#define BUFFER_HEIGHT 1024
+
+typedef struct {
+    char chars[VGA_WIDTH];
+    uint8_t attrs[VGA_WIDTH];
+} line_t;
+
+extern line_t text_buffer[BUFFER_HEIGHT];
+extern size_t buffer_lines;
+extern size_t cursor_row;
+extern size_t cursor_col;
+extern size_t viewport_top;
+
+void put_char(char c, uint8_t attr);
+void put_string(const char *str, uint8_t attr);
+void clear_screen(void);
+void update_screen(void);
+void scroll_viewport(void);
+void scroll_up(void);
+void scroll_down(void);

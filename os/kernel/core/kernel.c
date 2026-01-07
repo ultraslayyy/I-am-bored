@@ -4,6 +4,7 @@
 #include <io/keyboard.h>
 #include <shell/shell.h>
 #include <shell/input.h>
+#include <fs/fs.h>
 
 static inline uint8_t inb(uint16_t port) {
     uint8_t ret;
@@ -12,18 +13,18 @@ static inline uint8_t inb(uint16_t port) {
 }
 
 void kernel_main() {
-    size_t cursor_pos = 0;
-    clear_screen(&cursor_pos);
+    clear_screen();
 
     char input_buffer[MAX_INPUT];
     size_t input_pos = 0;
 
     const char *prompt = "$ ";
-    put_string(prompt, &cursor_pos, 0x07);
+    put_string(prompt, DEFAULT_ATTR);
 
     uint8_t shift_pressed = 0;
     uint8_t key_pressed[128] = {0};
 
+    fs_init();
     shell_init();
 
     while (1) {
@@ -44,10 +45,18 @@ void kernel_main() {
             shift_pressed = 1;
             continue;
         }
+        
+        if (sc == 0x48) {
+            scroll_up();
+            continue;
+        } else if (sc == 0x50) {
+            scroll_down();
+            continue;
+        }
 
         char c = keycode_to_char(sc, shift_pressed);
         if (!c) continue;
 
-        handle_input_char(c, input_buffer, &input_pos, prompt, &cursor_pos);
+        handle_input_char(c, input_buffer, &input_pos, prompt);
     }
 }
