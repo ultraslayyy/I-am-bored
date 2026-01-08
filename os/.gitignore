@@ -1,7 +1,7 @@
 *.elf
 *.o
 *.iso
-kernel/fs/vfs.c
+kernel/fs/kfs.*
 kernel/drivers/video
 !kernel/drivers/video/vga.h
 build/

@@ -6,6 +6,8 @@ typedef enum {
     FS_DIR
 } fs_node_type_t;
 
+typedef size_t (*fs_read_fn)(char *buffer, size_t max);
+
 typedef struct fs_node {
     const char *name;
     fs_node_type_t type;
@@ -14,9 +16,12 @@ typedef struct fs_node {
     struct fs_node **children;
     size_t child_count;
 
-    // Files
+    // Files (static)
     const char *content;
     size_t size;
+
+    // Files (dynamic)
+    fs_read_fn read;
 } fs_node_t;
 
 void fs_init(void);

@@ -2,11 +2,12 @@
 #include <io/kernel_io.h>
 #include <lib/string.h>
 
-#if __has_include("vfs.c")
-    #include "vfs.c"
-    #define VFS_AVAILABLE 1
+#include "procfs.h"
+#if __has_include("kfs.h")
+    #include "kfs.h"
+    #define KFS_AVAILABLE 1
 #else
-    #define VFS_AVAILABLE 0
+    #define KFS_AVAILABLE 0
 #endif
 
 static fs_node_t *fs_find(const char *path);
@@ -14,16 +15,17 @@ static fs_node_t *fs_find(const char *path);
 // Nodes
 
 static fs_node_t *root_children[] = {
-#if VFS_AVAILABLE
-    &dir_kernel
+#if KFS_AVAILABLE
+    &dir_kernel,
 #endif
+    &dir_proc
 };
 
 static fs_node_t fs_root = {
     .name = "/",
     .type = FS_DIR,
     .children = root_children,
-    .child_count = 1
+    .child_count = ARRAY_LEN(root_children)
 };
 
 // API
@@ -52,7 +54,20 @@ void fs_cat(const char *path) {
         return;
     }
 
-    put_string(node->content, DEFAULT_ATTR);
+    if (node->read) {
+        char buffer[512];
+        size_t len = node->read(buffer, sizeof(buffer) - 1);
+        buffer[len] = 0;
+        put_string(buffer, DEFAULT_ATTR);
+        return;
+    }
+
+    if (node->content) {
+        put_string(node->content, DEFAULT_ATTR);
+        return;
+    }
+
+    put_string("(empty)\n", DEFAULT_ATTR);
 }
 
 static fs_node_t *fs_find_child(fs_node_t *dir, const char *name) {

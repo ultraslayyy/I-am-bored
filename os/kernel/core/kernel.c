@@ -5,6 +5,7 @@
 #include <shell/shell.h>
 #include <shell/input.h>
 #include <fs/fs.h>
+#include <drivers/memory/memory.h>
 
 static inline uint8_t inb(uint16_t port) {
     uint8_t ret;
@@ -24,6 +25,7 @@ void kernel_main() {
     uint8_t shift_pressed = 0;
     uint8_t key_pressed[128] = {0};
 
+    memory_init();
     fs_init();
     shell_init();
 

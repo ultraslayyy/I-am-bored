@@ -1,7 +1,8 @@
 import os
 
-ROOT_DIR = "kernel"
-OUT_FILE = "kernel/fs/vfs.c"
+ROOT_DIR   = "kernel"
+OUT_FILE   = "kernel/fs/kfs.c"
+OUT_FILE_H = "kernel/fs/kfs.h"
 
 def sanitize_name(name):
     return name.replace('.', '_').replace('-', '_').replace('/', '_').replace('\\', '_')
@@ -60,7 +61,7 @@ def walk_dir(path):
 all_nodes, root_ptr = walk_dir(ROOT_DIR)
 
 kernel_c = f'static fs_node_t *kernel_children[] = {{ {root_ptr} }};\n'
-kernel_c += 'static fs_node_t dir_kernel = {\n'
+kernel_c += 'fs_node_t dir_kernel = {\n'
 kernel_c += '    .name = "kernel",\n'
 kernel_c += '    .type = FS_DIR,\n'
 kernel_c += '    .children = kernel_children,\n'
@@ -68,8 +69,11 @@ kernel_c += f'    .child_count = {1}\n'
 kernel_c += '};'
 
 with open(OUT_FILE, "w") as f:
-    f.write('#include "fs.h"\n')
+    f.write('#include "fs.h"\n#include "kfs.h"\n')
     f.write(all_nodes)
-    # f.write(kernel_c)
+
+with open(OUT_FILE_H, "w") as f:
+    f.write('#pragma once\n#include "fs.h"\nextern fs_node_t dir_kernel;')
 
 print(f"FS C file written to {OUT_FILE}")
+print(f"FS C file written to {OUT_FILE_H}")
