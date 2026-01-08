@@ -1,5 +1,5 @@
 #include <stdint.h>
-#include <arch/x86/io.h>
+#include <arch.h>
 #include <shell/input.h>
 #include <io/kernel_io.h>
 

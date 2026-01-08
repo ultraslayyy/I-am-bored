@@ -12,60 +12,102 @@ extern char rodata_start, rodata_end;
 extern char data_start, data_end;
 extern char bss_start, bss_end;
 
-static void iomem_add(uint64_t start, uint64_t end, const char *name, int indent) {
-    if (region_count >= MAX_IOMEM)
-        return;
-
-    regions[region_count++] = (iomem_region_t){
-        .start = start,
-        .end = end,
-        .name = name,
-        .indent = indent
-    };
+static void iomem_add(uintptr_t start, uintptr_t end, const char *name, int indent) {
+    if (region_count >= MAX_IOMEM) return;
+    regions[region_count++] = (iomem_region_t){start, end, name, indent};
 }
 
-void iomem_init(void) {
-    iomem_add(0x00000000, 0x0009FFFF, "System RAM", 0);
-    iomem_add(0x000A0000, 0x000BFFFF, "Reserved", 0);
+static void iomem_sort(void) {
+    for (size_t i = 0; i + 1 < region_count; i++) {
+        for (size_t j = 0; j + 1 < region_count - i; j++) {
+            if (regions[j].start > regions[j + 1].start) {
+                iomem_region_t tmp = regions[j];
+                regions[j] = regions[j + 1];
+                regions[j + 1] = tmp;
+            }
+        }
+    }
+}
+
+static void iomem_merge(void) {
+    if (region_count == 0) return;
+    iomem_sort();
+
+    size_t dst = 0;
+    for (size_t i = 1; i < region_count; i++) {
+        iomem_region_t *prev = &regions[dst];
+        iomem_region_t *curr = &regions[i];
+
+        if (prev->end >= curr->start && prev->indent == curr->indent &&
+            strcmp(prev->name, curr->name) == 0) {
+            if (curr->end > prev->end) prev->end = curr->end;
+        } else {
+            dst++;
+            if (dst != i) regions[dst] = regions[i];
+        }
+    }
+
+    region_count = dst + 1;
+}
+
+void iomem_init(struct multiboot_info *mbi) {
+    if (mbi && (mbi->flags & (1 << 6))) {
+        uintptr_t mmap_end = (uintptr_t)mbi->mmap_addr + mbi->mmap_length;
+        uintptr_t mmap_ptr = (uintptr_t)mbi->mmap_addr;
+
+        while (mmap_ptr < mmap_end) {
+            multiboot_mmap_entry_t *entry = (multiboot_mmap_entry_t *)mmap_ptr;
+
+            if (entry->type != 1) {
+                iomem_add(entry->addr, entry->addr + entry->len, "Reserved", 0);
+            } else {
+                iomem_add(entry->addr, entry->addr + entry->len, "System RAM", 0);
+            }
+
+            mmap_ptr += entry->size + sizeof(entry->size);
+        }
+    }
 
     iomem_add(0x000B8000, 0x000B8FA0, "VGA text buffer", 1);
-
+    iomem_add(0x000A0000, 0x000BFFFF, "Reserved", 0);
     iomem_add(0x000C0000, 0x000FFFFF, "System ROM", 0);
 
     iomem_add(
-        (uint64_t)&kernel_start,
-        (uint64_t)&kernel_end - 1,
+        (uintptr_t)&kernel_start,
+        (uintptr_t)&kernel_end,
         "Kernel image",
         0
     );
 
     iomem_add(
-        (uint64_t)&text_start,
-        (uint64_t)&text_start + 0x20000,
+        (uintptr_t)&text_start,
+        (uintptr_t)&text_start,
         "Kernel code",
         1
     );
 
     iomem_add(
-        (uint64_t)&rodata_start,
-        (uint64_t)&rodata_end - 1,
+        (uintptr_t)&rodata_start,
+        (uintptr_t)&rodata_end,
         "Kernel RO Data",
         1
     );
 
     iomem_add(
-        (uint64_t)&data_start,
-        (uint64_t)&data_end - 1,
+        (uintptr_t)&data_start,
+        (uintptr_t)&data_end,
         "Kernel Data",
         1
     );
 
     iomem_add(
-        (uint64_t)&bss_start,
-        (uint64_t)&bss_end - 1,
+        (uintptr_t)&bss_start,
+        (uintptr_t)&bss_end,
         "Kernel BSS",
         1
     );
+
+    iomem_merge();
 }
 
 size_t iomem_print(char *buf, size_t max) {
@@ -75,17 +117,26 @@ size_t iomem_print(char *buf, size_t max) {
         const iomem_region_t *r = &regions[i];
 
         for (int j = 0; j < r->indent; j++) {
-            written += snprintf(buf + written, max - written, "  ");
+            if (written + 2 < max) {
+                buf[written++] = ' ';
+                buf[written++] = ' ';
+            }
         }
 
-        written += snprintf(
+        int n = snprintf(
             buf + written,
-            max - written,
-            "%x-%x : %s\n",
-            (uint32_t)r->start,
-            (uint32_t)r->end,
+            max > written ? max - written : 0,
+            "0x%x-0x%x : %s\n",
+            (unsigned int)r->start,
+            (unsigned int)r->end,
             r->name
         );
+        if (n < 0) break;
+        if ((size_t)n >= max - written) {
+            written = max;
+            break;
+        }
+        written += n;
     }
 
     return written;

@@ -1,6 +1,7 @@
 #pragma once
 #include <stdint.h>
 #include <stddef.h>
+#include <arch.h>
 
 typedef struct iomem_region {
     uint64_t start;
@@ -9,5 +10,5 @@ typedef struct iomem_region {
     int indent;
 } iomem_region_t;
 
-void iomem_init(void);
+void iomem_init(struct multiboot_info *mbi);
 size_t iomem_print(char *buf, size_t max);

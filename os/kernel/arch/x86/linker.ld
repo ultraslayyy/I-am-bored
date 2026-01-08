@@ -27,11 +27,12 @@ SECTIONS {
     *(COMMON)
     bss_end = .;
   }
-  kernel_stack_start = .;
-  .stack : {
-    . = . + 0x2000;
+  .stack (NOLOAD) : {
+    . = ALIGN(16);
+    kernel_stack_start = .;
+    . = . + 0x1000; /* 4 KB */
+    kernel_stack_end = .;
   }
-  kernel_stack_end = .;
 
   kernel_end = .;
 }

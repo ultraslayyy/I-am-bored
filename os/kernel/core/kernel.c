@@ -4,21 +4,23 @@
 #include <shell/shell.h>
 #include <fs/fs.h>
 #include <drivers/memory/memory.h>
-#include <arch/x86/gdt.h>
-#include <arch/x86/idt.h>
+#include <arch.h>
 
-void kernel_main() {
+void kernel_main(uint32_t magic, struct multiboot_info* mbi) {
+    if (magic != MULTIBOOT_MAGIC) {
+        for (;;);
+    }
+
     gdt_init();
-
     clear_screen();
 
     const char *prompt = "$ ";
     put_string(prompt, DEFAULT_ATTR);
 
-    memory_init();
+    memory_init(mbi);
+
     fs_init();
     shell_init();
-    
     idt_init();
 
     while (1) {
