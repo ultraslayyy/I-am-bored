@@ -22,6 +22,7 @@ The current languages I've written this in are:
 - [Julia](./main.jl)
 - [Kotlin](./Main.kt)
 - [Lisp](./main.lisp)
+- [LOLCODE](./main.lol)
 - [Lua](./main.lua)
 - [Objective-C](./main.m)
 - [Perl](./main.pl)
