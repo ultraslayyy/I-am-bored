@@ -49,6 +49,7 @@ jobs:
         sudo apt install -y build-essential nasm grub-pc-bin xorriso mtools python3
 
     - name: Generate vfs.c
+      working-directory: os
       run: python3 scripts/vfs.py
 
     - name: Build ISO
