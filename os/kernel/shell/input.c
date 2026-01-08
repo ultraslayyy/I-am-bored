@@ -45,3 +45,14 @@ void handle_input_char(char c, char *input_buffer, size_t *input_pos, const char
         put_char(c, 0x1F);
     }
 }
+
+static char s_input_buffer[MAX_INPUT];
+static size_t s_input_pos = 0;
+static const char *s_prompt = "$ ";
+
+void shell_handle_char(char c) {
+    if (cursor_col == 0 && s_input_pos == 0) {
+        
+    }
+    handle_input_char(c, s_input_buffer, &s_input_pos, s_prompt);
+}

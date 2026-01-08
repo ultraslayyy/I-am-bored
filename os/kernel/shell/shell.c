@@ -3,6 +3,8 @@
 #include <io/kernel_io.h>
 #include <fs/fs.h>
 
+size_t recur_level = 0;
+
 void shell_init() {
     alias_init();
 }
@@ -11,11 +13,21 @@ void process_command(char *cmd) {
     char expanded[128];
     const char *alias = alias_lookup(cmd);
 
-    if (alias) {
-        strcpy(expanded, alias);
-        process_command(expanded);
+    if (recur_level > MAX_ALIAS_RECURSION) {
+        char text[128];
+        snprintf(text, sizeof(text), "Alias recursion limit (%d) exceeded\n", MAX_ALIAS_RECURSION);
+        put_string(text, DEFAULT_ATTR);
         return;
     }
+
+    if (alias) {
+        strcpy(expanded, alias);
+        recur_level++;
+        process_command(expanded);
+        recur_level--;
+        return;
+    }
+
     if (strncmp(cmd, "alias", 5) == 0 && (cmd[5] == 0 ||cmd[5] == ' ')) {
         if (cmd[5] == 0) {
             alias_list();
@@ -42,17 +54,14 @@ void process_command(char *cmd) {
     
     if (strcmp(cmd, "help") == 0) {
         const char *text = "Commands: help, echo, cls, alias, ls, cat\n";
-        for (size_t i = 0; text[i]; ++i)
-            put_char(text[i], DEFAULT_ATTR);
+        put_string(text, DEFAULT_ATTR);
     } else if (strncmp(cmd, "echo ", 4) == 0) {
-        for (size_t i = 5; cmd[i]; ++i)
-            put_char(cmd[i], DEFAULT_ATTR);
+        put_string(cmd + 5, DEFAULT_ATTR);
         put_char('\n', DEFAULT_ATTR);
     } else if (strcmp(cmd, "cls") == 0) {
         clear_screen();
     } else {
         const char *text = "Unknown command\n";
-        for (size_t i = 0; text[i]; ++i)
-            put_char(text[i], DEFAULT_ATTR);
+        put_string(text, DEFAULT_ATTR);
     }
 }
