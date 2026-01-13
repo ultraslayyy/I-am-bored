@@ -16,6 +16,7 @@ def escape_c_string(s: str) -> str:
 def generate_file_node(path, name):
     with open(path, "r") as f:
         content = f.read()
+
     size = len(content)
     cname = sanitize_name(path)
     escaped_content = escape_c_string(content)
@@ -24,7 +25,7 @@ def generate_file_node(path, name):
     c += f'    .type = FS_FILE,\n'
     c += f'    .content = "{escaped_content}",\n'
     c += f'    .size = {size}\n'
-    c += '};\n\n'
+    c += '};\n'
     return c, f'&file_{cname}'
 
 def generate_dir_node(name, children_ptrs):
@@ -35,10 +36,10 @@ def generate_dir_node(name, children_ptrs):
     c += f'    .type = FS_DIR,\n'
     c += f'    .children = dir_{c_name}_children,\n'
     c += f'    .child_count = {len(children_ptrs)}\n'
-    c += '};\n\n'
+    c += '};\n'
     return c, f'&dir_{c_name}'
 
-def walk_dir(path):
+def walk_dir(path, is_root=False):
     file_nodes = []
     dir_nodes = []
 
@@ -54,23 +55,27 @@ def walk_dir(path):
             c, ptr = generate_file_node(full_path, entry)
             file_nodes.append(c)
             children_ptrs.append(ptr)
+    
+    if is_root:
+        return "\n".join(dir_nodes + file_nodes), children_ptrs
 
     c_dir, ptr_dir = generate_dir_node(os.path.basename(path), children_ptrs)
     return "\n".join(dir_nodes + file_nodes + [c_dir]), ptr_dir
 
-all_nodes, root_ptr = walk_dir(ROOT_DIR)
+all_nodes, root_ptr = walk_dir(ROOT_DIR, is_root=True)
 
-kernel_c = f'static fs_node_t *kernel_children[] = {{ {root_ptr} }};\n'
-kernel_c += 'fs_node_t dir_kernel = {\n'
-kernel_c += '    .name = "kernel",\n'
-kernel_c += '    .type = FS_DIR,\n'
-kernel_c += '    .children = kernel_children,\n'
+kernel_c =  f'static fs_node_t *kernel_children[] = {{ {", ".join(root_ptr)} }};\n'
+kernel_c +=  'fs_node_t dir_kernel = {\n'
+kernel_c +=  '    .name = "kernel",\n'
+kernel_c +=  '    .type = FS_DIR,\n'
+kernel_c +=  '    .children = kernel_children,\n'
 kernel_c += f'    .child_count = {1}\n'
-kernel_c += '};'
+kernel_c +=  '};'
 
 with open(OUT_FILE, "w") as f:
     f.write('#include "fs.h"\n#include "kfs.h"\n')
     f.write(all_nodes)
+    f.write(kernel_c)
 
 with open(OUT_FILE_H, "w") as f:
     f.write('#pragma once\n#include "fs.h"\nextern fs_node_t dir_kernel;')
