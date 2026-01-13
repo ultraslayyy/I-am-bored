@@ -19,7 +19,7 @@ def generate_file_node(path, name):
     size = len(content)
     cname = sanitize_name(path)
     escaped_content = escape_c_string(content)
-    c = f'static fs_node_t file_{cname} = {{\n'
+    c =  f'static fs_node_t file_{cname} = {{\n'
     c += f'    .name = "{name}",\n'
     c += f'    .type = FS_FILE,\n'
     c += f'    .content = "{escaped_content}",\n'
@@ -29,7 +29,7 @@ def generate_file_node(path, name):
 
 def generate_dir_node(name, children_ptrs):
     c_name = sanitize_name(name)
-    c = f'static fs_node_t *dir_{c_name}_children[] = {{ {", ".join(children_ptrs)} }};\n'
+    c =  f'static fs_node_t *dir_{c_name}_children[] = {{ {", ".join(children_ptrs)} }};\n'
     c += f'static fs_node_t dir_{c_name} = {{\n'
     c += f'    .name = "{name}",\n'
     c += f'    .type = FS_DIR,\n'

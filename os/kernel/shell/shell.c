@@ -1,67 +1,116 @@
 #include <lib/string.h>
 #include <shell/alias.h>
 #include <io/kernel_io.h>
+#include <stdarg.h>
 #include <fs/fs.h>
+#include "shutdown.h"
+#include "shell.h"
+#include "history.h"
+#include "pci.h"
+
+int cmd_help(int argc, char **argv);
+int cmd_echo(int argc, char **argv);
+int cmd_cls(int argc, char **argv);
 
 size_t recur_level = 0;
+
+typedef int (*command_fn)(int argc, char **argv);
+
+typedef struct {
+    const char *name;
+    command_fn  handler;
+    const char *help;
+} command_t;
+
+static command_t commands[] = {
+    {"help",     cmd_help,     "Show this help"},
+    {"alias",    cmd_alias,    "Alias idk"},
+    {"cat",      cmd_cat,      "Print file contents"},
+    {"cls",      cmd_cls,      "Clear screen"},
+    {"echo",     cmd_echo,     "Print text"},
+    {"history",  cmd_history,  "Print command history"},
+    {"ls",       cmd_ls,       "List directory contents"},
+    {"pci",      cmd_pci,      "List PCI devices"},
+    {"shutdown", cmd_shutdown, "Shutdown computer (currently QEMU only)"}
+};
+
+#define COMMAND_COUNT (sizeof(commands) / sizeof(commands[0]))
+
+int cmd_help(int argc, char **argv) {
+    for (size_t i = 0; i < COMMAND_COUNT; ++i) {
+        char text[256];
+        snprintf(text, sizeof(text), "%s - %s\n", commands[i].name, commands[i].help);
+        put_string(text, DEFAULT_ATTR);
+    }
+}
+
+int cmd_echo(int argc, char **argv) {
+    for (int i = 1; i < argc; ++i) {
+        put_string(argv[i], DEFAULT_ATTR);
+        put_char(' ', DEFAULT_ATTR);
+    }
+    put_char('\n', DEFAULT_ATTR);
+    return 0;
+}
+
+int cmd_cls(int argc, char **argv) {
+    clear_screen();
+    return 0;
+}
 
 void shell_init() {
     alias_init();
 }
 
-void process_command(char *cmd) {
-    char expanded[128];
-    const char *alias = alias_lookup(cmd);
+int parse_args(char *cmd, char **argv, int max) {
+    int argc = 0;
+    char *p = cmd;
+    char *tok;
 
-    if (recur_level > MAX_ALIAS_RECURSION) {
-        char text[128];
-        snprintf(text, sizeof(text), "Alias recursion limit (%d) exceeded\n", MAX_ALIAS_RECURSION);
-        put_string(text, DEFAULT_ATTR);
-        return;
+    while ((tok = strktok(&p, " \t")) && argc < max) {
+        argv[argc++] = tok;
     }
 
+    return argc;
+}
+
+void process_command(char *cmd, ...) {
+    if (cmd[0] != 0) {
+        va_list args;
+        va_start(args, cmd);
+        int type = va_arg(args, int);
+
+        if (type != HIST_ALIAS) {
+            add_history(cmd);
+        }
+    }
+
+    char expanded[128];
+    char *argv[16];
+    int argc;
+
+    const char *alias = alias_lookup(cmd);
     if (alias) {
+        if (recur_level++ > MAX_ALIAS_RECURSION) {
+            put_string("Alias recursion limit exceeded\n", DEFAULT_ATTR);
+            recur_level--;
+            return;
+        }
         strcpy(expanded, alias);
-        recur_level++;
-        process_command(expanded);
+        process_command(expanded, HIST_ALIAS);
         recur_level--;
         return;
     }
 
-    if (strncmp(cmd, "alias", 5) == 0 && (cmd[5] == 0 ||cmd[5] == ' ')) {
-        if (cmd[5] == 0) {
-            alias_list();
+    argc = parse_args(cmd, argv, 16);
+    if (argc == 0) return;
+
+    for (size_t i = 0; i < COMMAND_COUNT; ++i) {
+        if (strcmp(argv[0], commands[i].name) == 0) {
+            commands[i].handler(argc, argv);
             return;
         }
-
-        char *eq = strchr(cmd + 6, '=');
-        if (!eq) return;
-        *eq = 0;
-        alias_set(cmd + 6, eq + 1);
-        return;
     }
 
-    if (strcmp(cmd, "ls") == 0) {
-        fs_ls("/");
-        return;
-    } else if (strncmp(cmd, "ls", 2) == 0) {
-        fs_ls(cmd + 3);
-        return;
-    } else if (strncmp(cmd, "cat", 3) == 0) {
-        fs_cat(cmd + 4);
-        return;
-    }
-    
-    if (strcmp(cmd, "help") == 0) {
-        const char *text = "Commands: help, echo, cls, alias, ls, cat\n";
-        put_string(text, DEFAULT_ATTR);
-    } else if (strncmp(cmd, "echo ", 4) == 0) {
-        put_string(cmd + 5, DEFAULT_ATTR);
-        put_char('\n', DEFAULT_ATTR);
-    } else if (strcmp(cmd, "cls") == 0) {
-        clear_screen();
-    } else {
-        const char *text = "Unknown command\n";
-        put_string(text, DEFAULT_ATTR);
-    }
+    put_string("Unknown command\n", DEFAULT_ATTR);
 }

@@ -1,5 +1,5 @@
 #pragma once
-#include <stddef.h>
+#include <lib/stddef.h>
 #include <arch.h>
 
 extern char kernel_start;

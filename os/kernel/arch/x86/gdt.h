@@ -1,5 +1,5 @@
 #pragma once
-#include <stdint.h>
+#include <lib/stdint.h>
 
 typedef struct {
     uint16_t limit_low;

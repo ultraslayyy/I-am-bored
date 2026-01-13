@@ -1,6 +1,6 @@
 #include <stdarg.h>
 #include "string.h"
-#include <stdint.h>
+#include <lib/stdint.h>
 
 size_t strlen(const char *s) {
     size_t len = 0;
@@ -10,15 +10,18 @@ size_t strlen(const char *s) {
 
 int strcmp(const char *a, const char *b) {
     while (*a && *a == *b) {
-        a++; b++;
+        a++;
+        b++;
     }
+
     return (unsigned char)*a - (unsigned char)*b;
 }
 
 int strncmp(const char *a, const char *b, size_t n) {
     for (size_t i = 0; i < n; ++i) {
-        if (a[i] != b[i] || a[i] == 0 || b[i] == 0) 
+        if (a[i] != b[i] || a[i] == 0 || b[i] == 0)  {
             return (unsigned char)a[i] - (unsigned char)b[i];
+        }
     }
     return 0;
 }
@@ -28,12 +31,27 @@ char *strchr(const char *s, char c) {
         if (*s == c) return (char *)s;
         s++;
     }
-    return 0;
+    return (c== 0) ? (char *)s : 0;
 }
 
 void strcpy(char *dst, const char *src) {
     while ((*dst++ = *src++));
 }
+
+size_t strlcpy(char *dst, const char *src, size_t size) {
+    size_t i = 0;
+
+    if (size > 0) {
+        for (; i < size - 1 && src[i]; ++i) {
+            dst[i] = src[i];
+        }
+        dst[i] = '\0';
+    }
+
+    while (src[i]) i++;
+    return i;
+}
+
 
 static void buf_putc(char **buf, size_t *left, char c, size_t *written) {
     if (*left > 1) {
@@ -143,4 +161,93 @@ int snprintf(char *buf, size_t size, const char *fmt, ...) {
 
     va_end(args);
     return (int)written;
+}
+
+void *memcpy(void *dst, const void *src, size_t size) {
+    unsigned char *d = (unsigned char *)dst;
+    const unsigned char *s = (const unsigned char *)src;
+
+    for (size_t i = 0; i < size; ++i) {
+        d[i] = s[i];
+    }
+    return dst;
+}
+
+void *memset(void *dst, int val, size_t size) {
+    unsigned char *d = (unsigned char *)dst;
+    const unsigned char *v = (const unsigned char *)val;
+
+    for (size_t i = 0; i < size; ++i) {
+        d[i] = v;
+    }
+    return dst;
+}
+
+int memcmp(const void *buf1, const void *buf2, size_t size) {
+    const unsigned char *pb1 = (const unsigned char *)buf1;
+    const unsigned char *pb2 = (const unsigned char *)buf2;
+
+    for (size_t i = 0; i < size; ++i) {
+        if (pb1[i] != pb2[i]) {
+            return (int)pb1[i] - (int)pb2[i];
+        }
+    }
+
+    return 0;
+}
+
+char *strktok(char **str, const char *delim) {
+    char *start;
+    char *end;
+
+    if (!str || !*str) {
+        return 0;
+    }
+
+    start = *str;
+    while (*start) {
+        const char *d = delim;
+        int is_delim = 0;
+
+        while (*d) {
+            if (*start == *d) {
+                is_delim = 1;
+                break;
+            }
+            d++;
+        }
+
+        if (!is_delim) {
+            break;
+        }
+
+        start++;
+    }
+
+    if (*start == 0) {
+        *str = 0;
+        return 0;
+    }
+
+    end = start;
+    while (*end) {
+        const char *d = delim;
+        while (*d) {
+            if (*end == *d) {
+                break;
+            }
+            d++;
+        }
+        if (*d) break;
+        end++;
+    }
+
+    if (*end) {
+        *end = 0;
+        *str = end + 1;
+    } else {
+        *str = 0;
+    }
+
+    return start;
 }

@@ -1,4 +1,4 @@
-#include <stdint.h>
+#include <lib/stdint.h>
 #include <arch.h>
 #include <shell/input.h>
 #include <io/kernel_io.h>
@@ -48,7 +48,11 @@ void keyboard_callback(void) {
     }
     
     if (sc == 0x48) {
-        scroll_up();
+        if (shift_pressed) {
+
+        } else {
+            scroll_up();
+        }
         return;
     } else if (sc == 0x50) {
         scroll_down();

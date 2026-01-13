@@ -1,5 +1,5 @@
 #pragma once
-#include <stdint.h>
+#include <lib/stdint.h>
 
 #define IDT_ENTRIES 256
 

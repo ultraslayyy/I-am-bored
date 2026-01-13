@@ -39,10 +39,10 @@ $(BUILD_DIR)/%.o: kernel/%.s
 	$(AC) -f elf32 $< -o $@
 
 run: $(ISO)
-	qemu-system-i386 -cdrom $(ISO) -m 512 -net none
+	qemu-system-i386 -cdrom $(ISO) -m 512 -net none -netdev user,id=net0 -device e1000,netdev=net0 -serial stdio
 
 run-fs: $(ISO)
-	qemu-system-i386 -cdrom $(ISO) -m 512 -net none -vga std -full-screen -display sdl
+	qemu-system-i386 -cdrom $(ISO) -m 512 -net none -vga std -full-screen -display sdl -serial stdio
 
 clean:
 	rm -rf $(BUILD_DIR) $(ISO_DIR) *.iso

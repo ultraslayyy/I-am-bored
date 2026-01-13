@@ -1,6 +1,6 @@
 #pragma once
-#include <stdint.h>
-#include <stddef.h>
+#include <lib/stdint.h>
+#include <lib/stddef.h>
 #include <arch.h>
 
 typedef struct iomem_region {

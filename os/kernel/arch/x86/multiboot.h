@@ -1,5 +1,5 @@
 #pragma once
-#include <stdint.h>
+#include <lib/stdint.h>
 
 #define MULTIBOOT_MAGIC 0x2BADB002
 

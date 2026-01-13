@@ -75,12 +75,12 @@ static fs_node_t *fs_find_child(fs_node_t *dir, const char *name) {
         return 0;
 
     for (size_t i = 0; i < dir->child_count; i++) {
-        if (strcmp(dir->children[i]->name, name) == 0)
+        if (strcmp(dir->children[i]->name, name) == 0) {
             return dir->children[i];
+        }
     }
     return 0;
 }
-
 
 static fs_node_t *fs_find(const char *path) {
     if (!path || path[0] == 0)
@@ -92,21 +92,49 @@ static fs_node_t *fs_find(const char *path) {
         path++;
 
     while (*path) {
-        char part[32];
-        size_t i = 0;
+        char *next = strchr(path, '/');
+        char saved = 0;
 
-        while (*path && *path != '/' && i < sizeof(part) - 1) {
-            part[i++] = *path++;
+        if (next) {
+            saved = *next;
+            *next = 0;
         }
-        part[i] = 0;
 
-        current = fs_find_child(current, part);
+        current = fs_find_child(current, path);
+
+        if (next) {
+            *next = saved;
+            path = next + 1;
+        } else {
+            break;
+        }
+
         if (!current)
             return 0;
-
-        if (*path == '/')
-            path++;
     }
 
     return current;
+}
+
+int cmd_ls(int argc, char **argv) {
+    if (argc == 1) {
+        fs_ls("/");
+        return 0;
+    } else if (argc == 2) {
+        fs_ls(argv[1]);
+        return 0;
+    } else {
+        put_string("Too many parameters\n", DEFAULT_ATTR);
+        return 1;
+    }
+}
+
+int cmd_cat(int argc, char **argv) {
+    if (argc == 2) {
+        fs_cat(argv[1]);
+        return 0;
+    } else {
+        put_string("Invalid parameters\n", DEFAULT_ATTR);
+        return 1;
+    }
 }

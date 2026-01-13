@@ -1,6 +1,6 @@
 #pragma once
-#include <stddef.h>
-#include <stdint.h>
+#include <lib/stddef.h>
+#include <lib/stdint.h>
 #include <drivers/video/vga.h>
 
 #define DEFAULT_ATTR 0x07

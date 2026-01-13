@@ -1,10 +1,8 @@
-#include <stdint.h>
-#include <stddef.h>
+#include <lib/stdint.h>
 #include <io/kernel_io.h>
 #include <shell/shell.h>
 #include <fs/fs.h>
 #include <drivers/memory/memory.h>
-#include <arch.h>
 
 void kernel_main(uint32_t magic, struct multiboot_info* mbi) {
     if (magic != MULTIBOOT_MAGIC) {

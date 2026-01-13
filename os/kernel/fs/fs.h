@@ -1,5 +1,5 @@
 #pragma once
-#include <stddef.h>
+#include <lib/stddef.h>
 
 typedef enum {
     FS_FILE,
@@ -27,3 +27,5 @@ typedef struct fs_node {
 void fs_init(void);
 void fs_ls(const char *path);
 void fs_cat(const char *path);
+int cmd_ls(int argc, char **argv);
+int cmd_cat(int argc, char **argv);
