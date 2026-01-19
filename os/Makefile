@@ -1,24 +1,73 @@
+# === Toolchain ===
 CC := gcc
 LD := ld
-AC := nasm
+AS := nasm
 
-ARCH := -m32
+# === Architecture selection ===
+ARCH ?= x86
 
-CFLAGS  := $(ARCH) -ffreestanding -nostdlib -Wall -Wextra -ffunction-sections -fdata-sections -Ikernel
-LDFLAGS := -m elf_i386 -T kernel/arch/x86/linker.ld --gc-sections
+# === Architecture-specific flags ===
+ifeq ($(ARCH),x86)
+  CFLAGS_ARCH   := -m32
+  LDFLAGS_ARCH  := -m elf_i386
+  NASM_FMT      := elf32
+  QEMU_BIN      := qemu-system-i386
+  LINKER_SCRIPT := kernel/arch/x86/linker.ld
+  BUILD_DIR     := build/x86
+  KERNEL_ELF    := $(BUILD_DIR)/kernel_x86.elf
+else ifeq ($(ARCH),x86_64)
+  CFLAGS_ARCH  := -m64 -mno-red-zone
+  LDFLAGS_ARCH := -m elf_x86_64
+  NASM_FMT     := elf64
+  QEMU_BIN     := qemu-system-x86_64
+  LINKER_SCRIPT:= kernel/arch/x86_64/linker.ld
+  BUILD_DIR     := build/x86_64
+  KERNEL_ELF   := $(BUILD_DIR)/kernel_x86_64.elf
+else
+  $(error Unsupported ARCH=$(ARCH))
+endif
+
+# === General flags ===
+CFLAGS := $(CFLAGS_ARCH) -ffreestanding -fno-stack-protector -fno-pic \
+          -nostdlib -Wall -Wextra -ffunction-sections -fdata-sections \
+          -Ikernel -Iinclude
+LDFLAGS := $(LDFLAGS_ARCH) -T $(LINKER_SCRIPT) --gc-sections
 
 ISO        := ultraos.iso
 ISO_DIR    := iso
-BUILD_DIR  := build
-KERNEL_ELF := $(BUILD_DIR)/kernel.elf
 
+# === Source files ===
 C_SOURCES   := $(shell find kernel -name '*.c')
 ASM_SOURCES := $(shell find kernel -name '*.s')
 
-C_OBJECTS   := $(patsubst kernel/%.c,$(BUILD_DIR)/%.o,$(C_SOURCES))
-ASM_OBJECTS := $(patsubst kernel/%.s,$(BUILD_DIR)/%.o,$(ASM_SOURCES))
-OBJECTS     := $(C_OBJECTS) $(ASM_OBJECTS)
+# === Separate arch-specific and shared files ===
+X86_C_SRC    := $(shell find kernel/arch/x86 -name '*.c')
+X86_ASM_SRC  := $(shell find kernel/arch/x86 -name '*.s')
+X86_64_C_SRC := $(shell find kernel/arch/x86_64 -name '*.c')
+X86_64_ASM_SRC := $(shell find kernel/arch/x86_64 -name '*.s')
 
+CORE_C_SRC   := $(filter-out $(X86_C_SRC) $(X86_64_C_SRC), $(C_SOURCES))
+CORE_ASM_SRC := $(filter-out $(X86_ASM_SRC) $(X86_64_ASM_SRC), $(ASM_SOURCES))
+
+# === Objects ===
+CORE_C_OBJ   := $(patsubst kernel/%.c,$(BUILD_DIR)/%.o,$(CORE_C_SRC))
+CORE_ASM_OBJ := $(patsubst kernel/%.s,$(BUILD_DIR)/%.o,$(CORE_ASM_SRC))
+
+X86_C_OBJ    := $(patsubst kernel/%.c,$(BUILD_DIR)/%.o,$(X86_C_SRC))
+X86_ASM_OBJ  := $(patsubst kernel/%.s,$(BUILD_DIR)/%.o,$(X86_ASM_SRC))
+
+X86_64_C_OBJ   := $(patsubst kernel/%.c,$(BUILD_DIR)/%.o,$(X86_64_C_SRC))
+X86_64_ASM_OBJ := $(patsubst kernel/%.s,$(BUILD_DIR)/%.o,$(X86_64_ASM_SRC))
+
+ifeq ($(ARCH),x86)
+  OBJECTS := $(CORE_C_OBJ) $(CORE_ASM_OBJ) $(X86_C_OBJ) $(X86_ASM_OBJ)
+else
+  OBJECTS := $(CORE_C_OBJ) $(CORE_ASM_OBJ) $(X86_64_C_OBJ) $(X86_64_ASM_OBJ)
+endif
+
+QEMUFLAGS := -m 512 -serial stdio -no-reboot
+
+# === Targets ===
 all: $(ISO)
 
 $(ISO): $(KERNEL_ELF)
@@ -28,21 +77,19 @@ $(ISO): $(KERNEL_ELF)
 	grub-mkrescue -o $@ $(ISO_DIR)
 
 $(KERNEL_ELF): $(OBJECTS)
-	$(LD) $(LDFLAGS) -o $@ build/arch/x86/boot/boot.o $(filter-out build/arch/x86/boot/boot.o,$(OBJECTS))
+	$(LD) $(LDFLAGS_ARCH) -T $(LINKER_SCRIPT) --gc-sections -o $@ $^
 
+# === Build rules ===
 $(BUILD_DIR)/%.o: kernel/%.c
 	mkdir -p $(dir $@)
 	$(CC) $(CFLAGS) -c $< -o $@
 
 $(BUILD_DIR)/%.o: kernel/%.s
 	mkdir -p $(dir $@)
-	$(AC) -f elf32 $< -o $@
+	$(AS) -f $(NASM_FMT) $< -o $@
 
 run: $(ISO)
-	qemu-system-i386 -cdrom $(ISO) -m 512 -net none -netdev user,id=net0 -device e1000,netdev=net0 -serial stdio
-
-run-fs: $(ISO)
-	qemu-system-i386 -cdrom $(ISO) -m 512 -net none -vga std -full-screen -display sdl -serial stdio
+	$(QEMU_BIN) -cdrom $(ISO) $(QEMUFLAGS)
 
 clean:
 	rm -rf $(BUILD_DIR) $(ISO_DIR) *.iso

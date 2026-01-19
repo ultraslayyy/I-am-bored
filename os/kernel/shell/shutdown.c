@@ -1,5 +1,6 @@
 #include <arch.h>
 
-void cmd_shutdown(int argc, char **argv) {
+int cmd_shutdown() {
     outw(0x604, 0x2000);
+    return 0;
 }

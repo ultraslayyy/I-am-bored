@@ -1,16 +1,16 @@
 #include <lib/string.h>
 #include <shell/alias.h>
 #include <io/kernel_io.h>
-#include <stdarg.h>
+#include <lib/stdarg.h>
 #include <fs/fs.h>
 #include "shutdown.h"
 #include "shell.h"
 #include "history.h"
 #include "pci.h"
 
-int cmd_help(int argc, char **argv);
+int cmd_help();
 int cmd_echo(int argc, char **argv);
-int cmd_cls(int argc, char **argv);
+int cmd_cls();
 
 size_t recur_level = 0;
 
@@ -36,24 +36,33 @@ static command_t commands[] = {
 
 #define COMMAND_COUNT (sizeof(commands) / sizeof(commands[0]))
 
-int cmd_help(int argc, char **argv) {
+int cmd_help() {
     for (size_t i = 0; i < COMMAND_COUNT; ++i) {
-        char text[256];
+        char text[128];
         snprintf(text, sizeof(text), "%s - %s\n", commands[i].name, commands[i].help);
         put_string(text, DEFAULT_ATTR);
     }
+    return 0;
 }
 
 int cmd_echo(int argc, char **argv) {
+    char buf[MAX_INPUT];
+    size_t len = 0;
+    buf[0] = '\0';
+
     for (int i = 1; i < argc; ++i) {
-        put_string(argv[i], DEFAULT_ATTR);
-        put_char(' ', DEFAULT_ATTR);
+        len += snprintf(buf + len, sizeof(buf) - len, "%s%s", argv[i], (i + 1 < argc ? " " : ""));
+        if (len >= sizeof(buf)) {
+            break;
+        }
     }
+
+    put_string(buf, DEFAULT_ATTR);
     put_char('\n', DEFAULT_ATTR);
     return 0;
 }
 
-int cmd_cls(int argc, char **argv) {
+int cmd_cls() {
     clear_screen();
     return 0;
 }

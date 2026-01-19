@@ -16,6 +16,8 @@ void list_pci(void) {
 }
 
 int cmd_pci(int argc, char **argv) {
+    (void)argv;
+    
     if (argc == 2) {
         list_pci();
         return 0;

@@ -42,8 +42,9 @@ void fs_ls(const char *path) {
     }
 
     for (size_t i = 0; i < node->child_count; i++) {
-        put_string(node->children[i]->name, DEFAULT_ATTR);
-        put_char('\n', DEFAULT_ATTR);
+        char buf[128];
+        snprintf(buf, sizeof(buf), "%s\n", node->children[i]->name);
+        put_string(buf, DEFAULT_ATTR);
     }
 }
 

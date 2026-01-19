@@ -50,21 +50,20 @@ static void iomem_merge(void) {
     region_count = dst + 1;
 }
 
-void iomem_init(struct multiboot_info *mbi) {
-    if (mbi && (mbi->flags & (1 << 6))) {
-        uintptr_t mmap_end = (uintptr_t)mbi->mmap_addr + mbi->mmap_length;
-        uintptr_t mmap_ptr = (uintptr_t)mbi->mmap_addr;
-
-        while (mmap_ptr < mmap_end) {
-            multiboot_mmap_entry_t *entry = (multiboot_mmap_entry_t *)mmap_ptr;
+void iomem_init(boot_info_t *mbi) {
+    if (mbi && mbi->mmap_entries != 0) {
+        for (uint32_t i = 0; i < mbi->mmap_entries; i++) {
+            boot_mmap_entry_t *entry = &mbi->mmap[i];
 
             if (entry->type != 1) {
-                iomem_add(entry->addr, entry->addr + entry->len, "Reserved", 0);
+                iomem_add(entry->base,
+                        entry->base + entry->length,
+                        "Reserved", 0);
             } else {
-                iomem_add(entry->addr, entry->addr + entry->len, "System RAM", 0);
+                iomem_add(entry->base,
+                        entry->base + entry->length,
+                        "System RAM", 0);
             }
-
-            mmap_ptr += entry->size + sizeof(entry->size);
         }
     }
 

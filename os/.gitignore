@@ -1,9 +1,14 @@
+# Binaries
 *.elf
 *.o
 *.iso
+
+# Kernel mirror in VFS
 kernel/fs/kfs.*
-kernel/drivers/video
-!kernel/drivers/video/vga.h
+
+# Build folders
 build/
 iso/
+
+# Misc
 test/

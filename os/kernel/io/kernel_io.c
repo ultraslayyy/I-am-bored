@@ -7,7 +7,7 @@ size_t viewport_top = 0;
 size_t cursor_col = 0; 
 size_t cursor_row = 0;
 
-static void scroll_if_needed(size_t *cursor_pos) {
+/* static void scroll_if_needed(size_t *cursor_pos) {
     size_t row = *cursor_pos / VGA_WIDTH;
     if (row < VGA_HEIGHT) return;
 
@@ -31,8 +31,9 @@ static void scroll_if_needed(size_t *cursor_pos) {
     }
 
     *cursor_pos -= lines_to_scroll * VGA_WIDTH;
-}
+} */
 
+// Amazing 4000 VRAM writes per time this function runs :smile:
 void put_char(char c, uint8_t attr) {
     if (c == '\n') {
         cursor_col = 0;
@@ -63,12 +64,13 @@ void put_char(char c, uint8_t attr) {
 }
 
 void put_string(const char *str, uint8_t attr) {
-    for (size_t i = 0; str[i]; ++i)
+    for (size_t i = 0; str[i]; ++i) {
         put_char(str[i], attr);
+    }
 }
 
 void clear_screen(void) {
-    for (size_t i = 0; i < VGA_HEIGHT; i++) {
+    for (size_t i = 0; i < BUFFER_HEIGHT; i++) {
         for (size_t j = 0; j < VGA_WIDTH; j++) {
             text_buffer[i].chars[j] = ' ';
             text_buffer[i].attrs[j] = DEFAULT_ATTR;

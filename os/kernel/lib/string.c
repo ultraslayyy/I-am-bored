@@ -1,4 +1,4 @@
-#include <stdarg.h>
+#include <lib/stdarg.h>
 #include "string.h"
 #include <lib/stdint.h>
 
@@ -178,7 +178,7 @@ void *memset(void *dst, int val, size_t size) {
     const unsigned char *v = (const unsigned char *)val;
 
     for (size_t i = 0; i < size; ++i) {
-        d[i] = v;
+        d[i] = *v;
     }
     return dst;
 }
