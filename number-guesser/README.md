@@ -46,6 +46,27 @@ The current languages I've written this in are:
 - Crystal
 - OCaml
 - VHDL or Verilog
+- Simul
+- Comtran
+- IBM RPG
+- APL
+- Speakeasy
+- MUMPS
+- Logo
+- Pascal
+- Smalltalk
+- ML
+- Ada
+- Matlab
+- Wolfram
+- Delphi
+- Actionscript
+- Elm
+- Nim
+- Raku
+- Power FX
+- Erlang
+- Tcl
 
 ## Rules
 - Non-built-in dependencies are **prohibited**
