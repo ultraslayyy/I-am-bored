@@ -25,6 +25,7 @@ The current languages I've written this in are:
 - [LOLCODE](./main.lol)
 - [Lua](./main.lua)
 - [Objective-C](./main.m)
+- [Pascal](./main.pp)
 - [Perl](./main.pl)
 - [PHP](./main.php)
 - [PL/SQL](./main.pls)
@@ -53,7 +54,6 @@ The current languages I've written this in are:
 - Speakeasy
 - MUMPS
 - Logo
-- Pascal
 - Smalltalk
 - ML
 - Ada
