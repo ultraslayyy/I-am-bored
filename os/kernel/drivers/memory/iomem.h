@@ -8,7 +8,7 @@ typedef struct iomem_region {
     uint64_t start;
     uint64_t end;
     const char *name;
-    int indent;
+    size_t indent;
 } iomem_region_t;
 
 void iomem_init(boot_info_t *mbi);

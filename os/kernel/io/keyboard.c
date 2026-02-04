@@ -49,7 +49,7 @@ void keyboard_callback(void) {
     
     if (sc == 0x48) {
         if (shift_pressed) {
-
+            
         } else {
             scroll_up();
         }

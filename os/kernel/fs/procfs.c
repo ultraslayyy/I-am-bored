@@ -20,7 +20,7 @@ static size_t proc_iomem_read(char *buf, size_t max) {
 static fs_node_t file_meminfo = {
     .name = "meminfo",
     .type = FS_FILE,
-    .read = proc_meminfo_read
+    .read = proc_meminfo_read,
 };
 
 static fs_node_t file_iomem = {
@@ -38,5 +38,6 @@ fs_node_t dir_proc = {
     .name = "proc",
     .type = FS_DIR,
     .children = proc_children,
-    .child_count = 2
+    .child_count = 2,
+    .elevated = 1
 };

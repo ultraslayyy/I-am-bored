@@ -43,8 +43,8 @@ void pci_write_word(uint8_t bus, uint8_t slot, uint8_t func, uint8_t offset, uin
 }
 
 int pci_find_device(uint16_t vendor, uint16_t device, uint8_t *out_bus, uint8_t *out_slot, uint8_t *out_func) {
-    for (uint8_t bus = 0; bus < 1; bus++) {
-        for (uint8_t slot = 0; slot < 32; slot++) {
+    for (uint8_t bus = 0; bus < 1; ++bus) {
+        for (uint8_t slot = 0; slot < 32; ++slot) {
             uint16_t v = pci_read_word(bus, slot, 0, 0x00);
             if (v == 0xFFFF) continue;
 

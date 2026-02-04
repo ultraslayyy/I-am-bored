@@ -53,12 +53,12 @@ void idt_init(void) {
     idtr.base = (uint32_t)&idt;
 
     // Clear IDT
-    for (int i = 0; i < IDT_ENTRIES; i++) {
-         idt[i].isr_low = 0;
-         idt[i].kernel_cs = 0;
-         idt[i].reserved = 0;
-         idt[i].attributes = 0;
-         idt[i].isr_high = 0;
+    for (size_t i = 0; i < IDT_ENTRIES; ++i) {
+        idt[i].isr_low = 0;
+        idt[i].kernel_cs = 0;
+        idt[i].reserved = 0;
+        idt[i].attributes = 0;
+        idt[i].isr_high = 0;
     }
 
     pic_remap();

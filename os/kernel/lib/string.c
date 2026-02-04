@@ -52,7 +52,6 @@ size_t strlcpy(char *dst, const char *src, size_t size) {
     return i;
 }
 
-
 static void buf_putc(char **buf, size_t *left, char c, size_t *written) {
     if (*left > 1) {
         **buf = c;

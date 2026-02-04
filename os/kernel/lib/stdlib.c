@@ -1,5 +1,6 @@
-#include <lib/stdint.h>
+#include "stdint.h"
 #include "string.h"
+#include "limits.h"
 
 #define HEAP_START 0x01000000
 #define HEAP_SIZE  (1024 * 1024)
@@ -57,4 +58,35 @@ void free(void *ptr) {
 
     block_t *block = (block_t *)((uint8_t *)ptr - sizeof(block_t));
     block->free = 1;
+}
+
+int atoi(const char *s) {
+    int sign = 1;
+    int res = 0;
+    int idx = 0;
+
+    while (s[idx] == ' ') {
+        idx++;
+    }
+
+    if (s[idx] == '-' || s[idx] == '+') {
+        if (s[idx] == '-') {
+            sign = -1;
+        }
+
+        idx++;
+    }
+
+    while (s[idx] >= '0' && s[idx] <= '9') {
+        int digit = s[idx] - '0';
+
+        if (res > INT_MAX / 10 || (res == INT_MAX / 10 && digit > 7)) {
+            return sign == 1 ? INT_MAX : INT_MIN;
+        }
+
+        res = 10 * res + digit;
+        idx++;
+    }
+    
+    return res * sign;
 }

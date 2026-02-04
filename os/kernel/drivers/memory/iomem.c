@@ -18,8 +18,8 @@ static void iomem_add(uintptr_t start, uintptr_t end, const char *name, int inde
 }
 
 static void iomem_sort(void) {
-    for (size_t i = 0; i + 1 < region_count; i++) {
-        for (size_t j = 0; j + 1 < region_count - i; j++) {
+    for (size_t i = 0; i + 1 < region_count; ++i) {
+        for (size_t j = 0; j + 1 < region_count - i; ++i) {
             if (regions[j].start > regions[j + 1].start) {
                 iomem_region_t tmp = regions[j];
                 regions[j] = regions[j + 1];
@@ -34,7 +34,7 @@ static void iomem_merge(void) {
     iomem_sort();
 
     size_t dst = 0;
-    for (size_t i = 1; i < region_count; i++) {
+    for (size_t i = 1; i < region_count; ++i) {
         iomem_region_t *prev = &regions[dst];
         iomem_region_t *curr = &regions[i];
 
@@ -52,7 +52,7 @@ static void iomem_merge(void) {
 
 void iomem_init(boot_info_t *mbi) {
     if (mbi && mbi->mmap_entries != 0) {
-        for (uint32_t i = 0; i < mbi->mmap_entries; i++) {
+        for (uint32_t i = 0; i < mbi->mmap_entries; ++i) {
             boot_mmap_entry_t *entry = &mbi->mmap[i];
 
             if (entry->type != 1) {
@@ -112,10 +112,10 @@ void iomem_init(boot_info_t *mbi) {
 size_t iomem_print(char *buf, size_t max) {
     size_t written = 0;
 
-    for (size_t i = 0; i < region_count; i++) {
+    for (size_t i = 0; i < region_count; ++i) {
         const iomem_region_t *r = &regions[i];
 
-        for (int j = 0; j < r->indent; j++) {
+        for (size_t j = 0; j < r->indent; ++j) {
             if (written + 2 < max) {
                 buf[written++] = ' ';
                 buf[written++] = ' ';

@@ -20,7 +20,7 @@ void add_history(const char *cmd) {
     }
 }
 
-void list_history() {
+void list_history(void) {
     char buf[128];
     for (size_t i = 0; i < history_count; ++i) {
         size_t index = (history_start + i) % MAX_HISTORY;
@@ -29,7 +29,7 @@ void list_history() {
     }
 }
 
-void clear_history() {
+void clear_history(void) {
     history_count = 0;
     history_start = 0;
 }

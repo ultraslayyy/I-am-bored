@@ -10,10 +10,6 @@ typedef struct {
 static Alias aliases[MAX_ALIASES];
 static size_t alias_count = 0;
 
-void alias_init(void) {
-    alias_count = 0;
-}
-
 void alias_set(const char *name, const char *value) {
     for (size_t i = 0; i < alias_count; ++i) {
         if (strcmp(aliases[i].name, name) == 0) {
@@ -50,7 +46,7 @@ const char *alias_lookup(const char *name) {
     return 0;
 }
 
-void alias_list() {
+void alias_list(void) {
     for (size_t i = 0; i < alias_count; ++i) {
         char buf[MAX_ALIAS_NAME + MAX_ALIAS_VALUE];
         snprintf(buf, sizeof(buf), "alias %s=%s\n", aliases[i].name, aliases[i].value);

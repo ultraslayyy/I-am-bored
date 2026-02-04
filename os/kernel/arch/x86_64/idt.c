@@ -1,4 +1,5 @@
 #include <arch/x86/io.h>
+#include <lib/stddef.h>
 #include "idt.h"
 
 extern void irq1(void);
@@ -20,7 +21,7 @@ void idt_init(void) {
     idtr.limit = sizeof(idt) - 1;
     idtr.base  = (uint64_t)&idt;
 
-    for (int i = 0; i < IDT_ENTRIES; ++i) {
+    for (size_t i = 0; i < IDT_ENTRIES; ++i) {
         idt_set_gate(i, 0, 0, 0);
     }
     idt_set_gate(33, (uint64_t)irq1, 0x08, 0x8E);

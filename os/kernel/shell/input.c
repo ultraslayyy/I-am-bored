@@ -1,7 +1,8 @@
 #include <io/kernel_io.h>
 #include <drivers/video/vga.h>
-#include <shell/shell.h>
+#include "shell.h"
 #include <lib/string.h>
+#include <fs/cwd.h>
 
 void handle_input_char(char c, char *input_buffer, size_t *input_pos, const char *prompt) {
     if (c == '\b') {
@@ -15,11 +16,14 @@ void handle_input_char(char c, char *input_buffer, size_t *input_pos, const char
                 cursor_col = VGA_WIDTH - 1;
             }
 
-            text_buffer[cursor_row].chars[cursor_col] = ' ';
-            text_buffer[cursor_row].attrs[cursor_col] = DEFAULT_ATTR;
+            size_t row = ROW_IDX(cursor_row);
+
+            text_buffer[row].chars[cursor_col] = ' ';
+            text_buffer[row].attrs[cursor_col] = DEFAULT_ATTR;
 
             update_screen();
         }
+
         return;
     }
 
@@ -29,8 +33,7 @@ void handle_input_char(char c, char *input_buffer, size_t *input_pos, const char
 
         cursor_col = 0;
         cursor_row++;
-        if (cursor_row >= BUFFER_HEIGHT) cursor_row = BUFFER_HEIGHT - 1;
-        if (cursor_row >= buffer_lines) buffer_lines = cursor_row + 1;
+        total_lines = cursor_row + 1;
 
         scroll_viewport();
         update_screen();
@@ -48,11 +51,10 @@ void handle_input_char(char c, char *input_buffer, size_t *input_pos, const char
 
 static char s_input_buffer[MAX_INPUT];
 static size_t s_input_pos = 0;
-static const char *s_prompt = "$ ";
 
 void shell_handle_char(char c) {
-    if (cursor_col == 0 && s_input_pos == 0) {
-        
-    }
-    handle_input_char(c, s_input_buffer, &s_input_pos, s_prompt);
+    char prompt[128];
+    snprintf(prompt, sizeof(prompt), "%s $ ", g_cwd);
+
+    handle_input_char(c, s_input_buffer, &s_input_pos, prompt);
 }

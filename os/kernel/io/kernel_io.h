@@ -5,6 +5,7 @@
 
 #define DEFAULT_ATTR 0x07
 #define BUFFER_HEIGHT 1024
+#define ROW_IDX(r) ((r) % BUFFER_HEIGHT)
 
 typedef struct {
     char chars[VGA_WIDTH];
@@ -12,7 +13,7 @@ typedef struct {
 } line_t;
 
 extern line_t text_buffer[BUFFER_HEIGHT];
-extern size_t buffer_lines;
+extern size_t total_lines;
 extern size_t cursor_row;
 extern size_t cursor_col;
 extern size_t viewport_top;

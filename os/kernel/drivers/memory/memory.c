@@ -13,7 +13,7 @@ void memory_init(boot_info_t *mbi) {
         return;
     }
 
-    for (uint32_t i = 0; i < mbi->mmap_entries; i++) {
+    for (uint32_t i = 0; i < mbi->mmap_entries; ++i) {
         boot_mmap_entry_t *entry = &mbi->mmap[i];
 
         if (entry->type == 1) {

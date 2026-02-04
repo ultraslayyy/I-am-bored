@@ -7,10 +7,11 @@
 #include "shell.h"
 #include "history.h"
 #include "pci.h"
+#include "cd.h"
 
-int cmd_help();
+int cmd_help(int argc, char **argv);
 int cmd_echo(int argc, char **argv);
-int cmd_cls();
+int cmd_cls(int argc, char **argv);
 
 size_t recur_level = 0;
 
@@ -31,12 +32,16 @@ static command_t commands[] = {
     {"history",  cmd_history,  "Print command history"},
     {"ls",       cmd_ls,       "List directory contents"},
     {"pci",      cmd_pci,      "List PCI devices"},
-    {"shutdown", cmd_shutdown, "Shutdown computer (currently QEMU only)"}
+    {"shutdown", cmd_shutdown, "Shutdown computer (currently QEMU only)"},
+    {"cd",       cmd_cd,       "Change the Current Working Directory"}
 };
 
 #define COMMAND_COUNT (sizeof(commands) / sizeof(commands[0]))
 
-int cmd_help() {
+int cmd_help(int argc, char **argv) {
+    (void)argc;
+    (void)argv;
+
     for (size_t i = 0; i < COMMAND_COUNT; ++i) {
         char text[128];
         snprintf(text, sizeof(text), "%s - %s\n", commands[i].name, commands[i].help);
@@ -50,8 +55,8 @@ int cmd_echo(int argc, char **argv) {
     size_t len = 0;
     buf[0] = '\0';
 
-    for (int i = 1; i < argc; ++i) {
-        len += snprintf(buf + len, sizeof(buf) - len, "%s%s", argv[i], (i + 1 < argc ? " " : ""));
+    for (size_t i = 1; (int)i < argc; ++i) {
+        len += snprintf(buf + len, sizeof(buf) - len, "%s%s", argv[i], ((int)i + 1 < argc ? " " : ""));
         if (len >= sizeof(buf)) {
             break;
         }
@@ -62,13 +67,12 @@ int cmd_echo(int argc, char **argv) {
     return 0;
 }
 
-int cmd_cls() {
+int cmd_cls(int argc, char **argv) {
+    (void)argc;
+    (void)argv;
+
     clear_screen();
     return 0;
-}
-
-void shell_init() {
-    alias_init();
 }
 
 int parse_args(char *cmd, char **argv, int max) {
