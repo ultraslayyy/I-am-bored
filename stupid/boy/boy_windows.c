@@ -1,4 +1,4 @@
-// Using assembly file does not change file size (2048 bytes), but uses 2 less bytes of data (without padding) so a win is a win. You can define NO_ASM (and not include .asm) to not use ASM
+// Using assembly file does not change file size (2048 bytes. EDIT: I just got 1536?), but uses 2 less bytes of data (without padding) so a win is a win. You can define NO_ASM (and not include .asm) to not use ASM
 // gcc boy_windows.c boy_windows.asm -nostdlib -fno-asynchronous-unwind-tables -fno-unwind-tables -Wl,-entry,_start -Wl,-subsystem,console -Wl,--disable-reloc-section -fno-ident -Wl,--file-alignment,512 -lkernel32 -ffunction-sections -fdata-sections -Wl,--gc-sections -s -o boy_windows.exe
 // strip boy_windows.exe
 // objcopy --remove-section .comment boy_windows.exe

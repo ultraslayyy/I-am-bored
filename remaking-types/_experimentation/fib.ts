@@ -1,3 +1,3 @@
 import { Fib } from './types/fib';
 
-type F8 = Fib<9>;
+type F10 = Fib<10>;

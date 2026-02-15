@@ -6,7 +6,7 @@
 
 #define ARR_LEN(x) (sizeof(x) / sizeof(x[0]))
 
-#define LED_PIN 25
+#define LED_PIN "LED"
 #define BOOSTEL 23
 
 #define INT_MAX 0x7fffffff
@@ -245,8 +245,7 @@ int main(void) {
     while (1) {
         uint32_t now = now_ms();
 
-        if (fgets(cmd_buf, sizeof(cmd_buf), stdin)) {
-
+        if (fgets(cmd_buf, sizeof(cmd_buf), stdin)) {            
             handle_command(cmd_buf);
         }
 
