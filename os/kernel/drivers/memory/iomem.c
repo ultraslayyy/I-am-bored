@@ -19,7 +19,7 @@ static void iomem_add(uintptr_t start, uintptr_t end, const char *name, int inde
 
 static void iomem_sort(void) {
     for (size_t i = 0; i + 1 < region_count; ++i) {
-        for (size_t j = 0; j + 1 < region_count - i; ++i) {
+        for (size_t j = 0; j + 1 < region_count - i; ++j) {
             if (regions[j].start > regions[j + 1].start) {
                 iomem_region_t tmp = regions[j];
                 regions[j] = regions[j + 1];

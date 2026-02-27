@@ -2,9 +2,16 @@
 
 ## Dependencies
 First, install dependencies
+
+### Ubuntu/Debian based
 ```bash
 sudo apt update
 sudo apt install build-essential nasm grub-pc-bin xorriso mtools qemu-system-i386 qemu-system-x86_64
+```
+
+### Arch based
+```sh
+sudo pacman -S base-devel nasm grub xorriso mtools qemu gdb
 ```
 
 ## Building

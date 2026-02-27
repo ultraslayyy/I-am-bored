@@ -21,5 +21,6 @@ void memory_init(boot_info_t *mbi) {
         }
     }
 
-    iomem_init(mbi);
+    // Causes triple fault at ln 17
+    // iomem_init(mbi);
 }

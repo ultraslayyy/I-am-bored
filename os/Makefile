@@ -6,6 +6,9 @@ AS := nasm
 # === Architecture selection ===
 ARCH ?= x86
 
+# === GDB usage ===
+GDB ?= 0
+
 # === Architecture-specific flags ===
 ifeq ($(ARCH),x86)
   CFLAGS_ARCH   := -m32
@@ -66,6 +69,11 @@ else
 endif
 
 QEMUFLAGS := -m 512 -serial stdio -no-reboot
+
+ifeq ($(GDB),1)
+  CFLAGS += -O0 -g
+  QEMUFLAGS += -S -s
+endif
 
 # === Targets ===
 all: $(ISO)

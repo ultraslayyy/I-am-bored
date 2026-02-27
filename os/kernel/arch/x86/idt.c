@@ -2,7 +2,9 @@
 #include "io.h"
 #include <io/kernel_io.h>
 
+extern void irq0(void);
 extern void irq1(void);
+extern uint32_t schedule(uint32_t esp);
 
 extern void keyboard_callback(void);
 
@@ -43,9 +45,9 @@ static void pic_remap(void) {
     outb(0xA1, 0x01);
     io_wait();
 
-    // Mask all except IRQ 1 (Keyboard)
-    outb(0x21, 0xFD); // 1111 1101
-    outb(0xA1, 0xFF);
+    // Mask all except IRQ 0 (Timer) and IRQ 1 (Keyboard)
+    outb(0x21, 0xFC); // 1111 1100
+    outb(0xA1, 0xFF); // Mask the entire slave
 }
 
 void idt_init(void) {
@@ -63,6 +65,8 @@ void idt_init(void) {
 
     pic_remap();
 
+    // Install IRQ 0 (Timer) at 32 (0x20)
+    idt_set_gate(32, (uint32_t)irq0, 0x08, 0x8E); // 0x08 is kernel code segment, 0x8E is 32-bit intr gate
     // Install IRQ 1 (Keyboard) at 33 (0x21)
     idt_set_gate(33, (uint32_t)irq1, 0x08, 0x8E); // 0x08 is kernel code segment, 0x8E is 32-bit intr gate
 
@@ -70,8 +74,10 @@ void idt_init(void) {
     __asm__ volatile("sti");
 }
 
-void isr_handler(uint32_t int_num, void* regs) {
-    (void)regs;
+void *isr_handler(uint32_t int_num, uint32_t esp) {
+    if (int_num == 32) {
+        esp = schedule(esp);
+    }
     
     if (int_num == 33) {
         keyboard_callback();
@@ -84,4 +90,6 @@ void isr_handler(uint32_t int_num, void* regs) {
             outb(0xA0, 0x20); // EOI to Slave
         }
     }
+
+    return (void *)esp;
 }
