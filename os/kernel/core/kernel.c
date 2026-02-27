@@ -7,6 +7,29 @@
 
 extern uint32_t kernel_stack_end;
 
+void user_main() {
+    // write 'H'
+    asm volatile(
+        "mov $0x00, %%eax\n"   // syscall 0 = write_char
+        "mov $'H', %%ebx\n"    // char to write
+        "int $0x80\n"
+        :
+        :
+        : "eax", "ebx"
+    );
+
+    // exit
+    asm volatile(
+        "mov $0x02, %%eax\n"   // syscall 2 = exit
+        "int $0x80\n"
+        :
+        :
+        : "eax"
+    );
+
+    while(1) { asm volatile("hlt"); }
+}
+
 // void taskA();
 // void taskB();
 
@@ -39,7 +62,7 @@ void kernel_main(boot_info_t *mbi) {
     // task_create(taskA); 
     // task_create(taskB);
 
-    // enter_user_mode(user_main);
+    enter_user_mode(user_main);
 
     while (1) {
         __asm__ volatile("hlt");

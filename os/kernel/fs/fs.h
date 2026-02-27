@@ -38,3 +38,4 @@ fs_node_t *fs_find(const char *path);
 int resolve_path(char out[MAX_PATH_LEN], const char *in);
 int cmd_ls(int argc, char **argv);
 int cmd_cat(int argc, char **argv);
+size_t fs_read_file(fs_node_t *node, char *buffer, size_t max_len);
