@@ -9,6 +9,7 @@
 #include <arch/x86/gdt.h>
 #include <arch/x86/idt.h>
 #include <arch/x86/io.h>
+#include <arch/x86/paging.h>
 #include <arch/x86/pit.h>
 #include <arch/x86/task.h>
 

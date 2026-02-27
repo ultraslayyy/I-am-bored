@@ -2,6 +2,8 @@
 #include <lib/stdlib.h>
 #include "task.h"
 
+extern uint32_t kernel_stack_end;
+
 task_t *current_task = NULL;
 task_t *task_list = NULL;
 
@@ -55,7 +57,7 @@ void scheduler_init() {
     task_t *kernel_task = malloc(sizeof(task_t));
     if (!kernel_task) return;
 
-    kernel_task->esp = 0; // Will be set on first schedule
+    kernel_task->esp = (uint32_t)&kernel_stack_end; // Will be set on first schedule
     kernel_task->next = kernel_task;
     
     task_list = kernel_task;

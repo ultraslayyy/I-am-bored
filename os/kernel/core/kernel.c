@@ -18,6 +18,7 @@ void kernel_main(boot_info_t *mbi) {
     put_string(prompt, DEFAULT_ATTR);
 
     memory_init(mbi);
+    paging_init();
     fs_init();
 
     idt_init();
@@ -35,13 +36,13 @@ void kernel_main(boot_info_t *mbi) {
 /* void taskA() {
     while (1) {
         put_string("A", DEFAULT_ATTR);
-        for(volatile int i = 0; i < 1000000; i++); // Slow down for visibility
+        for(volatile int i = 0; i < 1000000; ++i); // Slow down for visibility
     }
 }
 
 void taskB() {
     while (1) {
         put_string("B", DEFAULT_ATTR);
-        for(volatile int i = 0; i < 1000000; i++); // Slow down for visibility
+        for(volatile int i = 0; i < 1000000; ++i); // Slow down for visibility
     }
 } */
