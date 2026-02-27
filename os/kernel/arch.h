@@ -11,6 +11,9 @@
 #include <arch/x86/io.h>
 #include <arch/x86/paging.h>
 #include <arch/x86/pit.h>
+#include <arch/x86/syscall.h>
 #include <arch/x86/task.h>
+#include <arch/x86/tss.h>
+#include <arch/x86/user.h>
 
 // #endif

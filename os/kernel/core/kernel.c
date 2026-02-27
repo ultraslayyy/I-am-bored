@@ -5,11 +5,21 @@
 #include <fs/cwd.h>
 #include "boot_info.h"
 
+extern uint32_t kernel_stack_end;
+
 // void taskA();
 // void taskB();
 
+/* void user_main() {
+    while (1) {
+        asm volatile("int $0x80");
+    }
+} */
+
 void kernel_main(boot_info_t *mbi) {
     gdt_init();
+    tss_init((uint32_t)&kernel_stack_end);
+    
     clear_screen();
 
     put_string(g_cwd, DEFAULT_ATTR);
@@ -22,11 +32,14 @@ void kernel_main(boot_info_t *mbi) {
     fs_init();
 
     idt_init();
+    syscall_init();
     scheduler_init();
 
     pit_init(100);
     // task_create(taskA); 
     // task_create(taskB);
+
+    // enter_user_mode(user_main);
 
     while (1) {
         __asm__ volatile("hlt");

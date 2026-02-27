@@ -11,7 +11,7 @@ extern void keyboard_callback(void);
 idt_entry_t idt[IDT_ENTRIES];
 idtr_t idtr;
 
-static void idt_set_gate(uint8_t num, uint32_t base, uint16_t sel, uint8_t flags) {
+void idt_set_gate(uint8_t num, uint32_t base, uint16_t sel, uint8_t flags) {
     idt[num].isr_low = base & 0xFFFF;
     idt[num].kernel_cs = sel;
     idt[num].reserved = 0;
