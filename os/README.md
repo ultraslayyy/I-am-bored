@@ -28,3 +28,20 @@ Current arches are:
 - x86_64
 
 You can run with `make run`
+
+<!--
+
+Creating user programs (future reference)
+
+```sh
+# Compile user libraries
+i686-elf-gcc -ffreestanding -c string.c stdlib.c -o string.o stdlib.o
+
+# Compile user program
+i686-elf-gcc -ffreestanding -nostdlib -fno-builtin -c userprog.c -o userprog.o
+
+# Link into ELF for OS
+i686-elf-ld -T user_link.ld userprog.o string.o stdlib.o -o userprog.elf
+```
+
+-->
