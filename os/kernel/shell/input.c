@@ -2,9 +2,9 @@
 #include <drivers/video/vga.h>
 #include "shell.h"
 #include <lib/string.h>
-#include <fs/cwd.h>
+#include <fs/vfs.h>
 
-void handle_input_char(char c, char *input_buffer, size_t *input_pos, const char *prompt) {
+void handle_input_char(char c, char *input_buffer, size_t *input_pos) {
     if (c == '\b') {
         if (*input_pos > 0) {
             (*input_pos)--;
@@ -39,6 +39,12 @@ void handle_input_char(char c, char *input_buffer, size_t *input_pos, const char
         update_screen();
 
         process_command(input_buffer);
+
+        char path[MAX_PATH_LEN];
+        vfs_get_path(kernel_cwd, path, sizeof(path));
+        char prompt[MAX_PATH_LEN + MAX_INPUT];
+        snprintf(prompt, sizeof(prompt), "%s $ ", path);
+
         put_string(prompt, DEFAULT_ATTR);
         return;
     }
@@ -53,8 +59,5 @@ static char s_input_buffer[MAX_INPUT];
 static size_t s_input_pos = 0;
 
 void shell_handle_char(char c) {
-    char prompt[128];
-    snprintf(prompt, sizeof(prompt), "%s $ ", g_cwd);
-
-    handle_input_char(c, s_input_buffer, &s_input_pos, prompt);
+    handle_input_char(c, s_input_buffer, &s_input_pos);
 }

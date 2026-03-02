@@ -1,34 +1,12 @@
+#include <drivers/memory/memory.h>
+#include <fs/fd.h>
+#include <fs/ramfs.h>
+#include <fs/vfs.h>
 #include <io/kernel_io.h>
 #include <shell/shell.h>
-#include <fs/fs.h>
-#include <drivers/memory/memory.h>
-#include <fs/cwd.h>
 #include "boot_info.h"
 
 extern uint32_t kernel_stack_end;
-
-void user_main() {
-    // write 'H'
-    asm volatile(
-        "mov $0x00, %%eax\n"   // syscall 0 = write_char
-        "mov $'H', %%ebx\n"    // char to write
-        "int $0x80\n"
-        :
-        :
-        : "eax", "ebx"
-    );
-
-    // exit
-    asm volatile(
-        "mov $0x02, %%eax\n"   // syscall 2 = exit
-        "int $0x80\n"
-        :
-        :
-        : "eax"
-    );
-
-    while(1) { asm volatile("hlt"); }
-}
 
 // void taskA();
 // void taskB();
@@ -45,14 +23,21 @@ void kernel_main(boot_info_t *mbi) {
     
     clear_screen();
 
-    put_string(g_cwd, DEFAULT_ATTR);
+    memory_init(mbi);
+    paging_init();
+
+    vfs_init();
+    ramfs_init();
+    vfs_mount_root(&ramfs);
+    fd_init();
+
+    char path[MAX_PATH_LEN];
+    vfs_get_path(kernel_cwd, path, sizeof(path));
+
+    put_string(path, DEFAULT_ATTR);
     put_char(' ', DEFAULT_ATTR);
     const char *prompt = "$ ";
     put_string(prompt, DEFAULT_ATTR);
-
-    memory_init(mbi);
-    paging_init();
-    fs_init();
 
     idt_init();
     syscall_init();
@@ -62,7 +47,7 @@ void kernel_main(boot_info_t *mbi) {
     // task_create(taskA); 
     // task_create(taskB);
 
-    enter_user_mode(user_main);
+    // enter_user_mode(user_main);
 
     while (1) {
         __asm__ volatile("hlt");

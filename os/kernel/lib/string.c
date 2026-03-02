@@ -34,6 +34,15 @@ char *strchr(const char *s, char c) {
     return (c== 0) ? (char *)s : 0;
 }
 
+char *strrchr(const char *s, char c) {
+    const char *last = 0;
+    do { // Do while instead of just while so it runs at least once 
+        if (*s == c) last = s;
+    } while (*s++);
+
+    return (char *)last;
+}
+
 void strcpy(char *dst, const char *src) {
     while ((*dst++ = *src++));
 }
@@ -50,6 +59,32 @@ size_t strlcpy(char *dst, const char *src, size_t size) {
 
     while (src[i]) i++;
     return i;
+}
+
+size_t strlcat(char *dst, const char *src, size_t size) {
+    size_t dst_len = 0;
+    size_t src_len = 0;
+
+    while (dst_len < size && dst[dst_len] != '\0') {
+        dst_len++;
+    }
+
+    while (src[src_len]) {
+        src_len++;
+    }
+
+    if (dst_len == size) {
+        return size + src_len;
+    }
+
+    size_t copy_len = (size - dst_len - 1 < src_len) ? size - dst_len - 1 : src_len;
+    for (size_t i = 0; i < copy_len; i++) {
+        dst[dst_len + i] = src[i];
+    }
+
+    dst[dst_len + copy_len] = '\0';
+
+    return dst_len + src_len;
 }
 
 static void buf_putc(char **buf, size_t *left, char c, size_t *written) {

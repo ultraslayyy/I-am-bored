@@ -1,16 +1,20 @@
-#include <lib/string.h>
-#include <shell/alias.h>
 #include <io/kernel_io.h>
 #include <lib/stdarg.h>
-#include <fs/fs.h>
-#include "shutdown.h"
-#include "shell.h"
-#include "history.h"
-#include "pci.h"
+#include <lib/string.h>
+#include <shell/alias.h>
+
+#include "cat.h"
 #include "cd.h"
+#include "echo.h"
+#include "history.h"
+#include "ls.h"
+#include "mkdir.h"
+#include "pci.h"
+#include "shell.h"
+#include "shutdown.h"
+#include "touch.h"
 
 int cmd_help(int argc, char **argv);
-int cmd_echo(int argc, char **argv);
 int cmd_cls(int argc, char **argv);
 
 size_t recur_level = 0;
@@ -27,13 +31,15 @@ static command_t commands[] = {
     {"help",     cmd_help,     "Show this help"},
     {"alias",    cmd_alias,    "Alias idk"},
     {"cat",      cmd_cat,      "Print file contents"},
+    {"cd",       cmd_cd,       "Change the Current Working Directory"},
     {"cls",      cmd_cls,      "Clear screen"},
     {"echo",     cmd_echo,     "Print text"},
     {"history",  cmd_history,  "Print command history"},
     {"ls",       cmd_ls,       "List directory contents"},
+    {"mkdir",    cmd_mkdir,    "Create a new directory"},
     {"pci",      cmd_pci,      "List PCI devices"},
     {"shutdown", cmd_shutdown, "Shutdown computer (currently QEMU only)"},
-    {"cd",       cmd_cd,       "Change the Current Working Directory"}
+    {"touch",    cmd_touch,    "Create a new file"}
 };
 
 #define COMMAND_COUNT (sizeof(commands) / sizeof(commands[0]))
@@ -47,23 +53,6 @@ int cmd_help(int argc, char **argv) {
         snprintf(text, sizeof(text), "%s - %s\n", commands[i].name, commands[i].help);
         put_string(text, DEFAULT_ATTR);
     }
-    return 0;
-}
-
-int cmd_echo(int argc, char **argv) {
-    char buf[MAX_INPUT];
-    size_t len = 0;
-    buf[0] = '\0';
-
-    for (size_t i = 1; (int)i < argc; ++i) {
-        len += snprintf(buf + len, sizeof(buf) - len, "%s%s", argv[i], ((int)i + 1 < argc ? " " : ""));
-        if (len >= sizeof(buf)) {
-            break;
-        }
-    }
-
-    put_string(buf, DEFAULT_ATTR);
-    put_char('\n', DEFAULT_ATTR);
     return 0;
 }
 
