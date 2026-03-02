@@ -1,3 +1,4 @@
+#include <lib/string.h>
 #include "elf_loader.h"
 #include "paging.h"
 #include "user.h"
@@ -50,8 +51,9 @@ void load_elf(uint8_t *elf_data) {
         }
 
         // Copy segment data
-        for (uint32_t b = 0; b < ph->filesz; ++b) {
-            ((uint8_t *)ph->vaddr)[b] = elf_data[ph->offset + b];
+        memcpy((void *)ph->vaddr, elf_data + ph->offset, ph->filesz);
+        if (ph->memsz > ph->filesz) {
+            memset((uint8_t *)(ph->vaddr) + ph->filesz, 0, ph->memsz - ph->filesz);
         }
 
         // Zero out remaining bytes in memory
