@@ -10,6 +10,7 @@
 #include "ls.h"
 #include "mkdir.h"
 #include "pci.h"
+#include "rm.h"
 #include "shell.h"
 #include "shutdown.h"
 #include "touch.h"
@@ -38,6 +39,7 @@ static command_t commands[] = {
     {"ls",       cmd_ls,       "List directory contents"},
     {"mkdir",    cmd_mkdir,    "Create a new directory"},
     {"pci",      cmd_pci,      "List PCI devices"},
+    {"rm",       cmd_rm,       "Remove a file/directory"},
     {"shutdown", cmd_shutdown, "Shutdown computer (currently QEMU only)"},
     {"touch",    cmd_touch,    "Create a new file"}
 };
