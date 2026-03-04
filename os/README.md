@@ -6,18 +6,18 @@ First, install dependencies
 ### Ubuntu/Debian based
 ```bash
 sudo apt update
-sudo apt install build-essential nasm grub-pc-bin xorriso mtools qemu-system-i386 qemu-system-x86_64
+sudo apt install build-essential nasm grub-pc-bin xorriso mtools qemu-system-i386 qemu-system-x86_64 dosfstools
 ```
 
 ### Arch based
 ```sh
-sudo pacman -S base-devel nasm grub xorriso mtools qemu gdb
+sudo pacman -S base-devel nasm grub xorriso mtools qemu gdb dosfstools
 ```
 
 ## Building
 You build using `make`.
 > ![IMPORTANT]
-> The x86_64 architecture currently builds but does not run.
+> The x86_64 architecture currently does not work and is unsupported.
 
 By default, `make` will build `x86`, but you can also specify an arch
 ```bash
@@ -27,7 +27,78 @@ Current arches are:
 - x86
 - x86_64
 
-You can run with `make run`
+## Running
+
+Before running, you should make a FAT16 disk image to mount (for full functionality). I am currently working on something that will default to ramfs if the image is not found.
+```sh
+dd if=/dev/zero of=disk.img bs=1M count=16
+mkfs.fat -F 16 disk.img
+
+# Optionally put some files in it
+sudo mkdir /mnt/ultraos
+sudo mount -o loop disk.img /mnt/ultraos
+sudo cp file /mnt/ultraos
+sudo umount /mnt/temp
+```
+
+Then you can run it:
+```sh
+make run
+```
+
+## Roadmap
+
+drivers:
+- USB support (just start by listing USB devices)
+- Maybe HDMI support (just listing connected displays, not using them till much later)
+- Intel e1000 drivers (see net section of roadmap)
+  - Maybe vmxnet3 later
+- Framebuffer driver for video (see io section of roadmap)
+- Stub for unimplemented drivers
+
+fs:
+- fat16 `create` and `remove`
+- fat12
+- fat32
+- Actual mounting
+- Detect FS on boot and init that FS
+- Work outside of QEMU
+- Graceful handling of unknown FS
+
+io:
+- Switch from VGA (0xB8000 text mode) (80x25) to VESA linear framebuffer (1024x768x32)
+  - grub.cfg `set gfxpayload=1024x768x32`
+  - Get framebuffer from multiboot2
+  - VGA fallback for debugging framebuffer issues
+
+net:
+- Basic `ping` command
+  - Intel e1000 (check driver section)
+    - Maybe vmxnet3 in future
+  - ARP
+    - ARP caching maybe
+    - Handle failure
+  - ICMP
+    - Handle timeout
+  - IPV4
+  - ethernet
+- Loopback interface
+- DHCP client
+- Basic UDP
+
+Power management/`shutdown`:
+- Actually shut down computer (work outside QEMU):
+  - Find RSDP
+  - Parse RSDT/XSDT
+  - Locate FADT
+  - Get PM1a and PM1b control block addresses from DSDT
+  - Get S5 sleep type values from DSDT
+  - Write PM1 sleep commands to PM1 control register
+  - Test in VM before real hardware
+- "shutdown not supported" message for unsupported devices
+- `restart` and `sleep` functionality
+- Battery status and ACPI power events
+  - For laptops
 
 <!--
 

@@ -22,6 +22,8 @@ typedef struct fs_node {
     uint8_t *data;
     size_t size;
     size_t capacity;
+
+    void *private;
 } fs_node_t;
 
 extern fs_node_t *kernel_cwd;

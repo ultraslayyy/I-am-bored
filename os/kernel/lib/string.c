@@ -43,8 +43,10 @@ char *strrchr(const char *s, char c) {
     return (char *)last;
 }
 
-void strcpy(char *dst, const char *src) {
+char *strcpy(char *dst, const char *src) {
+    char *ret = dst;
     while ((*dst++ = *src++));
+    return ret;
 }
 
 size_t strlcpy(char *dst, const char *src, size_t size) {
@@ -123,12 +125,16 @@ static void buf_putu(char **buf, size_t *left, unsigned int val, int base, size_
 }
 
 static void buf_putd(char **buf, size_t *left, int val, size_t *written) {
+    unsigned int u;
+
     if (val < 0) {
         buf_putc(buf, left, '-', written);
-        buf_putu(buf, left, (unsigned int)(-val), 10, written);
+        u = (unsigned int)(-(long long)val);
     } else {
-        buf_putu(buf, left, (unsigned int)val, 10, written);
+        u = (unsigned int)val;
     }
+
+    buf_putu(buf, left, u, 10, written);
 }
 
 int snprintf(char *buf, size_t size, const char *fmt, ...) {
@@ -138,6 +144,10 @@ int snprintf(char *buf, size_t size, const char *fmt, ...) {
     char *out = buf;
     size_t left = size;
     size_t written = 0;
+
+    if (!buf) {
+        left = 0;
+    }
 
     while (*fmt) {
         if (*fmt != '%') {
@@ -189,8 +199,12 @@ int snprintf(char *buf, size_t size, const char *fmt, ...) {
         fmt++;
     }
 
-    if (size > 0) {
-        *out = 0;
+    if (size > 0 && buf) {
+        if (left > 0) {
+            *out = 0;
+        } else {
+            buf[size - 1] = 0;
+        }
     }
 
     va_end(args);
@@ -209,10 +223,10 @@ void *memcpy(void *dst, const void *src, size_t size) {
 
 void *memset(void *dst, int val, size_t size) {
     unsigned char *d = (unsigned char *)dst;
-    const unsigned char *v = (const unsigned char *)val;
+    unsigned char v = (unsigned char)val;
 
     for (size_t i = 0; i < size; ++i) {
-        d[i] = *v;
+        d[i] = v;
     }
     return dst;
 }

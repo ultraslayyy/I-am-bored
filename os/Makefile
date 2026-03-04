@@ -97,7 +97,7 @@ $(BUILD_DIR)/%.o: kernel/%.s
 	$(AS) -f $(NASM_FMT) $< -o $@
 
 run: $(ISO)
-	$(QEMU_BIN) -cdrom $(ISO) $(QEMUFLAGS)
+	$(QEMU_BIN) -boot d -cdrom $(ISO) $(QEMUFLAGS) -drive file=disk.img,format=raw
 
 clean:
 	rm -rf $(BUILD_DIR) $(ISO_DIR) *.iso

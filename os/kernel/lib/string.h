@@ -13,7 +13,7 @@ int strcmp(const char *a, const char *b);
 int strncmp(const char *a, const char *b, size_t n);
 char *strchr(const char *s, char c);
 char *strrchr(const char *s, char c);
-void strcpy(char *dst, const char *src);
+char *strcpy(char *dst, const char *src);
 size_t strlcpy(char *dst, const char *src, size_t size);
 size_t strlcat(char *dst, const char *src, size_t size);
 int snprintf(char *buf, size_t size, const char *fmt, ...);

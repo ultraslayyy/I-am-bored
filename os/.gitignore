@@ -10,5 +10,8 @@ kernel/fs/kfs.*
 build/
 iso/
 
+# Disk images
+*.img
+
 # Misc
 test/

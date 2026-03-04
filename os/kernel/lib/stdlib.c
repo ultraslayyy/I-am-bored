@@ -20,6 +20,8 @@ static block_t *free_list = NULL;
 
 static block_t *find_free_block(size_t size, block_t **prev) {
     block_t *current = free_list;
+    *prev = NULL;
+
     while (current) {
         if (current->free && current->size >= size) {
             return current;
@@ -125,6 +127,19 @@ void free(void *ptr) {
     while (block->next && block->next->free) {
         block->size += sizeof(block_t) + block->next->size;
         block->next = block->next->next;
+    }
+
+    block_t *current = free_list;
+    block_t *prev = NULL;
+
+    while (current && current != block) {
+        prev = current;
+        current = current->next;
+    }
+
+    if (prev && prev->free) {
+        prev->size += sizeof(block_t) + block->size;
+        prev->next = block->next;
     }
 }
 

@@ -29,6 +29,8 @@ void ramfs_init(void) {
     ramfs_root.children = NULL;
     ramfs_root.child_count = 0;
     ramfs_root.child_capacity = 0;
+
+    vfs_mount_root(&ramfs);
 }
 
 static void ramfs_add_child(fs_node_t *parent, fs_node_t *child) {
@@ -153,16 +155,6 @@ static fs_node_t *ramfs_create(filesystem_t *fs, fs_node_t *parent, const char *
 
     strlcpy(node->name, name, sizeof(node->name));
     node->type = type;
-    // This fixes an error some how I don't know why
-    // I don't want this here but I think it fixed something so it stays :)
-    // Too scared to remove it as error may come back
-    node->parent = NULL;
-    node->children = NULL;
-    node->child_count = 0;
-    node->child_capacity = 0;
-    node->size = 0;
-    node->capacity = 0;
-    node->data = NULL;
 
     ramfs_add_child(parent, node);
     return node;
