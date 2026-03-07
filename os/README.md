@@ -51,8 +51,7 @@ make run
 drivers:
 - USB support (just start by listing USB devices)
 - Maybe HDMI support (just listing connected displays, not using them till much later)
-- Intel e1000 drivers (see net section of roadmap)
-  - Maybe vmxnet3 later
+- RTL8169 support (check net section)
 - Framebuffer driver for video (see io section of roadmap)
 - Stub for unimplemented drivers
 
@@ -72,19 +71,8 @@ io:
   - VGA fallback for debugging framebuffer issues
 
 net:
-- Basic `ping` command
-  - Intel e1000 (check driver section)
-    - Maybe vmxnet3 in future
-  - ARP
-    - ARP caching maybe
-    - Handle failure
-  - ICMP
-    - Handle timeout
-  - IPV4
-  - ethernet
+- RTL8169 support
 - Loopback interface
-- DHCP client
-- Basic UDP
 
 Power management/`shutdown`:
 - Actually shut down computer (work outside QEMU):

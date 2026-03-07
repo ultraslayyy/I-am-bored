@@ -3,7 +3,6 @@
 
 #define MAX_FD 64
 
-
 typedef struct {
     fs_node_t *node;
     size_t offset;

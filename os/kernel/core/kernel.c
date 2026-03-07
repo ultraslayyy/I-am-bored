@@ -14,7 +14,7 @@ extern uint32_t kernel_stack_end;
 
 /* static void print_hex_byte(uint8_t value) {
     const char *hex = "0123456789ABCDEF";
-    
+
     char out[3];
     out[0] = hex[(value >> 4) & 0xF];
     out[1] = hex[value & 0xF];
@@ -23,6 +23,16 @@ extern uint32_t kernel_stack_end;
     put_string(out, DEFAULT_ATTR);
 } */
 
+#include <drivers/net/e1000.h>
+#include <net/arp.h>
+#include <net/byteorder.h>
+#include <net/dhcp.h>
+#include <net/dns.h>
+#include <net/ethernet.h>
+#include <net/ipv4.h>
+#include <net/net.h>
+#include <net/netdev.h>
+#include <net/udp.h>
 void kernel_main(boot_info_t *mbi) {
     gdt_init();
     tss_init((uint32_t)&kernel_stack_end);
@@ -31,6 +41,37 @@ void kernel_main(boot_info_t *mbi) {
 
     memory_init(mbi);
     paging_init();
+
+    e1000_init();
+    uint8_t mac[6];
+    memcpy(mac, netdev_get_mac(), 6);
+    arp_init(0, mac);
+    ipv4_set_addr(0);
+
+    udp_bind(68, dhcp_receive);
+
+    dhcp_init(mac);
+    dhcp_start();
+
+    while (g_ip_addr == 0) {
+        uint8_t frame[2048];
+        int len = netdev_recv(frame, sizeof(frame));
+        if (len > 0) {
+            put_string("ETH FRAME RX\n", DEFAULT_ATTR);
+            eth_receive(frame, len);
+        }
+    }
+
+    char buf[128];
+    snprintf(buf, sizeof(buf), "IP %d.%d.%d.%d\n", 
+        g_ip_addr & 0xFF,
+        (g_ip_addr >> 8) & 0xFF,
+        (g_ip_addr >> 16) & 0xFF,
+        (g_ip_addr >> 24) & 0xFF
+    );
+    put_string(buf, DEFAULT_ATTR);
+
+    dns_init();
 
     ata_init();
     vfs_init();
@@ -55,5 +96,10 @@ void kernel_main(boot_info_t *mbi) {
 
     while (1) {
         __asm__ volatile("hlt");
+        uint8_t frame[2048];
+        int len = netdev_recv(frame, sizeof(frame));
+        if (len > 0) {
+            eth_receive(frame, len);
+        }
     }
 }

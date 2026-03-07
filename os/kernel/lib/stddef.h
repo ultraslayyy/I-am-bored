@@ -21,4 +21,6 @@
     #error "Cannot determine pointer size"
 #endif
 
+#define offsetof(type, member) ((size_t)((char *)&(((type *)0)->member) - (char *)0))
+
 #endif

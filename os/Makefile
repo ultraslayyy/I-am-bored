@@ -32,7 +32,7 @@ endif
 
 # === General flags ===
 CFLAGS := $(CFLAGS_ARCH) -ffreestanding -fno-stack-protector -fno-pic \
-          -nostdlib -Wall -Wextra -ffunction-sections -fdata-sections \
+          -nostdlib -nostdinc -Wall -Wextra -ffunction-sections -fdata-sections \
           -Ikernel -Iinclude
 LDFLAGS := $(LDFLAGS_ARCH) -T $(LINKER_SCRIPT) --gc-sections
 
@@ -68,7 +68,7 @@ else
   OBJECTS := $(CORE_C_OBJ) $(CORE_ASM_OBJ) $(X86_64_C_OBJ) $(X86_64_ASM_OBJ)
 endif
 
-QEMUFLAGS := -m 512 -serial stdio -no-reboot
+QEMUFLAGS := -m 512 -serial stdio -no-reboot -drive file=disk.img,format=raw -device e1000,netdev=net0 -netdev user,id=net0
 
 ifeq ($(GDB),1)
   CFLAGS += -O0 -g
@@ -97,7 +97,7 @@ $(BUILD_DIR)/%.o: kernel/%.s
 	$(AS) -f $(NASM_FMT) $< -o $@
 
 run: $(ISO)
-	$(QEMU_BIN) -boot d -cdrom $(ISO) $(QEMUFLAGS) -drive file=disk.img,format=raw
+	$(QEMU_BIN) -boot d -cdrom $(ISO) $(QEMUFLAGS)
 
 clean:
 	rm -rf $(BUILD_DIR) $(ISO_DIR) *.iso

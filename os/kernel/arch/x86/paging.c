@@ -6,22 +6,24 @@ static uint32_t page_directory[PAGE_ENTRIES]   __attribute__((aligned(4096)));
 static uint32_t first_page_table[PAGE_ENTRIES] __attribute__((aligned(4096)));
 
 void paging_init(void) {
-    // Identity map first 4 MB
-    for (uint32_t i = 0; i < PAGE_ENTRIES; ++i) {
-        first_page_table[i] = (i * 0x1000) | PAGE_PRESENT | PAGE_RW | PAGE_USER;
+    // Identity map first 8 MB
+    for (uint32_t i = 0; i < 2; ++i) {
+        static uint32_t ident_tables[2][PAGE_ENTRIES] __attribute__((aligned(4096)));
+        for (uint32_t j = 0; j < PAGE_ENTRIES; ++j) {
+            ident_tables[i][j] = ((i * 0x400000) + (j * 0x1000)) | PAGE_PRESENT | PAGE_RW | PAGE_USER;
+        }
+        page_directory[i] = ((uint32_t)ident_tables[i]) | PAGE_PRESENT | PAGE_RW | PAGE_USER;
     }
 
-    // Put first table in the first directory entry
-    page_directory[0] = ((uint32_t)first_page_table) | PAGE_PRESENT | PAGE_RW | PAGE_USER;
-
-    // Clear other entries
-    for (uint32_t i = 1; i < PAGE_ENTRIES; ++i) {
+    // Clear other entries (starting from index 2)
+    for (uint32_t i = 2; i < PAGE_ENTRIES; ++i) {
+        if (i == 4) continue; // Skip heap entry, handled below
         page_directory[i] = 0;
     }
 
     // Map the heap (16MB to 17MB)
-    // Heap starts at 0x01000000, which is index 4 in directory
-    // We'll use a second pre-allocated table for the heap to keep it simple
+    // Heap starts at 0x01000000 (index 4)
+    // Second pre-allocated table for simplicity
     static uint32_t heap_page_table[PAGE_ENTRIES] __attribute__((aligned(4096)));
     for (uint32_t i = 0; i < PAGE_ENTRIES; i++) {
         heap_page_table[i] = (0x01000000 + i * 0x1000) | PAGE_PRESENT | PAGE_RW;
@@ -50,7 +52,7 @@ void map_page(uint32_t virt, uint32_t phys, uint32_t flags) {
             page_directory[dir_idx] |= PAGE_USER;
         }
     } else {
-        // Allocate a new page table at a safe location (e.g., 2MB onwards)
+        // Allocate a new page table at a safe location
         table = (uint32_t *)(0x200000 + dir_idx * 0x1000);
         for (int i = 0; i < 1024; ++i) {
             table[i] = 0;
