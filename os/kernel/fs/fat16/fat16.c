@@ -142,6 +142,25 @@ static void fat16_name_to_str(char *out, const uint8_t *name) {
     out[j] = 0;
 }
 
+static void str_to_fat16_name(const char *name, char *out) {
+    memset(out, ' ', 11);
+    int i = 0, j = 0;
+    while (name[i] && name[i] != '.' && j < 8) {
+        char c = name[i++];
+        if (c >= 'a' && c <= 'z') c -= 32;
+        out[j++] = c;
+    }
+    if (name[i] == '.') {
+        i++;
+        j = 8;
+        while (name[i] && j < 11) {
+            char c = name[i++];
+            if (c >= 'a' && c <= 'z') c -= 32;
+            out[j++] = c;
+        }
+    }
+}
+
 static void fat16_add_child(fs_node_t *parent, fs_node_t *child) {
     if (!parent || !child) return;
 
@@ -167,6 +186,19 @@ static fs_node_t *fat16_find_child(fs_node_t *dir, const char *name) {
         }
     }
     return NULL;
+}
+
+static void fat16_remove_child(fs_node_t *parent, fs_node_t *child) {
+    if (!parent || !child) return;
+    for (size_t i = 0; i < parent->child_count; ++i) {
+        if (parent->children[i] == child) {
+            for (size_t j = i; j < parent->child_count - 1; ++j) {
+                parent->children[j] = parent->children[j + 1];
+            }
+            parent->child_count--;
+            break;
+        }
+    }
 }
 
 static void fat16_scan_dir(fat16_fs_t *fs, fs_node_t *dir, uint16_t first_cluster, int is_root) {
@@ -199,7 +231,11 @@ static void fat16_scan_dir(fat16_fs_t *fs, fs_node_t *dir, uint16_t first_cluste
 
             if (attr & 0x10) {
                 node->type = FS_DIR;
-                node->private = NULL;
+                fat16_file_t *f = malloc(sizeof(fat16_file_t));
+                f->fs = fs;
+                f->first_cluster = read16(ent + 26);
+                f->size = 0;
+                node->private = f;
                 fat16_add_child(dir, node);
 
                 if (strcmp(fname, ".") && strcmp(fname, "..")) {
@@ -381,6 +417,116 @@ static fs_node_t *fat16_resolve_fs(filesystem_t *fs, const char *path) {
     return fat16_resolve_from_fs(fs, fs->root, path);
 }
 
+static fs_node_t *fat16_create(struct filesystem *fsys, fs_node_t *parent, const char *name, fs_node_type_t type) {
+    if (!fsys || !parent || parent->type != FS_DIR) return NULL;
+
+    fat16_file_t *parent_f = parent->private;
+    if (!parent_f) return NULL;
+
+    fat16_fs_t *fs = parent_f->fs;
+    uint32_t sector = 0, offset = 0;
+
+    if (!fat16_find_free_dirent_in_dir(fs, parent_f->first_cluster, &sector, &offset)) {
+        return NULL;
+    }
+
+    uint8_t buf[512];
+    fat16_read_sector(fs, sector, buf);
+
+    uint8_t *ent = buf + offset;
+    memset(ent, 0, 32);
+
+    char fat_name[11];
+    str_to_fat16_name(name, fat_name);
+    memcpy(ent, fat_name, 11);
+
+    ent[11] = (type == FS_DIR) ? 0x10 : 0x00;
+
+    fat16_write_sector(fs, sector, buf);
+
+    fs_node_t *node = malloc(sizeof(fs_node_t));
+    memset(node, 0, sizeof(fs_node_t));
+    strlcpy(node->name, name, sizeof(node->name));
+    node->type = type;
+
+    fat16_file_t *f = malloc(sizeof(fat16_file_t));
+    f->fs = fs;
+    f->first_cluster = 0;
+    f->size = 0;
+    node->private = f;
+
+    fat16_add_child(parent, node);
+    return node;
+}
+
+static int fat16_remove(struct filesystem *fsys, fs_node_t *node, int recursive) {
+    if (!fsys || !node || !node->parent) return -1;
+
+    fat16_file_t *node_f = node->private;
+    fat16_file_t *parent_f = node->parent->private;
+    if (!node_f || !parent_f) return -1;
+
+    fat16_fs_t *fs = parent_f->fs;
+    uint32_t cluster = parent_f->first_cluster;
+    uint32_t start_lba, sector_count;
+    int is_root = (cluster == 0);
+
+    if (is_root) {
+        start_lba = fs->root_dir_start;
+        sector_count = fs->root_dir_sectors;
+    } else {
+        start_lba = fs->data_start + (cluster - 2) * fs->sectors_per_cluster;
+        sector_count = fs->sectors_per_cluster;
+    }
+
+    char fat_name[11];
+    str_to_fat16_name(node->name, fat_name);
+
+    uint8_t buf[512];
+    int found = 0;
+
+    while (!found && cluster < 0xFFF8) {
+        for (uint32_t i = 0; i < sector_count; ++i) {
+            fat16_read_sector(fs, start_lba + i, buf);
+            for (uint32_t j = 0; j < fs->bytes_per_sector; j += 32) {
+                uint8_t *ent = buf + j;
+                if (ent[0] == 0x00 || ent[0] == 0xE5) continue;
+
+                if (memcmp(ent, fat_name, 11) == 0) {
+                    ent[0] = 0xE5;
+                    fat16_write_sector(fs, start_lba + i, buf);
+                    found = 1;
+                    break;
+                }
+            }
+            if (found) break;
+        }
+        if (found) break;
+
+        if (is_root) break;
+
+        cluster = fat16_next_cluster(fs, cluster);
+        if (cluster < 0xFFF8) {
+            start_lba = fs->data_start + (cluster - 2) * fs->sectors_per_cluster;
+        }
+    }
+
+    if (!found) return -1;
+
+    uint16_t c = node_f->first_cluster;
+    while (c != 0 && c < 0xFFF8) {
+        uint16_t next = fat16_next_cluster(fs, c);
+        fat16_set_next_cluster(fs, c, 0);
+        c = next;
+    }
+
+    fat16_remove_child(node->parent, node);
+    free(node_f);
+    free(node);
+
+    return 0;
+}
+
 void fat16_init(block_device_t *dev) {
     uint8_t sector[512];
     dev->read_sector(dev, 0, sector);
@@ -405,14 +551,20 @@ void fat16_init(block_device_t *dev) {
     strlcpy(fat16_fs.root->name, "/", sizeof(fat16_fs.root->name));
     fat16_fs.root->type = FS_DIR;
 
+    fat16_file_t *root_f = malloc(sizeof(fat16_file_t));
+    root_f->fs = fs;
+    root_f->first_cluster = 0;
+    root_f->size = 0;
+    fat16_fs.root->private = root_f;
+
     fat16_scan_dir(fs, fat16_fs.root, 0, 1);
 
     fat16_fs.resolve = fat16_resolve_fs;
     fat16_fs.resolve_from = fat16_resolve_from_fs;
     fat16_fs.read = fat16_read_fs;
     fat16_fs.write = fat16_write_fs;
-    fat16_fs.create = 0;
-    fat16_fs.remove = 0;
+    fat16_fs.create = fat16_create;
+    fat16_fs.remove = fat16_remove;
 
     vfs_mount_root(&fat16_fs);
 }

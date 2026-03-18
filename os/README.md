@@ -56,19 +56,12 @@ drivers:
 - Stub for unimplemented drivers
 
 fs:
-- fat16 `create` and `remove`
 - fat12
 - fat32
 - Actual mounting
 - Detect FS on boot and init that FS
 - Work outside of QEMU
 - Graceful handling of unknown FS
-
-io:
-- Switch from VGA (0xB8000 text mode) (80x25) to VESA linear framebuffer (1024x768x32)
-  - grub.cfg `set gfxpayload=1024x768x32`
-  - Get framebuffer from multiboot2
-  - VGA fallback for debugging framebuffer issues
 
 net:
 - Support multiple network devices at once, with one being 'current' which all ops happen on
@@ -89,9 +82,6 @@ Power management/`shutdown`:
 - `reboot` and `sleep` functionality
 - Battery status and ACPI power events
   - For laptops
-
-scripts:
-- **Remove Python entirely** (bold for importance)
 
 <!--
 
