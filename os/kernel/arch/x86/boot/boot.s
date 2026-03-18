@@ -13,6 +13,17 @@ header_start:
     dd header_end - header_start
     dd -(0xE85250D6 + 0 + (header_end - header_start))
 
+    align 8
+framebuffer_tag_start:
+    dw 5
+    dw 0
+    dd 20
+    dd 0
+    dd 0
+    dd 32
+framebuffer_tag_end:
+
+    align 8
     dw 0
     dw 0
     dd 8

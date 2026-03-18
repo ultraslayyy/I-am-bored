@@ -231,6 +231,23 @@ void *memset(void *dst, int val, size_t size) {
     return dst;
 }
 
+void *memmove(void *dst, const void *src, size_t size) {
+    unsigned char *d = (unsigned char *)dst;
+    const unsigned char *s = (const unsigned char *)src;
+
+    if (d < s) {
+        for (size_t i = 0; i < size; ++i) {
+            d[i] = s[i];
+        }
+    } else if (d > s) {
+        for (size_t i = size; i > 0; --i) {
+            d[i - 1] = s[i - 1];
+        }
+    }
+
+    return dst;
+}
+
 int memcmp(const void *buf1, const void *buf2, size_t size) {
     const unsigned char *pb1 = (const unsigned char *)buf1;
     const unsigned char *pb2 = (const unsigned char *)buf2;

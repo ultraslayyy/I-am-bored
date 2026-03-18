@@ -8,6 +8,7 @@
 #include <io/kernel_io.h>
 #include <lib/string.h>
 #include <shell/shell.h>
+#include <drivers/video/vesa.h>
 #include "boot_info.h"
 
 extern uint32_t kernel_stack_end;
@@ -38,10 +39,17 @@ void kernel_main(boot_info_t *mbi) {
     gdt_init();
     tss_init((uint32_t)&kernel_stack_end);
     
-    clear_screen();
-
     memory_init(mbi);
     paging_init();
+
+    vesa_init(mbi);
+    clear_screen();
+    
+    // vesa_draw_rect(10, 10, 100, 100, 0xFF0000); // Red square
+    // vesa_draw_rect(120, 10, 100, 100, 0x00FF00); // Green square
+    // vesa_draw_rect(230, 10, 100, 100, 0x0000FF); // Blue square
+
+    put_string("Memory initialised\n", DEFAULT_ATTR);
 
     e1000_init();
     rtl8139_init();

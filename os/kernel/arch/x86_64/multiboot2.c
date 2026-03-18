@@ -2,6 +2,7 @@
 #include <lib/stdint.h>
 
 #define MB2_TAG_MMAP 6
+#define MB2_TAG_FRAMEBUFFER 8
 
 typedef struct {
     uint32_t type;
@@ -20,6 +21,17 @@ typedef struct {
     uint32_t type;
     uint32_t zero;
 } __attribute__((packed)) mb2_mmap_entry_t;
+
+typedef struct {
+    mb2_tag_t tag;
+    uint64_t addr;
+    uint32_t pitch;
+    uint32_t width;
+    uint32_t height;
+    uint8_t bpp;
+    uint8_t type;
+    uint8_t reserved;
+} mb2_framebuffer_tag_t;
 
 void multiboot2_parse(void *mb_info, boot_info_t *out) {
     uint8_t *ptr = (uint8_t *)mb_info + 8;
@@ -44,6 +56,14 @@ void multiboot2_parse(void *mb_info, boot_info_t *out) {
                 out->mmap[out->mmap_entries].type   = e[i].type;
                 out->mmap_entries++;
             }
+        } else if (tag->type == MB2_TAG_FRAMEBUFFER) {
+            mb2_framebuffer_tag_t *fb = (mb2_framebuffer_tag_t *)tag;
+            out->framebuffer_addr = fb->addr;
+            out->framebuffer_pitch = fb->pitch;
+            out->framebuffer_width = fb->width;
+            out->framebuffer_height = fb->height;
+            out->framebuffer_bpp = fb->bpp;
+            out->framebuffer_type = fb->type;
         }
 
         ptr += (tag->size + 7) & ~7;

@@ -1,5 +1,5 @@
-#include "pci.h"
 #include <arch.h>
+#include "pci.h"
 
 #define PCI_CONFIG_ADDRESS 0xCF8
 #define PCI_CONFIG_DATA    0xCFC
@@ -57,5 +57,27 @@ int pci_find_device(uint16_t vendor, uint16_t device, uint8_t *out_bus, uint8_t 
             }
         }
     }
+    return 0;
+}
+
+int pci_find_class(uint8_t class_code, uint8_t subclass, uint8_t prog_if, uint8_t *out_bus, uint8_t *out_slot, uint8_t *out_func) {
+    for (uint8_t bus = 0; bus < 1; ++bus) {
+        for (uint8_t slot = 0; slot < 32; ++slot) {
+            uint16_t vendor = pci_read_word(bus, slot, 0, 0x00);
+            if (vendor == 0xFFFF) continue;
+
+            uint8_t cls  = pci_read_byte(bus, slot, 0, 0x0B);
+            uint8_t sub  = pci_read_byte(bus, slot, 0, 0x0A);
+            uint8_t prog = pci_read_byte(bus, slot, 0, 0x09);
+
+            if (cls == class_code && sub == subclass && prog_if) {
+                *out_bus = bus;
+                *out_slot = slot;
+                *out_func = 0;
+                return 1;
+            }
+        }
+    }
+
     return 0;
 }
