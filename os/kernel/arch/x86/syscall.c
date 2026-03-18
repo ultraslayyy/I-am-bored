@@ -45,6 +45,7 @@ void syscall_handler(regs_t *r) {
         case 0x05: // exec
         case 0x06: // wait
         case 0x07: // sleep
+            break;
         case 0x10: // open
             r->eax = fd_open((char *)r->ebx);
             break;
@@ -83,7 +84,7 @@ void syscall_handler(regs_t *r) {
         case 0x31: // uname
             break;
         default:
-            put_char('?', DEFAULT_ATTR);
+            put_char('[unknown syscall]', DEFAULT_ATTR);
             break;
     }
 }

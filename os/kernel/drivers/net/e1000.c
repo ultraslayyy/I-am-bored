@@ -31,7 +31,6 @@
 #define E1000_NUM_RX_DESC 32
 #define E1000_NUM_TX_DESC 32
 
-
 typedef struct {
     uint64_t addr;
     uint16_t length;

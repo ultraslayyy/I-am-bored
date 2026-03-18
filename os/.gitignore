@@ -13,5 +13,14 @@ iso/
 # Disk images
 *.img
 
+# Packet Capture
+*.pcap
+
 # Misc
 test/
+
+# Non-prodution ready components
+kernel/drivers/usb/
+kernel/drivers/net/rtl8169.*
+scripts/bdf_to_c.py
+scripts/font.*

@@ -71,6 +71,8 @@ io:
   - VGA fallback for debugging framebuffer issues
 
 net:
+- Support multiple network devices at once, with one being 'current' which all ops happen on
+- Single network device initialisation function for initialising all network devices (if present)
 - RTL8169 support
 - Loopback interface
 
@@ -84,9 +86,12 @@ Power management/`shutdown`:
   - Write PM1 sleep commands to PM1 control register
   - Test in VM before real hardware
 - "shutdown not supported" message for unsupported devices
-- `restart` and `sleep` functionality
+- `reboot` and `sleep` functionality
 - Battery status and ACPI power events
   - For laptops
+
+scripts:
+- **Remove Python entirely** (bold for importance)
 
 <!--
 

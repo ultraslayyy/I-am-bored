@@ -68,7 +68,12 @@ else
   OBJECTS := $(CORE_C_OBJ) $(CORE_ASM_OBJ) $(X86_64_C_OBJ) $(X86_64_ASM_OBJ)
 endif
 
-QEMUFLAGS := -m 512 -serial stdio -no-reboot -drive file=disk.img,format=raw -device e1000,netdev=net0 -netdev user,id=net0
+QEMUFLAGS := -m 512 -serial stdio -no-reboot -drive file=disk.img,format=raw -device rtl8139,netdev=net0 -netdev user,id=net0 \
+             -object filter-dump,id=f1,netdev=net0,file=packets.pcap
+# Can do wireshark with packets.pcap
+# Do multiple NICs by adding -device <e1000|rtl8139>,netdev=net1 -netdev user,id=net1 (increase the netX number for each card)
+# Would need to still capture each individually on wireshark, so a duplicate of -object is required. For example:
+# -object filter-dump,id=f0,netdev=net0,file=e1000.pcap -object filter-dump,id=f1,netdev=net1,file=rtl8139.pcap
 
 ifeq ($(GDB),1)
   CFLAGS += -O0 -g

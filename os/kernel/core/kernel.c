@@ -24,6 +24,7 @@ extern uint32_t kernel_stack_end;
 } */
 
 #include <drivers/net/e1000.h>
+#include <drivers/net/rtl8139.h>
 #include <net/arp.h>
 #include <net/byteorder.h>
 #include <net/dhcp.h>
@@ -43,6 +44,7 @@ void kernel_main(boot_info_t *mbi) {
     paging_init();
 
     e1000_init();
+    rtl8139_init();
     uint8_t mac[6];
     memcpy(mac, netdev_get_mac(), 6);
     arp_init(0, mac);

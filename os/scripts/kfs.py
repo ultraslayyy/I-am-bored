@@ -4,16 +4,16 @@ ROOT_DIR   = "kernel"
 OUT_FILE   = "kernel/fs/kfs.c"
 OUT_FILE_H = "kernel/fs/kfs.h"
 
-def sanitize_name(name):
+def sanitize_name(name: str):
     return name.replace('.', '_').replace('-', '_').replace('/', '_').replace('\\', '_')
 
-def escape_c_string(s: str) -> str:
+def escape_c_string(s: str):
     s = s.replace('\\', '\\\\')
     s = s.replace('"', '\\"')
     s = s.replace('\n', '\\n')
     return s
 
-def generate_file_node(path, name):
+def generate_file_node(path: str, name: str):
     with open(path, "r") as f:
         content = f.read()
 
@@ -28,7 +28,7 @@ def generate_file_node(path, name):
     c += '};\n'
     return c, f'&file_{cname}'
 
-def generate_dir_node(name, children_ptrs):
+def generate_dir_node(name: str, children_ptrs: list[str]):
     c_name = sanitize_name(name)
     c =  f'static fs_node_t *dir_{c_name}_children[] = {{ {", ".join(children_ptrs)} }};\n'
     c += f'static fs_node_t dir_{c_name} = {{\n'
@@ -39,11 +39,10 @@ def generate_dir_node(name, children_ptrs):
     c += '};\n'
     return c, f'&dir_{c_name}'
 
-def walk_dir(path, is_root=False):
-    file_nodes = []
-    dir_nodes = []
-
-    children_ptrs = []
+def walk_dir(path: str):
+    file_nodes: list[str] = []
+    dir_nodes: list[str] = []
+    children_ptrs: list[str] = []
 
     for entry in sorted(os.listdir(path)):
         full_path = os.path.join(path, entry)
@@ -55,21 +54,18 @@ def walk_dir(path, is_root=False):
             c, ptr = generate_file_node(full_path, entry)
             file_nodes.append(c)
             children_ptrs.append(ptr)
-    
-    if is_root:
-        return "\n".join(dir_nodes + file_nodes), children_ptrs
 
     c_dir, ptr_dir = generate_dir_node(os.path.basename(path), children_ptrs)
     return "\n".join(dir_nodes + file_nodes + [c_dir]), ptr_dir
 
-all_nodes, root_ptr = walk_dir(ROOT_DIR, is_root=True)
+all_nodes, root_ptr = walk_dir(ROOT_DIR)
 
-kernel_c =  f'static fs_node_t *kernel_children[] = {{ {", ".join(root_ptr)} }};\n'
+kernel_c =  f'static fs_node_t *kernel_children[] = {{ {root_ptr} }};\n'
 kernel_c +=  'fs_node_t dir_kernel = {\n'
 kernel_c +=  '    .name = "kernel",\n'
 kernel_c +=  '    .type = FS_DIR,\n'
 kernel_c +=  '    .children = kernel_children,\n'
-kernel_c += f'    .child_count = {1}\n'
+kernel_c += f'    .child_count = 1\n'
 kernel_c +=  '};'
 
 with open(OUT_FILE, "w") as f:
