@@ -1,6 +1,11 @@
+Yes I know some of these languages traditionally have different names for main entry (e.g. `Program` or `index`, but I'm doing `main` for uniformity)
+
 ## Current Languages
 The current languages I've written this in are:
+- [Actionscript](./main.as)
+- [Ada](./main.adb)
 - [Assembly (x86 NASM)](./main.asm)
+- [APL](./main.apl)
 - [Bourne Shell](./main.sh)
 - [C](./main.c)
 - [C#](./c#/Program.cs)
@@ -8,23 +13,35 @@ The current languages I've written this in are:
 - [Clojure](./main.clj)
 - [COBOL](./main.cbl)
 - [CoffeeScript](./main.coffee)
+- [Crystal](./main.cr)
 - [Dart](./main.dart)
 - [Dartmouth BASIC](./main.bas)
+- [Delphi (Object Pascal)](./main.pas)
 - [DOS Batch](./main.bat)
 - [Elixir](./main.exs)
+- [Elm](./main.elm)
+- [Erlang](./main.erl)
+- [F#](./main.fs)
 - [Fortran](./main.f90)
 - [Go](./go/main.go)
 - [Groovy](./main.groovy)
 - [Haskell](./main.hs)
 - [HolyC](./main.HC)
+- [IBM RPG](./main.rpgle)
 - [Java](./Main.java)
 - [JavaScript](./main.js)
 - [Julia](./main.jl)
 - [Kotlin](./Main.kt)
 - [Lisp](./main.lisp)
+- [Logo](./main.logo)
 - [LOLCODE](./main.lol)
 - [Lua](./main.lua)
+- [Matlab](./matlab/main.m)
+- [ML (Standard ML)](./main.sml)
+- [MUMPS](./main.mumps) <!-- Opted for .mumps over .m because objective C -->
+- [Nim](./main.nim)
 - [Objective-C](./main.m)
+- [OCaml](./main.ml)
 - [Pascal](./main.pp)
 - [Perl](./main.pl)
 - [PHP](./main.php)
@@ -33,40 +50,23 @@ The current languages I've written this in are:
 - [Prolog](./main.pro)
 - [Python](./main.py)
 - [R](./main.r)
+- [Raku](./main.raku)
 - [Ruby](./main.rb)
 - [Rust](./rust/src/main.rs)
 - [Scala](./main.scala)
+- [Smalltalk](./main.st)
 - [Swift](./main.swift)
+- [Tcl](./main.tcl)
 - [TypeScript](./typescript/main.ts)
+- [Verilog](./main.v) <!-- These two are hardware based so logic only, can't run  -->
+- [VHDL](./main.vhd)  <!-- simply in a terminal, requires a lot more setup to run -->
+- [Visual Basic](./main.vb)
+- [Wolfram](./main.wl)
 - [Zig](./main.zig)
 
 ### Todo
-- Visual Basic
-- F#
-- Nim
-- Crystal
-- OCaml
-- VHDL or Verilog
-- Simul
 - Comtran
-- IBM RPG
-- APL
 - Speakeasy
-- MUMPS
-- Logo
-- Smalltalk
-- ML
-- Ada
-- Matlab
-- Wolfram
-- Delphi
-- Actionscript
-- Elm
-- Nim
-- Raku
-- Power FX
-- Erlang
-- Tcl
 
 ## Rules
 - Non-built-in dependencies are **prohibited**

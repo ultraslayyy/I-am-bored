@@ -1,0 +1,12 @@
+make "num random 101
+
+to loop
+    print [Guess:]
+    make "guess readword
+    if not number? :guess [print [Please enter a valid number] loop stop]
+    if :guess < :num [print [Lower] loop stop]
+    if :guess > :num [print [Higher] loop stop]
+    print (sentence [You got it! The number was] :num)
+end
+
+loop
