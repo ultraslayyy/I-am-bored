@@ -8,7 +8,7 @@ C     GUESS    SFLD
 C     Z-ADD    0          RANDNUM
 C     MULT     RANDNUM    101
 
-CLOOP  DOW       1          // Infinite loop
+CLOOP  DOW       1
 C               EXFMT     PROMPT
 C               IF        GUESS > RANDNUM
 C               WRITE     LOWER
@@ -31,7 +31,6 @@ dcl-s guess  int(3);
 
 target = %rand() * 101;
 
-// Main loop
 dow *in03 = *off;
     dsply 'Guess: ' guess;
 
