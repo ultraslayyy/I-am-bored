@@ -55,13 +55,17 @@ LRESULT CALLBACK Win32Window::WindowProc(HWND hwnd, UINT msg, WPARAM wParam, LPA
         case WM_KEYDOWN:
             if (wParam == VK_LEFT) Input::setKey(Key::Left, true);
             if (wParam == VK_RIGHT) Input::setKey(Key::Right, true);
+            if (wParam == VK_UP) Input::setKey(Key::Up, true);
+            if (wParam == VK_DOWN) Input::setKey(Key::Down, true);
             return 0;
         case WM_KEYUP:
             if (wParam == VK_LEFT) Input::setKey(Key::Left, false);
             if (wParam == VK_RIGHT) Input::setKey(Key::Right, false);
+            if (wParam == VK_UP) Input::setKey(Key::Up, false);
+            if (wParam == VK_DOWN) Input::setKey(Key::Down, false);
             return 0;
         case WM_ERASEBKGND:
-            return 1;
+        return 1;
     }
 
     return DefWindowProc(hwnd, msg, wParam, lParam);

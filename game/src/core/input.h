@@ -4,6 +4,8 @@
 enum class Key {
     Left,
     Right,
+    Up,
+    Down,
     Count
 };
 

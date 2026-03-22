@@ -8,4 +8,5 @@ public:
 
 private:
     float x = 350.0f;
+    float y = 250.0f;
 };
