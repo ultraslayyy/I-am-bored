@@ -5,35 +5,48 @@ bool Renderer::init(HWND hwnd, int w, int h) {
     this->width = w;
     this->height = h;
 
-    HDC hdc = GetDC(hwnd);
+    if (FAILED(D2D1CreateFactory(D2D1_FACTORY_TYPE_SINGLE_THREADED, &pFactory))) return false;
 
-    backDC = CreateCompatibleDC(hdc);
-    backBitmap = CreateCompatibleBitmap(hdc, width, height);
-    SelectObject(backDC, backBitmap);
+    RECT rc;
+    GetClientRect(hwnd, &rc);
 
-    ReleaseDC(hwnd, hdc);
+    D2D1_SIZE_U size = D2D1::SizeU(rc.right - rc.left, rc.bottom - rc.top);
+
+    D2D1_RENDER_TARGET_PROPERTIES props = D2D1::RenderTargetProperties();
+    D2D1_HWND_RENDER_TARGET_PROPERTIES hwndProps = D2D1::HwndRenderTargetProperties(hwnd, size);
+
+    if (FAILED(pFactory->CreateHwndRenderTarget(props, hwndProps, &pRenderTarget))) return false;
 
     return true;
 }
 
 void Renderer::clear(int r, int g, int b) {
-    HBRUSH brush = CreateSolidBrush(RGB(r, g, b));
-    RECT rect = { 0, 0, width, height };
-    FillRect(backDC, &rect, brush);
-    DeleteObject(brush);
+    float rf = r / 255.0f;
+    float gf = g / 255.0f;
+    float bf = b / 255.0f;
+
+    pRenderTarget->BeginDraw();
+    pRenderTarget->Clear(D2D1::ColorF(rf, gf, bf));
 }
 
 void Renderer::drawRect(int x, int y, int w, int h, int r, int g, int b) {
-    HBRUSH brush = CreateSolidBrush(RGB(r, g, b));
-    RECT rect = { x, y, x + w, y + h};
-    FillRect(backDC, &rect, brush);
-    DeleteObject(brush);
+    float rf = r / 255.0f;
+    float gf = g / 255.0f;
+    float bf = b / 255.0f;
+
+    D2D1_RECT_F rect = D2D1::RectF((FLOAT)x, (FLOAT)y, (FLOAT)(x + w), (FLOAT)(y + h));
+
+    ID2D1SolidColorBrush* brush = nullptr;
+    pRenderTarget->CreateSolidColorBrush(D2D1::ColorF(rf, gf, bf), &brush);
+    pRenderTarget->FillRectangle(&rect, brush);
+    brush->Release();
 }
 
 void Renderer::present() {
-    HDC hdc = GetDC(hwnd);
+    pRenderTarget->EndDraw();
+}
 
-    BitBlt(hdc, 0, 0, width, height, backDC, 0, 0, SRCCOPY);
-
-    ReleaseDC(hwnd, hdc);
+Renderer::~Renderer() {
+    if (pRenderTarget) pRenderTarget->Release();
+    if (pFactory) pFactory->Release();
 }

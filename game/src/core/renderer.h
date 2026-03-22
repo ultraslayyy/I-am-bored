@@ -1,5 +1,5 @@
 #pragma once
-#include <windows.h>
+#include <d2d1.h>
 
 class Renderer {
 public:
@@ -8,13 +8,13 @@ public:
     void clear(int r, int g, int b);
     void drawRect(int x, int y, int w, int h, int r, int g, int b);
     void present();
+    ~Renderer();
 
 private:
     HWND hwnd = nullptr;
-
-    HDC backDC = nullptr;
-    HBITMAP backBitmap = nullptr;
-
     int width = 0;
     int height = 0;
+
+    ID2D1Factory* pFactory = nullptr;
+    ID2D1HwndRenderTarget* pRenderTarget = nullptr;
 };
