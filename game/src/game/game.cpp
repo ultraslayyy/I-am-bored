@@ -1,4 +1,6 @@
+#include <cstdio>
 #include "../core/input.h"
+#include "../core/time.h"
 #include "game.h"
 
 void Game::update(float dt) {
@@ -14,7 +16,9 @@ void Game::update(float dt) {
 }
 
 void Game::render(IRenderer& renderer) {
-    renderer.clear(0, 0, 0);
     renderer.drawRect((int)x, 250, 100, 100, 255, 0, 0);
-    renderer.present();
+
+    char buffer[32];
+    sprintf_s(buffer, "FPS: %.0f", Time::fps);
+    renderer.drawText(buffer, 10.0f, 10.0f, 20.0f, 255, 255, 255);
 }

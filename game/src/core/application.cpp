@@ -4,14 +4,10 @@
 #include "input.h"
 #include "time.h"
 #include "../game/game.h"
-
-#ifdef DIRECT2D
 #include "../platform/d2d_renderer.h"
+
+// No GDIRenderer here *yet*
 D2DRenderer renderer;
-#elif GDI
-#include "../platform/gdi_renderer.h"
-GDIRenderer renderer;
-#endif
 Game game;
 
 bool Application::init() {
@@ -28,10 +24,9 @@ void Application::run() {
         Time::update();
 
         game.update(Time::deltaTime);
+        
+        renderer.clear(0, 0, 0);
         game.render(renderer);
-
-        char title[64];
-        sprintf_s(title, "FPS: %.0f", Time::fps);
-        SetWindowText(window.getHandle(), title);
+        renderer.present();
     }
 }

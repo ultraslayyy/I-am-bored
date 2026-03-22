@@ -11,7 +11,7 @@ file(GLOB_RECURSE SOURCES
 add_executable(${PROJECT_NAME} ${SOURCES})
 
 if (WIN32)
-    target_link_libraries(${PROJECT_NAME} PRIVATE user32 gdi32 d2d1)
+    target_link_libraries(${PROJECT_NAME} PRIVATE user32 gdi32 d2d1 dwrite)
     # Use Direct2D rendering over GDI
     target_compile_definitions(${PROJECT_NAME} PUBLIC DIRECT2D)
 endif()

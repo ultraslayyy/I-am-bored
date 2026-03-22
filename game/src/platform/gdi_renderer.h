@@ -1,5 +1,4 @@
 #pragma once
-#include <windows.h>
 #include "../core/renderer.h"
 
 class GDIRenderer : public IRenderer {
@@ -8,6 +7,7 @@ public:
 
     void clear(int r, int g, int b) override;
     void drawRect(int x, int y, int w, int h, int r, int g, int b) override;
+    void drawText(const char* text, float x, float y, float size, int r, int g, int b) override;
     void present() override;
 
     ~GDIRenderer();
