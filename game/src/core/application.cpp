@@ -4,10 +4,15 @@
 #include "input.h"
 #include "time.h"
 #include "../game/game.h"
-#include "../platform/d2d_renderer.h"
 
-// No GDIRenderer here *yet*
+#if USE_DIRECT2D
+#include "../platform/d2d_renderer.h"
 D2DRenderer renderer;
+#elif USE_GDI
+#include "../platform/gdi_renderer.h"
+GDIRenderer renderer;
+#endif
+
 Game game;
 
 bool Application::init() {

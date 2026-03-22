@@ -1,4 +1,4 @@
-#ifdef DIRECT2D
+#ifdef USE_DIRECT2D
 #include <string>
 #include "d2d_renderer.h"
 

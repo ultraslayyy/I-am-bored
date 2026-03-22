@@ -1,4 +1,4 @@
-#ifdef GDI
+#ifdef USE_GDI
 #include <string>
 #include "gdi_renderer.h"
 
