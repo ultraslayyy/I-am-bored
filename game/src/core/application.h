@@ -7,9 +7,5 @@ public:
     void run();
 
 private:
-    void update();
-    void render();
-
     Win32Window window;
-    float x = 250.0f;
 };
