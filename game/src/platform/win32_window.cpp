@@ -65,7 +65,7 @@ LRESULT CALLBACK Win32Window::WindowProc(HWND hwnd, UINT msg, WPARAM wParam, LPA
             if (wParam == VK_DOWN) Input::setKey(Key::Down, false);
             return 0;
         case WM_ERASEBKGND:
-        return 1;
+            return 1;
     }
 
     return DefWindowProc(hwnd, msg, wParam, lParam);
