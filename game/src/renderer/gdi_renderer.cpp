@@ -71,6 +71,25 @@ void GDIRenderer::present() {
     ReleaseDC(hwnd, hdc);
 }
 
+void GDIRenderer::resize(int w, int h) {
+    width = w;
+    height = h;
+
+    if (backDC && oldBitmap) {
+        SelectObject(backDC, oldBitmap);
+    }
+    if (backBitmap) {
+        DeleteObject(backBitmap);
+        backBitmap = nullptr;
+    }
+
+    HDC hdc = GetDC(hwnd);
+    backDC = CreateCompatibleDC(hdc);
+    backBitmap = CreateCompatibleBitmap(hdc, width, height);
+    oldBitmap = (HBITMAP)SelectObject(backDC, backBitmap);
+    ReleaseDC(hwnd, hdc);
+}
+
 GDIRenderer::~GDIRenderer() {
     if (backDC && oldBitmap) {
         SelectObject(backDC, oldBitmap);

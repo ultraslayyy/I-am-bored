@@ -5,6 +5,15 @@
 #include "../core/time.h"
 #include "game.h"
 
+int box_width = 100;
+int box_height = box_width;
+
+void Game::init(IRenderer* render) {
+    renderer = render;
+    window_width = renderer->getWidth();
+    window_height = renderer->getHeight();
+}
+
 void Game::update(float dt) {
     float speed = 300.0f;
     float dx = 0.0f;
@@ -24,14 +33,19 @@ void Game::update(float dt) {
     x += dx * speed * dt;
     y += dy * speed * dt;
 
-    x = std::clamp(x, 0.0f, 685.0f); // 800 - box size - 15
-    y = std::clamp(y, 0.0f, 465.0f); // 700 - box size - 35 ^ hardcoded for now
+    x = std::clamp(x, 0.0f, window_width - (float)box_width);
+    y = std::clamp(y, 0.0f, window_height - (float)box_height);
 }
 
-void Game::render(IRenderer& renderer) {
-    renderer.drawRect((int)x, (int)y, 100, 100, 255, 0, 0);
+void Game::render() {
+    renderer->drawRect((int)x, (int)y, box_width, box_height, 255, 0, 0);
 
     char buffer[32];
     sprintf_s(buffer, "FPS: %.0f", Time::fps);
-    renderer.drawText(buffer, 10.0f, 10.0f, 20.0f, 255, 255, 255);
+    renderer->drawText(buffer, 10.0f, 10.0f, 20.0f, 255, 255, 255);
+}
+
+void Game::onResize(int w, int h) {
+    window_width = w;
+    window_height = h;
 }

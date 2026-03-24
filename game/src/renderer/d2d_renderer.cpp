@@ -16,6 +16,7 @@ bool D2DRenderer::init(HWND hwnd, int w, int h) {
 
     D2D1_RENDER_TARGET_PROPERTIES props = D2D1::RenderTargetProperties();
     D2D1_HWND_RENDER_TARGET_PROPERTIES hwndProps = D2D1::HwndRenderTargetProperties(hwnd, size);
+    // hwndProps.presentOptions = D2D1_PRESENT_OPTIONS_IMMEDIATELY; // Disable VSync
 
     if (FAILED(factory->CreateHwndRenderTarget(props, hwndProps, &pRenderTarget))) return false;
 
@@ -90,6 +91,22 @@ void D2DRenderer::drawText(const char* text, float x, float y, float size, int r
 
 void D2DRenderer::present() {
     pRenderTarget->EndDraw();
+}
+
+void D2DRenderer::resize(int w, int h) {
+    width = w;
+    height = h;
+
+    if (pRenderTarget) {
+        pRenderTarget->Release();
+        pRenderTarget = nullptr;
+    }
+
+    D2D1_SIZE_U size = D2D1::SizeU(width, height);
+    D2D1_RENDER_TARGET_PROPERTIES props = D2D1::RenderTargetProperties();
+    D2D1_HWND_RENDER_TARGET_PROPERTIES hwndProps = D2D1::HwndRenderTargetProperties(hwnd, size);
+
+    factory->CreateHwndRenderTarget(props, hwndProps, &pRenderTarget);
 }
 
 D2DRenderer::~D2DRenderer() {

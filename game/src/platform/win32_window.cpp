@@ -64,6 +64,15 @@ LRESULT CALLBACK Win32Window::WindowProc(HWND hwnd, UINT msg, WPARAM wParam, LPA
             if (wParam == VK_UP) Input::setKey(Key::Up, false);
             if (wParam == VK_DOWN) Input::setKey(Key::Down, false);
             return 0;
+        case WM_SIZE: {
+            int w = LOWORD(lParam);
+            int h = HIWORD(lParam);
+
+            if (g_window && g_window->onResize) {
+                g_window->onResize(w, h);
+            }
+            return 0;
+        }
         case WM_ERASEBKGND:
             return 1;
     }

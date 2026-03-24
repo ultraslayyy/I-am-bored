@@ -14,6 +14,10 @@ public:
     void drawText(const char* text, float x, float y, float size, int r, int g, int b) override;
     void present() override;
 
+    void resize(int w, int h) override;
+    int getWidth() const override { return width; }
+    int getHeight() const override { return height; }
+
     ~D2DRenderer();
 
 private:
