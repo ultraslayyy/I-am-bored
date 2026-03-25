@@ -16,7 +16,7 @@ bool D2DRenderer::init(HWND hwnd, int w, int h) {
 
     D2D1_RENDER_TARGET_PROPERTIES props = D2D1::RenderTargetProperties();
     D2D1_HWND_RENDER_TARGET_PROPERTIES hwndProps = D2D1::HwndRenderTargetProperties(hwnd, size);
-    // hwndProps.presentOptions = D2D1_PRESENT_OPTIONS_IMMEDIATELY; // Disable VSync
+    hwndProps.presentOptions = D2D1_PRESENT_OPTIONS_IMMEDIATELY; // Disable VSync
 
     if (FAILED(factory->CreateHwndRenderTarget(props, hwndProps, &pRenderTarget))) return false;
 

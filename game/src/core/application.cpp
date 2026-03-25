@@ -37,7 +37,8 @@ bool Application::init() {
     width = rect.right - rect.left;
     height = rect.bottom - rect.top;
 
-    renderer.init(window.getHandle(), width, height);
+    if (!renderer.init(window.getHandle(), width, height))
+        return false;
 
     return true;
 }
