@@ -52,7 +52,6 @@ drivers:
 - USB support (just start by listing USB devices)
 - Maybe HDMI support (just listing connected displays, not using them till much later)
 - RTL8169 support (check net section)
-- Framebuffer driver for video (see io section of roadmap)
 - Stub for unimplemented drivers
 
 fs:
