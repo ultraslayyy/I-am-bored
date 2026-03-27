@@ -7,7 +7,7 @@
 #include <fstream>
 #include <vector>
 
-static const char* fontPath = "./vendor/segoe-ui.ttf";
+static const char* fontPath = "./fonts/segoe-ui.ttf";
 static const int FONT_ATLAS_SIZE = 512;
 static const int FONT_ASCII_START = 32;
 static const int FONT_ASCII_COUNT = 95;
