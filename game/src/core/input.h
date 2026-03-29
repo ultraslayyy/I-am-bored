@@ -2,10 +2,15 @@
 #include <array>
 
 enum class Key {
+    A,
+    D,
+    S,
+    W,
     Left,
     Right,
     Up,
     Down,
+    Enter,
     Count
 };
 

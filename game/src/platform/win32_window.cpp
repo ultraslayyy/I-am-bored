@@ -1,3 +1,4 @@
+#ifdef WIN32
 #include "../core/input.h"
 #include "win32_window.h"
 
@@ -15,12 +16,27 @@ bool Win32Window::create(int width, int height, const char *title) {
 
     RegisterClass(&wc);
 
+    // Temporary disable resizing as larger windows make the game much easier to get high scores
+    // Disable resizing
+    DWORD style = WS_OVERLAPPEDWINDOW & ~(WS_MAXIMIZEBOX | WS_THICKFRAME);
+    // Center window
+    RECT rc = {0, 0, width, height};
+    AdjustWindowRect(&rc, style, FALSE);
+    int windowWidth  = rc.right - rc.left;
+    int windowHeight = rc.bottom - rc.top;
+
+    int screenWidth  = GetSystemMetrics(SM_CXSCREEN);
+    int screenHeight = GetSystemMetrics(SM_CYSCREEN);
+
+    int x = (screenWidth - windowWidth) / 2;
+    int y = (screenHeight - windowHeight) / 2;
+
     hwnd = CreateWindowExA(
         0,
         "GameWindow",
         title,
-        WS_OVERLAPPEDWINDOW,
-        CW_USEDEFAULT, CW_USEDEFAULT,
+        style, // WS_OVERLAPPEDWINDOW,
+        x, y, // CW_USEDEFAULT, CW_USEDEFAULT`
         width, height,
         NULL, NULL,
         hInstance,
@@ -43,8 +59,30 @@ void Win32Window::pollEvents() {
     }
 }
 
-bool Win32Window::isRunning() const {
-    return running;
+void handleKeys(WPARAM wParam, bool down) {
+    switch (wParam) {
+        case VK_LEFT:
+            Input::setKey(Key::Left, down);
+            break;
+        case VK_RIGHT:
+            Input::setKey(Key::Right, down);
+            break;
+        case VK_UP:
+            Input::setKey(Key::Up, down);
+            break;
+        case VK_DOWN:
+            Input::setKey(Key::Down, down);
+            break;
+        case VK_RETURN:
+            Input::setKey(Key::Enter, down);
+            break;
+        default:
+            if (wParam == 'A') Input::setKey(Key::A, down);
+            if (wParam == 'D') Input::setKey(Key::D, down);
+            if (wParam == 'S') Input::setKey(Key::S, down);
+            if (wParam == 'W') Input::setKey(Key::W, down);
+            break;
+    }
 }
 
 LRESULT CALLBACK Win32Window::WindowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
@@ -53,16 +91,10 @@ LRESULT CALLBACK Win32Window::WindowProc(HWND hwnd, UINT msg, WPARAM wParam, LPA
             PostQuitMessage(0);
             return 0;
         case WM_KEYDOWN:
-            if (wParam == VK_LEFT) Input::setKey(Key::Left, true);
-            if (wParam == VK_RIGHT) Input::setKey(Key::Right, true);
-            if (wParam == VK_UP) Input::setKey(Key::Up, true);
-            if (wParam == VK_DOWN) Input::setKey(Key::Down, true);
+            handleKeys(wParam, true);
             return 0;
         case WM_KEYUP:
-            if (wParam == VK_LEFT) Input::setKey(Key::Left, false);
-            if (wParam == VK_RIGHT) Input::setKey(Key::Right, false);
-            if (wParam == VK_UP) Input::setKey(Key::Up, false);
-            if (wParam == VK_DOWN) Input::setKey(Key::Down, false);
+            handleKeys(wParam, false);
             return 0;
         case WM_SIZE: {
             int w = LOWORD(lParam);
@@ -79,3 +111,4 @@ LRESULT CALLBACK Win32Window::WindowProc(HWND hwnd, UINT msg, WPARAM wParam, LPA
 
     return DefWindowProc(hwnd, msg, wParam, lParam);
 }
+#endif

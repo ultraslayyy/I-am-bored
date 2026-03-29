@@ -6,7 +6,9 @@ class Win32Window {
 public:
     bool create(int width, int height, const char *title);
     void pollEvents();
-    bool isRunning() const;
+    bool isRunning() const {
+        return running;
+    }
 
     HWND getHandle() const { return hwnd; }
 
