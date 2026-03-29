@@ -32,7 +32,7 @@ private:
 
     GameState state = GameState::Waiting;
 
-    int score = 20;
+    int score = 0;
     int highscore = 0;
 
     float timer = 0.0f;

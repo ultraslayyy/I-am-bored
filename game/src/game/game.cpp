@@ -1,5 +1,6 @@
 #include <algorithm>
 #include <cmath>
+#include <cstdint>
 #include <cstdio>
 #include <ctime>
 #include <cstdio>
@@ -13,26 +14,32 @@ constexpr int PLAYER_HEIGHT = 100;
 constexpr int GREEN_WIDTH  = 60;
 constexpr int GREEN_HEIGHT = 60;
 
-constexpr int HIGHSCORE_KEY = 0xDF9C22A5;
+constexpr uint32_t SALT = 0xA5DF3C2B;
 
 void Game::saveHighscore() {
     FILE* f = fopen("hs", "wb");
+    if (!f) return;
     
-    if (f) {
-        int val = (score ^ HIGHSCORE_KEY) + 3421;
-        fwrite(&val, sizeof(val), 1, f);
-        fclose(f);
-    }
+    uint32_t seed = static_cast<uint32_t>(time(nullptr) ^ rand());
+    uint32_t obfScore = static_cast<uint32_t>(score) ^ (seed * 2654435761u);
+
+    fwrite(&seed, sizeof(seed), 1, f);
+    fwrite(&obfScore, sizeof(obfScore), 1, f);
+    fclose(f);
 }
 
 void Game::loadHighscore() {
     FILE* f = fopen("hs", "rb");
+    if (!f) return;
 
-    if (f) {
-        fread(&highscore, sizeof(highscore), 1, f);
-        fclose(f);
-        highscore = (highscore - 3421) ^ HIGHSCORE_KEY;
-    }
+    uint32_t seed;
+    uint32_t obfScore;
+
+    fread(&seed, sizeof(seed), 1, f);
+    fread(&obfScore, sizeof(obfScore), 1, f);
+    fclose(f);
+
+    highscore = static_cast<int>(obfScore ^ (seed * 2654435761u));
 }
 
 float Game::getDistanceToGreen() {
