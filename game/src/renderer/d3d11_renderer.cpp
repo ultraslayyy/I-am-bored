@@ -45,7 +45,7 @@ bool D3D11Renderer::init(IWindow* window_p, int w, int h) {
     height = h;
 
     DXGI_SWAP_CHAIN_DESC scd = {};
-    scd.BufferCount = 1;
+    scd.BufferCount = 2;
     scd.BufferDesc.Width = width;
     scd.BufferDesc.Height = height;
     scd.BufferDesc.Format = DXGI_FORMAT_B8G8R8A8_UNORM;
@@ -53,7 +53,8 @@ bool D3D11Renderer::init(IWindow* window_p, int w, int h) {
     scd.OutputWindow = hwnd;
     scd.SampleDesc.Count = 1;
     scd.Windowed = TRUE;
-    scd.SwapEffect = DXGI_SWAP_EFFECT_DISCARD;
+    scd.SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD;
+    scd.Flags = DXGI_SWAP_CHAIN_FLAG_ALLOW_TEARING;
 
     HRESULT hr = D3D11CreateDeviceAndSwapChain(
         nullptr,
@@ -170,7 +171,7 @@ void D3D11Renderer::present() {
         d2dRenderTarget->EndDraw();
     }
 
-    swapChain->Present(0, 0); // 0 = no vsync
+    swapChain->Present(0, DXGI_PRESENT_ALLOW_TEARING); // 0 = no vsync
 }
 
 void D3D11Renderer::resize(int w, int h) {

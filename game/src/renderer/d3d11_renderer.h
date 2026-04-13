@@ -27,7 +27,6 @@ public:
 
 private:
     IDWriteTextFormat* getTextFormat(float size);
-    void beginFrame(int r, int g, int b);
 
     HWND hwnd;
 
