@@ -1,9 +1,11 @@
+#pragma once
+#ifdef WIN32
 #ifdef USE_GDI
 #include <string>
 #include "gdi_renderer.h"
 
-bool GDIRenderer::init(HWND hwnd, int w, int h) {
-    this->hwnd = hwnd;
+bool GDIRenderer::init(IWindow* window_p, int w, int h) {
+    this->hwnd = (HWND)window_p->getNativeHandle();
     this->width = w;
     this->height = h;
 
@@ -105,4 +107,5 @@ GDIRenderer::~GDIRenderer() {
         backDC = nullptr;
     }
 }
+#endif
 #endif

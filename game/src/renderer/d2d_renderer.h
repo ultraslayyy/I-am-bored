@@ -1,4 +1,5 @@
 #pragma once
+#ifdef WIN32
 #include <d2d1.h>
 #include <dwrite.h>
 #include "../core/renderer.h"
@@ -7,7 +8,7 @@
 
 class D2DRenderer : public IRenderer {
 public:
-    bool init(HWND hwnd, int width, int height) override;
+    bool init(IWindow* window, int width, int height) override;
 
     void clear(int r, int g, int b) override;
     void drawRect(int x, int y, int w, int h, int r, int g, int b) override;
@@ -30,3 +31,4 @@ private:
     IDWriteFactory* writeFactory = nullptr;
     IDWriteTextFormat* textFormat = nullptr;
 };
+#endif

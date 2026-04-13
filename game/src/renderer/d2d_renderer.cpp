@@ -1,9 +1,10 @@
+#ifdef WIN32
 #ifdef USE_DIRECT2D
 #include <string>
 #include "d2d_renderer.h"
 
-bool D2DRenderer::init(HWND hwnd, int w, int h) {
-    this->hwnd = hwnd;
+bool D2DRenderer::init(IWindow* window_p, int w, int h) {
+    this->hwnd = (HWND)window_p->getNativeHandle();
     this->width = w;
     this->height = h;
 
@@ -115,4 +116,5 @@ D2DRenderer::~D2DRenderer() {
     if (textFormat) textFormat->Release();
     if (writeFactory) writeFactory->Release();
 }
+#endif
 #endif

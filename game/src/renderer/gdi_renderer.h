@@ -1,9 +1,11 @@
 #pragma once
+#ifdef WIN32
+#include <windows.h>
 #include "../core/renderer.h"
 
 class GDIRenderer : public IRenderer {
 public:
-    bool init(HWND hwnd, int width, int height) override;
+    bool init(IWindow* window, int width, int height) override;
 
     void clear(int r, int g, int b) override;
     void drawRect(int x, int y, int w, int h, int r, int g, int b) override;
@@ -25,3 +27,4 @@ private:
     HBITMAP backBitmap = nullptr;
     HBITMAP oldBitmap = nullptr;
 };
+#endif

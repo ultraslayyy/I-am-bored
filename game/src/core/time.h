@@ -1,6 +1,6 @@
 #pragma once
 
-class Time {
+class ITime {
 public:
     static void update();
 

@@ -7,6 +7,16 @@
 #include <GL/gl.h>
 #endif
 
+#ifdef WIN32
+#include <windows.h>
+#endif
+
+#ifdef HAS_X11
+#include <X11/Xlib.h>
+#include <GL/glx.h>
+#endif
+#include "../platform/window.h"
+
 #ifdef USE_OPENGL_33
 class GLShader {
 public:
@@ -60,7 +70,7 @@ public:
 
 class GLRenderer : public IRenderer {
 public:
-    bool init(HWND hwnd, int width, int height) override;
+    bool init(IWindow* window, int width, int height) override;
 
     void clear(int r, int g, int b) override;
     void drawRect(int x, int y, int w, int h, int r, int g, int b) override;
@@ -74,8 +84,14 @@ public:
     ~GLRenderer();
 
 private:
+#ifdef WIN32
     HDC hdc = nullptr;
     HGLRC hglrc = nullptr;
+#elif HAS_X11
+    Display* display = nullptr;
+    Window window = 0;
+    GLXContext glc = nullptr;
+#endif
     
 #ifdef USE_OPENGL_33
     void initFont(float fontSize);

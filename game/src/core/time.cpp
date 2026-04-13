@@ -3,13 +3,13 @@
 
 static auto lastTime = std::chrono::high_resolution_clock::now();
 
-float Time::deltaTime = 0.0f;
-float Time::fps = 0.0f;
+float ITime::deltaTime = 0.0f;
+float ITime::fps = 0.0f;
 
-float Time::fpsTimer = 0.0f;
-int Time::frameCount = 0;
+float ITime::fpsTimer = 0.0f;
+int ITime::frameCount = 0;
 
-void Time::update() {
+void ITime::update() {
     using clock = std::chrono::high_resolution_clock;
 
     auto now = clock::now();

@@ -1,11 +1,23 @@
 #ifdef USE_OPENGL
+#include <cstring>
 #include "gl_renderer.h"
 #ifdef USE_OPENGL_33
+#ifdef WIN32
 #include <GL/wglext.h>
+#else
+#include <GL/glx.h>
+#endif
 #define STB_TRUETYPE_IMPLEMENTATION
 #include "./vendor/stb_truetype.h"
 #include <fstream>
 #include <vector>
+
+#ifdef WIN32
+#define DBG_PRINT(msg) OutputDebugStringA(msg)
+#else
+#include <iostream>
+#define DBG_PRINT(msg) std::cerr << msg << std::endl;
+#endif
 
 static const char* fontPath = "./fonts/segoe-ui.ttf";
 static const int FONT_ATLAS_SIZE = 512;
@@ -24,7 +36,7 @@ void GLRenderer::initFont(float fontSize) {
     
     stbtt_fontinfo font;
     if (!stbtt_InitFont(&font, buffer.data(), 0)) {
-        OutputDebugStringA("Failed to init font");
+        DBG_PRINT("Failed to init font");
         return;
     }
 
@@ -53,7 +65,7 @@ void checkShader(GLuint s) {
     glGetShaderiv(s, GL_COMPILE_STATUS, &success);
     if (!success) {
         glGetShaderInfoLog(s, 512, nullptr, info);
-        OutputDebugStringA(info);
+        DBG_PRINT(info);
     }
 }
 
@@ -64,7 +76,7 @@ void checkProgram(GLuint p) {
     glGetProgramiv(p, GL_LINK_STATUS, &success);
     if (!success) {
         glGetProgramInfoLog(p, 512, nullptr, info);
-        OutputDebugStringA(info);
+        DBG_PRINT(info);
     }
 }
 
@@ -149,10 +161,12 @@ void GLRenderer::initGLResources() {
 }
 #endif
 
-bool GLRenderer::init(HWND hwnd, int w, int h) {
+bool GLRenderer::init(IWindow* window_p, int w, int h) {
     width = w;
     height = h;
 
+#ifdef WIN32
+    HWND hwnd = (HWND)window_p->getNativeHandle();
     hdc = GetDC(hwnd);
 
     PIXELFORMATDESCRIPTOR pfd = {};
@@ -189,6 +203,23 @@ bool GLRenderer::init(HWND hwnd, int w, int h) {
 #endif
 
     wglMakeCurrent(hdc, hglrc);
+#elif HAS_X11
+    display = (Display*)window_p->getNativeDisplay();
+    window = (Window)(uintptr_t)window_p->getNativeHandle();
+
+    int screen = DefaultScreen(display);
+    
+    int visual_attribs[] = {
+        GLX_RGBA,
+        GLX_DEPTH_SIZE, 24,
+        GLX_DOUBLEBUFFER,
+        None
+    };
+
+    XVisualInfo* vi = glXChooseVisual(display, screen, visual_attribs);
+    glc = glXCreateContext(display, vi, NULL, GL_TRUE);
+    glXMakeCurrent(display, window, glc);
+#endif
 
 #ifdef USE_OPENGL_33
     if (!gladLoadGL()) return false;
@@ -207,6 +238,7 @@ bool GLRenderer::init(HWND hwnd, int w, int h) {
     glOrtho(0, width, height, 0, -1, 1);
 
     fontBase = glGenLists(256);
+#ifdef WIN32
     HFONT font = CreateFontA(
         -20, 0, 0, 0,
         FW_NORMAL,
@@ -222,6 +254,7 @@ bool GLRenderer::init(HWND hwnd, int w, int h) {
     SelectObject(hdc, font);
     wglUseFontBitmapsA(hdc, 0, 256, fontBase);
     DeleteObject(font);
+#endif
 #endif
     return true;
 }
@@ -325,7 +358,11 @@ void GLRenderer::drawText(const char* text, float x, float y, float size, int r,
 }
 
 void GLRenderer::present() {
+#ifdef WIN32
     SwapBuffers(hdc);
+#elif HAS_X11
+    glXSwapBuffers(display, window);
+#endif
 }
 
 void GLRenderer::resize(int w, int h) {
@@ -351,8 +388,13 @@ GLRenderer::~GLRenderer() {
     if (fontBase) glDeleteLists(fontBase, 256);
 #endif
 
+#ifdef WIN32
     wglMakeCurrent(NULL, NULL);
     if (hglrc) wglDeleteContext(hglrc);
     if (hdc) ReleaseDC(WindowFromDC(hdc), hdc);
+#elif HAS_X11
+    glXMakeCurrent(display, None, NULL);
+    if (glc) glXDestroyContext(display, glc);
+#endif
 }
 #endif

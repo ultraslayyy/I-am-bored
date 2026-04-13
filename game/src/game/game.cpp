@@ -8,6 +8,12 @@
 #include "../core/time.h"
 #include "game.h"
 
+#ifdef WIN32
+#define iprintf sprintf_s
+#else
+#define iprintf sprintf
+#endif
+
 constexpr int PLAYER_WIDTH  = 100;
 constexpr int PLAYER_HEIGHT = 100;
 
@@ -186,24 +192,24 @@ void Game::render() {
     renderer->drawRect((int)x, (int)y, PLAYER_WIDTH, PLAYER_HEIGHT, 255, 0, 0);
 
     char buffer[128];
-    sprintf_s(buffer, "FPS: %.0f", Time::fps);
+    iprintf(buffer, "FPS: %.0f", ITime::fps);
     renderer->drawText(buffer, 10.0f, 10.0f, 20.0f, 255, 255, 255);
 
-    sprintf_s(buffer, "Score %d", score);
+    iprintf(buffer, "Score %d", score);
     renderer->drawText(buffer, 10, 40, 20, 255, 255, 255);
 
     if (state == GameState::Playing) {
-        sprintf_s(buffer, "Time: %.2f", timer);
+        iprintf(buffer, "Time: %.2f", timer);
         renderer->drawText(buffer, 10, 70, 20, 255, 255, 255);
     } else if (state == GameState::Waiting) {
         renderer->drawText("Touch green to start", 300, 200, 30, 255, 255, 0);
     } else if (state == GameState::GameOver) {
         renderer->drawText("GAME OVER", 300, 200, 40, 255, 255, 255);
 
-        sprintf_s(buffer, "Score: %d", score);
+        iprintf(buffer, "Score: %d", score);
         renderer->drawText(buffer, 300, 250, 25, 255, 255, 255);
 
-        sprintf_s(buffer, "Highscore: %d", highscore);
+        iprintf(buffer, "Highscore: %d", highscore);
         renderer->drawText(buffer, 300, 280, 25, 255, 255, 255);
 
         renderer->drawText("Press Enter to Restart", 300, 320, 20, 200, 200, 200);

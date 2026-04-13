@@ -1,11 +1,11 @@
 #pragma once
-#include <windows.h>
+#include "../platform/window.h"
 
 class IRenderer {
 public:
     virtual ~IRenderer() = default;
 
-    virtual bool init(HWND hwnd, int width, int height) = 0;
+    virtual bool init(IWindow* window, int width, int height) = 0;
 
     virtual void clear(int r, int g, int b) = 0;
     virtual void drawRect(int x, int y, int w, int h, int r, int g, int b) = 0;

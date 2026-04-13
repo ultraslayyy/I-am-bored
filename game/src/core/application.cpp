@@ -1,5 +1,7 @@
 #include <chrono>
+#ifdef WIN32
 #include <windows.h>
+#endif
 #include "application.h"
 #include "input.h"
 #include "time.h"
@@ -8,6 +10,9 @@
 #if USE_DIRECT2D
 #include "../renderer/d2d_renderer.h"
 D2DRenderer renderer;
+#elif USE_DIRECT3D11
+#include "../renderer/d3d11_renderer.h"
+D3D11Renderer renderer;
 #elif USE_GDI
 #include "../renderer/gdi_renderer.h"
 GDIRenderer renderer;
@@ -21,7 +26,10 @@ int width;
 int height;
 
 bool Application::init() {
-    if (!window.create(800, 600, "Game")) return false;
+    width = 800;
+    height = 600;
+
+    if (!window.create(width, height, "Game")) return false;
 
     window.onResize = [&](int w, int h) {
         width = w;
@@ -31,13 +39,15 @@ bool Application::init() {
         game.onResize(w, h);
     };
 
+#ifdef WIN32
     RECT rect;
     GetClientRect(window.getHandle(), &rect);
 
     width = rect.right - rect.left;
     height = rect.bottom - rect.top;
+#endif
 
-    if (!renderer.init(window.getHandle(), width, height))
+    if (!renderer.init(&window, width, height))
         return false;
 
     return true;
@@ -48,9 +58,9 @@ void Application::run() {
 
     while (window.isRunning()) {
         window.pollEvents();
-        Time::update();
+        ITime::update();
 
-        game.update(Time::deltaTime);
+        game.update(ITime::deltaTime);
         
         renderer.clear(0, 0, 0);
         game.render();
