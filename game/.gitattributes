@@ -1,1 +1,3 @@
 **/vendor/* linguist-vendored
+scripts/stb_image_write.h linguist-vendored
+scripts/std_truetype.h linguist-vendored
