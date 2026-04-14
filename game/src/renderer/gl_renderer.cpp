@@ -7,8 +7,8 @@
 #else
 #include <GL/glx.h>
 #endif
-#define STB_TRUETYPE_IMPLEMENTATION
-#include "./vendor/stb_truetype.h"
+#define STB_IMAGE_IMPLEMENTATION
+#include "./vendor/stb_image.h"
 #include <fstream>
 #include <vector>
 
@@ -19,43 +19,57 @@
 #define DBG_PRINT(msg) std::cerr << msg << std::endl;
 #endif
 
-static const char* fontPath = "./fonts/segoe-ui.ttf";
-static const int FONT_ATLAS_SIZE = 512;
-static const int FONT_ASCII_START = 32;
-static const int FONT_ASCII_COUNT = 95;
-
-static stbtt_bakedchar cdata[FONT_ASCII_COUNT];
 static GLuint fontTex = 0;
+
+static const int FONT_FIRST_CHAR = 32;
+static const int FONT_CHAR_COUNT = 95;
+
+struct Glyph {
+    float x0, y0, x1, y1;
+    float xoff, yoff, xadvance;
+};
+
+static std::vector<Glyph> glyphs;
+
+static int atlasWidth = 256;
+static int atlasHeight = 128;
 
 static float fontScale = 1.0f;
 static int fontAscent = 0;
 
 void GLRenderer::initFont(float fontSize) {
-    std::ifstream file(fontPath, std::ios::binary);
-    std::vector<unsigned char> buffer((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
+    std::ifstream in("./fonts/font_metrics.bin", std::ios::binary);
     
-    stbtt_fontinfo font;
-    if (!stbtt_InitFont(&font, buffer.data(), 0)) {
-        DBG_PRINT("Failed to init font");
+    glyphs.resize(FONT_CHAR_COUNT);
+    in.read(reinterpret_cast<char*>(glyphs.data()), glyphs.size() * sizeof(Glyph));
+
+    if (!in) {
+        DBG_PRINT("Failed to load font metrics");
         return;
     }
 
-    int ascent, descent, lineGap;
-    stbtt_GetFontVMetrics(&font, &ascent, &descent, &lineGap);
+    int w, h, channels;
 
-    fontScale = stbtt_ScaleForPixelHeight(&font, fontSize);
-    fontAscent = static_cast<int>(ascent * fontScale);
+    unsigned char* img = stbi_load("./fonts/font_atlas.png", &w, &h, &channels, 1);
 
-    std::vector<unsigned char> atlas(FONT_ATLAS_SIZE * FONT_ATLAS_SIZE);
-    stbtt_BakeFontBitmap(buffer.data(), 0, fontSize, atlas.data(), FONT_ATLAS_SIZE, FONT_ATLAS_SIZE, FONT_ASCII_START, FONT_ASCII_COUNT, cdata);
+    if (!img) {
+        DBG_PRINT("Failed to load font atlas");
+        return;
+    }
+
+    atlasWidth = w;
+    atlasHeight = h;
 
     glGenTextures(1, &fontTex);
     glBindTexture(GL_TEXTURE_2D, fontTex);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RED, FONT_ATLAS_SIZE, FONT_ATLAS_SIZE, 0, GL_RED, GL_UNSIGNED_BYTE, atlas.data());
+
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RED, w, h, 0, GL_RED, GL_UNSIGNED_BYTE, img);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+
+    stbi_image_free(img);
 }
 
 void checkShader(GLuint s) {
@@ -313,28 +327,40 @@ void GLRenderer::drawText(const char* text, float x, float y, float size, int r,
     glBindVertexArray(vao);
     glBindBuffer(GL_ARRAY_BUFFER, vbo);
 
-    float scale = size / 48.0f; // baked font size (48)
+    float scale = size / 32.0f; // baked font size (48)
+
     float cursorX = x;
-    float cursorY = y + fontAscent * (size / 48.0f); // baked font size (48)
+    float cursorY = y;
 
     for (const char* p = text; *p; ++p) {
-        if (*p < FONT_ASCII_START || *p >= FONT_ASCII_START + FONT_ASCII_COUNT) continue;
+        unsigned char c = (unsigned char)*p;
 
-        stbtt_aligned_quad q;
-        stbtt_GetBakedQuad(cdata, FONT_ATLAS_SIZE, FONT_ATLAS_SIZE, *p - FONT_ASCII_START, &cursorX, &cursorY, &q, 1);
+        if (c < FONT_FIRST_CHAR || c >= FONT_FIRST_CHAR + FONT_CHAR_COUNT) continue;
+
+        const Glyph& g = glyphs[c - FONT_FIRST_CHAR];
+
+        float w = (g.x1 - g.x0) * atlasWidth;
+        float h = (g.y1 - g.y0) * atlasHeight;
+
+        float x0 = cursorX + g.xoff * scale;
+        float y0 = cursorY + g.yoff * scale;
+        float x1 = x0 + w * scale;
+        float y1 = y0 + h * scale;
 
         float verts[] = {
-            q.x0 * scale, q.y0 * scale, q.s0, q.t0,
-            q.x1 * scale, q.y0 * scale, q.s1, q.t0,
-            q.x1 * scale, q.y1 * scale, q.s1, q.t1,
+            x0, y0, g.x0, g.y0,
+            x1, y0, g.x1, g.y0,
+            x1, y1, g.x1, g.y1,
 
-            q.x0 * scale, q.y0 * scale, q.s0, q.t0,
-            q.x1 * scale, q.y1 * scale, q.s1, q.t1,
-            q.x0 * scale, q.y1 * scale, q.s0, q.t1
+            x0, y0, g.x0, g.y0,
+            x1, y1, g.x1, g.y1,
+            x0, y1, g.x0, g.y1
         };
 
         glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(verts), verts);
         glDrawArrays(GL_TRIANGLES, 0, 6);
+
+        cursorX += g.xadvance * scale;
     }
 #elif USE_OPENGL_11
     glMatrixMode(GL_MODELVIEW);

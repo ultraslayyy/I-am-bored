@@ -1,2 +1,6 @@
 build/
 x11_*
+
+scripts/*
+!scripts/*.cpp
+!scripts/*.h

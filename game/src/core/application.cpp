@@ -13,6 +13,9 @@ D2DRenderer renderer;
 #elif USE_DIRECT3D11
 #include "../renderer/d3d11_renderer.h"
 D3D11Renderer renderer;
+#elif USE_DIRECT3D12
+#include "../renderer/d3d12_renderer.h"
+D3D12Renderer renderer;
 #elif USE_GDI
 #include "../renderer/gdi_renderer.h"
 GDIRenderer renderer;
