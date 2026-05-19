@@ -18,15 +18,12 @@ static const int FIRST_CHAR = 32;
 static const int CHAR_COUNT = 95;
 
 struct Glyph {
-    float x0, y0, x1, y1;   // UV coords
-    float xoff, yoff;       // offset from cursor
-    float xadvance;         // cursor advance
+    float x0, y0, x1, y1;
+    float xoff, yoff;
+    float xadvance;
 };
 
 int main() {
-    // ------------------------------------------------------------
-    // Load TTF file
-    // ------------------------------------------------------------
     std::ifstream file(fontPath, std::ios::binary);
     if (!file) {
         std::cout << "Failed to open font file\n";
@@ -44,9 +41,6 @@ int main() {
         return 1;
     }
 
-    // ------------------------------------------------------------
-    // Bake font
-    // ------------------------------------------------------------
     float fontSize = 32.0f;
 
     std::vector<unsigned char> bitmap(ATLAS_WIDTH * ATLAS_HEIGHT);
@@ -70,9 +64,6 @@ int main() {
 
     std::cout << "Glyphs packed: " << result << "\n";
 
-    // ------------------------------------------------------------
-    // Save full atlas (IMPORTANT: do NOT crop UV space)
-    // ------------------------------------------------------------
     stbi_write_png(
         "font_atlas.png",
         ATLAS_WIDTH,
@@ -82,9 +73,6 @@ int main() {
         ATLAS_WIDTH
     );
 
-    // ------------------------------------------------------------
-    // Convert baked data → stable GPU glyph metrics
-    // ------------------------------------------------------------
     std::ofstream out("font_metrics.bin", std::ios::binary);
     if (!out) {
         std::cout << "Failed to write metrics file\n";
@@ -96,8 +84,6 @@ int main() {
 
         Glyph g;
 
-        // ✅ FIX: ALWAYS normalize using FULL atlas size
-        // (this is the correct OpenGL UV mapping)
         g.x0 = b.x0 / (float)ATLAS_WIDTH;
         g.y0 = b.y0 / (float)ATLAS_HEIGHT;
         g.x1 = b.x1 / (float)ATLAS_WIDTH;
