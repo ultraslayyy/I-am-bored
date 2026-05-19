@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<osm version="0.6" generator="ChatGPT">
+
+  <!-- Nodes -->
+  <node id="1" lat="-33.8700" lon="151.2000"/>
+  <node id="2" lat="-33.8705" lon="151.2010"/>
+  <node id="3" lat="-33.8710" lon="151.2020"/>
+  <node id="4" lat="-33.8720" lon="151.2030"/>
+  <node id="5" lat="-33.8730" lon="151.2040"/>
+  <node id="6" lat="-33.8740" lon="151.2050"/>
+  <node id="7" lat="-33.8750" lon="151.2060"/>
+  <node id="8" lat="-33.8760" lon="151.2070"/>
+  <node id="9" lat="-33.8770" lon="151.2080"/>
+  <node id="10" lat="-33.8780" lon="151.2090"/>
+
+  <!-- Residential Road -->
+  <way id="100">
+    <nd ref="1"/>
+    <nd ref="2"/>
+    <nd ref="3"/>
+    <tag k="highway" v="residential"/>
+    <tag k="name" v="Maple Street"/>
+    <tag k="maxspeed" v="50"/>
+  </way>
+
+  <!-- Primary Road -->
+  <way id="101">
+    <nd ref="3"/>
+    <nd ref="4"/>
+    <nd ref="5"/>
+    <tag k="highway" v="primary"/>
+    <tag k="name" v="Kingston Road"/>
+    <tag k="maxspeed" v="70"/>
+  </way>
+
+  <!-- Secondary Road with one-way -->
+  <way id="102">
+    <nd ref="5"/>
+    <nd ref="6"/>
+    <nd ref="7"/>
+    <tag k="highway" v="secondary"/>
+    <tag k="name" v="Harbour Drive"/>
+    <tag k="oneway" v="yes"/>
+    <tag k="maxspeed" v="60"/>
+  </way>
+
+  <!-- Motorway -->
+  <way id="103">
+    <nd ref="7"/>
+    <nd ref="8"/>
+    <nd ref="9"/>
+    <tag k="highway" v="motorway"/>
+    <tag k="name" v="M1 Pacific Motorway"/>
+    <tag k="oneway" v="yes"/>
+    <tag k="maxspeed" v="100"/>
+  </way>
+
+  <!-- Bridge -->
+  <way id="104">
+    <nd ref="4"/>
+    <nd ref="6"/>
+    <tag k="highway" v="primary"/>
+    <tag k="name" v="River Crossing"/>
+    <tag k="bridge" v="yes"/>
+    <tag k="layer" v="1"/>
+    <tag k="maxspeed" v="80"/>
+  </way>
+
+  <!-- Tunnel -->
+  <way id="105">
+    <nd ref="6"/>
+    <nd ref="8"/>
+    <tag k="highway" v="secondary"/>
+    <tag k="name" v="Tunnel Link"/>
+    <tag k="tunnel" v="yes"/>
+    <tag k="layer" v="-1"/>
+    <tag k="maxspeed" v="80"/>
+  </way>
+
+  <!-- Roundabout -->
+  <way id="106">
+    <nd ref="2"/>
+    <nd ref="3"/>
+    <nd ref="4"/>
+    <nd ref="2"/>
+    <tag k="highway" v="residential"/>
+    <tag k="junction" v="roundabout"/>
+    <tag k="oneway" v="yes"/>
+    <tag k="name" v="Central Roundabout"/>
+  </way>
+
+  <!-- Turn Restriction: no left turn from way 101 to 102 via node 5 -->
+  <relation id="200">
+    <member type="way" ref="101" role="from"/>
+    <member type="way" ref="102" role="to"/>
+    <member type="node" ref="5" role="via"/>
+    <tag k="type" v="restriction"/>
+    <tag k="restriction" v="no_left_turn"/>
+  </relation>
+
+</osm>

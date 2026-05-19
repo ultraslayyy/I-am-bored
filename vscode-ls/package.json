@@ -39,11 +39,32 @@
 						"messages",
 						"verbose"
 					],
-					"default": "off",
+					"default": "messages",
 					"description": "Traces the communication between VS Code and the language server."
 				}
 			}
-		}
+		},
+    "languages": [
+      {
+        "id": "osmxml",
+        "extensions": [
+          ".osm"
+        ],
+        "aliases": [
+          "OSM XML",
+          "Open Street Map XML"
+        ],
+        "firstLine": "(\\<\\?xml.*)|(\\<svg)|(\\<\\!doctype\\s+svg)",
+        "configuration": "./language-configuration.json"
+      }
+    ],
+    "grammars": [
+      {
+        "language": "osmxml",
+        "scopeName": "text.osm",
+        "path": "./syntaxes/osm.tmLanguage.json"
+      }
+    ]
 	},
 	"scripts": {
 		"vscode:prepublish": "npm run compile",
