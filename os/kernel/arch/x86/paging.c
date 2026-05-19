@@ -6,6 +6,8 @@ static uint32_t page_directory[PAGE_ENTRIES]   __attribute__((aligned(4096)));
 static uint32_t first_page_table[PAGE_ENTRIES] __attribute__((aligned(4096)));
 
 void paging_init(void) {
+    (void)first_page_table;
+
     // Identity map first 8 MB
     for (uint32_t i = 0; i < 2; ++i) {
         static uint32_t ident_tables[2][PAGE_ENTRIES] __attribute__((aligned(4096)));

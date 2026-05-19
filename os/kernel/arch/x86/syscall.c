@@ -84,7 +84,7 @@ void syscall_handler(regs_t *r) {
         case 0x31: // uname
             break;
         default:
-            put_char('[unknown syscall]', DEFAULT_ATTR);
+            put_string("[unknown syscall]", DEFAULT_ATTR);
             break;
     }
 }

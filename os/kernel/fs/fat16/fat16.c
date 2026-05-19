@@ -115,6 +115,8 @@ static int fat16_find_free_dirent_in_dir(fat16_fs_t *fs, uint16_t first_cluster,
     uint32_t cluster_size = fs->sectors_per_cluster * fs->bytes_per_sector;
     uint8_t buf[512];
 
+    (void)cluster_size;
+
     while (cluster < 0xFFF8) {
         uint32_t lba = fs->data_start + (cluster - 2) * fs->sectors_per_cluster;
         for (uint8_t i = 0; i < fs->sectors_per_cluster; ++i) {
@@ -461,6 +463,8 @@ static fs_node_t *fat16_create(struct filesystem *fsys, fs_node_t *parent, const
 
 static int fat16_remove(struct filesystem *fsys, fs_node_t *node, int recursive) {
     if (!fsys || !node || !node->parent) return -1;
+
+    (void)recursive;
 
     fat16_file_t *node_f = node->private;
     fat16_file_t *parent_f = node->parent->private;

@@ -70,7 +70,7 @@ int pci_find_class(uint8_t class_code, uint8_t subclass, uint8_t prog_if, uint8_
             uint8_t sub  = pci_read_byte(bus, slot, 0, 0x0A);
             uint8_t prog = pci_read_byte(bus, slot, 0, 0x09);
 
-            if (cls == class_code && sub == subclass && prog_if) {
+            if (cls == class_code && sub == subclass && prog == prog_if) {
                 *out_bus = bus;
                 *out_slot = slot;
                 *out_func = 0;

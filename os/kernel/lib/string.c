@@ -80,7 +80,7 @@ size_t strlcat(char *dst, const char *src, size_t size) {
     }
 
     size_t copy_len = (size - dst_len - 1 < src_len) ? size - dst_len - 1 : src_len;
-    for (size_t i = 0; i < copy_len; i++) {
+    for (size_t i = 0; i < copy_len; ++i) {
         dst[dst_len + i] = src[i];
     }
 

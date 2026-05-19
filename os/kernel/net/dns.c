@@ -14,6 +14,9 @@ static uint16_t transaction_id = 0x1234;
 static uint32_t resolved_ip = 0;
 
 static void dns_udp_callback(uint16_t src_port, uint16_t dest_port, uint8_t *data, size_t len) {
+    (void)src_port;
+    (void)dest_port;
+    
     if (len < 12) return; // DNS header
 
     uint16_t resp_id = (data[0] << 8) | data[1];
