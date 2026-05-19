@@ -58,6 +58,19 @@ type Take<T extends DNAArray, N extends number, R extends Base[] = []> = R['leng
 type HasDownSyndrome<G extends Genome> = G['21']['2'] extends Chromosome<'21', DNAArray> ? true : false;
 
 
+type EpigeneticEffect =
+    | { type: 'silence' }
+    | { type: 'enhance'; factor: number }
+    | { type: 'mutate'; map: Partial<Record<Base, Base>> }
+
+type EpigeneticMark<ID extends ChromosomeID = ChromosomeID> = {
+    chromosome: ID;
+    start: number;
+    end: number;
+    effect: EpigeneticEffect;
+}
+
+
 type EyeColour = 'blue' | 'green' | 'brown';
 type EyePair = readonly [EyeColour, EyeColour];
 
