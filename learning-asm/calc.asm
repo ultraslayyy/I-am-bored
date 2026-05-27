@@ -1,5 +1,5 @@
-; Created:      Thursday, May 14, 2026 8:35:15 PM
-; Last Updated: Thursday, May 19, 2026 8:36:16 PM
+; Created:      Thursday, May 14, 2026 08:35:15 PM
+; Last Updated: Saturday, May 23, 2026 03:27:44 PM
 ;
 ; This is an ongoing project of mine that I'm working on on the side
 ; No source C code as reference or AI involved, just my brain
@@ -15,7 +15,7 @@
 section .bss
   number_1: resb 8
   number_1_end:
-  operator: resb 2
+  operator: resd 1
   operator_end:
   number_2: resb 8
   number_2_end:
@@ -35,6 +35,10 @@ section .text
   global _start
 
 _start:
+  ; Save ABI
+  push rbx
+  push r12
+
   ; Prompt first number
   mov rax, SYS_WRITE
   mov rdi, STDOUT
@@ -61,7 +65,7 @@ _start:
   mov rdx, operator_end - operator
   call .read_input
 
-  movzx r10, byte [operator]
+  mov r10d, dword [operator]
 
   ; Prompt second number
   mov rax, SYS_WRITE
@@ -85,10 +89,32 @@ _start:
   je .minus
   cmp r10, '*'
   je .multiply
-  cmp r10, '/'
-  je .divide
-  
-  jmp .exit
+  cmp r10, '//'
+  je .integer_divide
+  cmp r10, '^^'
+  je .power
+  cmp r10, '%'
+  je .modulus
+  cmp r10, 'nCr'
+  je .ncr
+  cmp r10, 'nPr'
+  je .npr
+
+  ; Bitwise
+  cmp r10, '>>'
+  je .shift_right
+  cmp r10, '<<'
+  je .shift_left
+  cmp r10, '&'
+  je .bit_and
+  cmp r10, '|'
+  je .bit_or
+  cmp r10, '^'
+  je .bit_xor
+  ; TODO: Decimal division, logarithms (base, op (log), argument),
+  ; TODO: nth root of num (nth, op (root), num)
+
+  jmp .invalid_operator
 
 .read_input:
   mov rax, SYS_READ
@@ -131,15 +157,103 @@ _start:
   jmp .print
 
 .multiply:
-  mul r9
+  imul r9
   jmp .print
 
-.divide:
+.integer_divide:
+  test r9, r9
+  jz .invalid_operator
+
   xor rdx, rdx
-  div r9
+  cqo
+  idiv r9
+  jmp .print
+
+.power:
+  mov r8, rax
+  mov rax, 1
+  sub r9, rax
+  jb .power_return
+  mov rax, r8
+  jz .power_return
+.power_more:
+  imul rax, r8
+  dec r9
+  jnz .power_more
+.power_return:
+  jmp .print
+
+.modulus:
+  xor rdx, rdx
+  cqo
+  idiv r9
+  mov rax, rdx
+  jmp .print
+
+.ncr: ; nCr = n! / (r!(n-r)!)
+  mov rdi, rax
+  call factorial
+  mov r10, rax
+
+  sub rdi, r9
+  call factorial
+  mov r11, rax
+
+  mov rdi, r9
+  call factorial
+
+  mov r12, rax
+
+  imul r11, r12
+
+  mov rax, r10
+  mov rcx, r11
+  cqo
+  idiv rcx
+
+  jmp .print
+
+.npr: ; nPr = n! / (n - r)!
+  mov rdi, rax
+  call factorial
+  mov r10, rax
+
+  sub rdi, r9
+  call factorial
+
+  mov rcx, rax
+  mov rax, r10
+  cqo
+  idiv rcx
+
+  jmp .print
+
+.shift_right:
+  mov rcx, r9
+  shr rax, cl
+  jmp .print
+
+.shift_left:
+  mov rcx, r9
+  shl rax, cl
+  jmp .print
+
+.bit_and:
+  and rax, r9
+  jmp .print
+
+.bit_or:
+  or rax, r9
+  jmp .print
+
+.bit_xor:
+  xor rax, r9
   jmp .print
 
 .invalid_operator:
+  pop r12
+  pop rbx
+
   mov rax, SYS_EXIT
   mov rdi, -1
   syscall
@@ -149,12 +263,14 @@ _start:
   jmp .exit
 
 .exit:
+  pop r12
+  pop rbx
+
   mov rax, SYS_EXIT
-  mov rdi, 0
+  xor rdi, rdi
   syscall
 
 .itos:
-  push rbx
   mov rdi, result + 20
   mov byte [rdi], 10
 
@@ -194,6 +310,23 @@ _start:
   mov rax, SYS_WRITE
   mov rdi, STDOUT
   syscall
+  ret
 
-  pop rbx
+factorial:
+  mov rax, 1
+
+  cmp rdi, 0
+  jl .factorial_end
+
+  cmp rdi, 1
+  jle .factorial_end
+
+  mov rcx, rdi
+
+.factorial_loop:
+  imul rax, rcx
+  dec rcx
+  jnz .factorial_loop
+
+.factorial_end:
   ret

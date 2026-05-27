@@ -12,6 +12,20 @@ They're so if I forget I can look back and check my notes, like summary notes. I
 ## Instructions
 List of instructions (sorted alphabetically for now). I'm just getting info on the page before I forget; won't be alphabetical some day and will be much cleaner and better written & sorted.
 
+### `add`
+`add` does what you think it does:
+```asm
+add left_operand, right_operand
+```
+This maps to:
+```c
+left_operand = left_operand + right_operand;
+// Also known as
+left_operand += right_operand
+```
+
+That's about it.
+
 ### `call`
 `call` is the equivalent of calling a function. The syntax is:
 ```asm
@@ -228,6 +242,50 @@ shl rcx, 4 ; Shift the index by 4 bits, multiplying by 16
 mov rax, [arr + rcx] ; Use the new index which is already multiplied
 ```
 Something to note is that this does modify the existing data. So if you use in a loop, you should use a temporary register to store the shifted value, so to not override the index (counter) and increment properly (else you'll increment the shifted value, then shift the value and it will blow up).
+
+### `sub`
+`sub` (meaning subtract) is pretty self explanatory:
+```asm
+sub left_operand, right_operand
+```
+Where the result is:
+```c
+left_operand = left_operand - right_operand
+// Also known as
+left_operand -= right_operand
+```
+
+### `syscall`
+The `syscall` (meaning System Call, but only ever referred to as 'syscall') instruction is used for calling the different syscalls an operating system exposes. They are different depending on the OS (Windows vs Linux/Unix/POSIX based, etc. etc., you get it). The syntax looks like:
+```asm
+syscall
+```
+<small>No inline operands/params</small><br>
+
+Each syscall requires different parameters and it's good use to search it up for the specific syscall you need, but I'll use writing to a terminal on Linux as an example (syscall 1). The syscall number is pushed to `rax`, then parameters are pushed in the standard order for functions (`rdi`, `rsi`, `rdx`, etc.).<br>
+For instance with the write syscall on Linux:
+```asm
+mov rax, 1 ; sys_write is 1
+mov rdi, 1 ; stdout is 1
+mov rsi, text ; The text to print
+mov rdx, text_len ; The length of the text to print
+syscall ; Call sys_write
+```
+Or with the read syscall for reading input:
+```asm
+mov rax, 0 ; sys_read is 0
+mov rdi, 0 ; stdin is 0
+mov rsi, input ; variable to input into
+mov rdx, input_size ; size of the input variable
+```
+
+syscalls are also commonly used to exit the program, using sys_exit:
+```asm
+mov rax, 60 ; sys_exit is 60
+mov rdi, 0  ; Set exit code to 0
+syscall     ; exit the program
+```
+These are just a few examples to show how syscalls work, but there are many more than I lead on, as there are hundreds. For a full list see the [Chromium Linux Syscall Table](https://www.chromium.org/chromium-os/developer-library/reference/linux-constants/syscalls/), as it's very comprehensive on all syscalls.
 
 ### `test`
 The `test` instruction is useful and does quite a few things. It functions logically like a bitwise AND (if both bits are the same it ouputs 1, else 0). But crucially, the result of the AND is discarded. This is useful for multiple things. It calculates:
