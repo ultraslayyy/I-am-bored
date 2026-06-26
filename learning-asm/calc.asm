@@ -330,3 +330,10 @@ factorial:
 
 .factorial_end:
   ret
+
+sqrt:
+  ; finit (_start)
+  ; fld qword [val]
+  ; fsqrt
+  ; fstp qword [res]
+  ret

@@ -36,14 +36,34 @@ call func_name
 
 ### `cmov`
 `cmov` (meaning conditional move) is used alongside `cmp` or `test` instructions to `mov` based on conditions. The suffix of `cmovX` tells what the condition is to match. The suffixes are:
-- `g` Greater than
-- `ge` Greater than or Equal to
-- `e` Equal to
-- `ne` Not Equal to
-- `le` Less than or Equal to
-- `l` Less than
-- `z` Zero (Zero Flag (ZF) set from something like `test`)
-- `nz` Not zero (Zero Flag (ZF) not set)
+- `g` Greater than (signed, `ZF=0 && SF=OF`)
+- `ng` Not greater than (signed)
+- `ge` Greater than or Equal to (signed, `SF=OF`)
+- `nge` Not greater than or equal to (signed)
+- `e` Equal to (`ZF=1`)
+- `ne` Not Equal to (`ZF=0`)
+- `le` Less than or Equal to (signed, `ZF=1 && SF!=OF`)
+- `nle` Not less than or equal to (signed)
+- `l` Less than (signed, `SF!=OF`)
+- `nl` Not less than (signed)
+- `z` Zero (Zero Flag (ZF) set, `ZF=1`)
+- `nz` Not zero (Zero Flag (ZF) not set, `ZF=0`)
+- `a` Above (unsigned `g`, `CF=0 && ZF=0`)
+- `na` Not above
+- `ae` Above or equal to (unsigned `ge`, `CF=0`)
+- `nae` Not above or equal to ()
+- `b` Below (unsigned `b`, `CF=1 && ZF=0`)
+- `nb` Not below (`CF=0`)
+- `be` Below or equal to (unsigned `le`, `CF=1 && ZF=1`)
+- `nbe` Not below or equal to
+- `c` Carry (`CF=1`)
+- `nc` No carry (`CF=0`)
+- `o` Overflow (`OF=1`)
+- `no` No overflow (`OF=0`)
+- `s` Sign (negative, `SF=1`)
+- `ns` Not sign (non-negative, `SF=0`)
+- `p`/`pe` Parity/Parity even (`PF=1`)
+- `np`/`po` No parity/Parity odd (`PF=0`)
 
 <small>e.g., `cmovg`, `cmovle`, etc.</small>
 
@@ -53,6 +73,8 @@ For example:
 cmp 0, 10
 cmovge eax, 1 ; Moves 1 into 'eax' if 0 is greater than or equal to 10
 ```
+
+An example of every single `cmovcc` variant is in [conditions.asm](./conditions.asm).
 
 ### `cmp`
 `cmp` (meaning compare) is a very basic instruction. It works as follows:
@@ -102,15 +124,35 @@ label_a:
 label_b:
 ```
 
-There are also conditional jump instructions. These function the same as the other conditional instructions (like `cmov`), instead being formatted like `jX`, where X is one of:
-- `g` Greater than
-- `ge` Greater than or Equal to
-- `e` Equal to
-- `ne` Not Equal to
-- `le` Less than or Equal to
-- `l` Less than
-- `z` Zero (Zero Flag (ZF) set from something like `test`)
-- `nz` Not zero (Zero Flag (ZF) not set)
+There are also conditional jump instructions. These function the same as the other conditional instructions (like `cmov` or `set`), instead being formatted like `jX`, where X is one of:
+- `g` Greater than (signed, `ZF=0 && SF=OF`)
+- `ng` Not greater than (signed)
+- `ge` Greater than or Equal to (signed, `SF=OF`)
+- `nge` Not greater than or equal to (signed)
+- `e` Equal to (`ZF=1`)
+- `ne` Not Equal to (`ZF=0`)
+- `le` Less than or Equal to (signed, `ZF=1 && SF!=OF`)
+- `nle` Not less than or equal to (signed)
+- `l` Less than (signed, `SF!=OF`)
+- `nl` Not less than (signed)
+- `z` Zero (Zero Flag (ZF) set, `ZF=1`)
+- `nz` Not zero (Zero Flag (ZF) not set, `ZF=0`)
+- `a` Above (unsigned `g`, `CF=0 && ZF=0`)
+- `na` Not above
+- `ae` Above or equal to (unsigned `ge`, `CF=0`)
+- `nae` Not above or equal to ()
+- `b` Below (unsigned `b`, `CF=1 && ZF=0`)
+- `nb` Not below (`CF=0`)
+- `be` Below or equal to (unsigned `le`, `CF=1 && ZF=1`)
+- `nbe` Not below or equal to
+- `c` Carry (`CF=1`)
+- `nc` No carry (`CF=0`)
+- `o` Overflow (`OF=1`)
+- `no` No overflow (`OF=0`)
+- `s` Sign (negative, `SF=1`)
+- `ns` Not sign (non-negative, `SF=0`)
+- `p`/`pe` Parity/Parity even (`PF=1`)
+- `np`/`po` No parity/Parity odd (`PF=0`)
 
 <small>e.g., `jz`, `jle`, etc.</small>
 
@@ -329,3 +371,5 @@ This is useful for a multitude of things, including but not limited cryptograhy 
 xor ecx, ecx ; e.g., int i = 0
 ```
 That is because an XOR on itself always results in `0` (you can see why from above), and on many architectures it uses fewer clock cycles and less memory than loading zero and saving it to a register that way (via something like `mov ecx, 0`).
+
+<!-- Holy long instruction name: VGF2P8AFFINEINVQB --->
