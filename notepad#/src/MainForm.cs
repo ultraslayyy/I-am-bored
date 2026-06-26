@@ -354,10 +354,19 @@ public partial class MainForm : Form
             ShortcutKeys = Keys.F12
         };
 
+        var viewCurrentFileIn = new ToolStripMenuItem("View Current File in");
+        var viewCFinFirefox = new ToolStripMenuItem("Firefox", null, (s, e) =>
+        {
+            
+        });
+        viewCurrentFileIn.DropDownItems.AddRange([viewCFinFirefox]);
+
         viewMenu.DropDownItems.AddRange([
             alwaysOnTopItem,
             toggleFullScreenModeItem,
-            postItItem
+            postItItem,
+            new ToolStripSeparator(),
+            viewCurrentFileIn
         ]);
 
         encodingMenu = new ToolStripMenuItem("Encoding");
@@ -394,7 +403,11 @@ public partial class MainForm : Form
             };
             popup.Show(this);
         });
-        md5Dropdown.DropDownItems.AddRange([md5GenerateItem]);
+        var md5GenerateIntoClipboard = new ToolStripMenuItem("Generate from selection into clipboard", null, (s, e) =>
+        {
+            Clipboard.SetText(ComputeHash(CurrentEditor?.SelectedText ?? "", MD5.Create()));
+        });
+        md5Dropdown.DropDownItems.AddRange([md5GenerateItem, md5GenerateIntoClipboard]);
 
         var sha1Dropdown = new ToolStripMenuItem("SHA-1");
         var sha1GenerateItem = new ToolStripMenuItem("Generate...", null, (s, e) =>
@@ -406,7 +419,11 @@ public partial class MainForm : Form
             };
             popup.Show(this);
         });
-        sha1Dropdown.DropDownItems.AddRange([sha1GenerateItem]);
+        var sha1GenerateIntoClipboard = new ToolStripMenuItem("Generate from selection into clipboard", null, (s, e) =>
+        {
+            Clipboard.SetText(ComputeHash(CurrentEditor?.SelectedText ?? "", SHA1.Create()));
+        });
+        sha1Dropdown.DropDownItems.AddRange([sha1GenerateItem, sha1GenerateIntoClipboard]);
 
         var sha256Dropdown = new ToolStripMenuItem("SHA-256");
         var sha256GenerateItem = new ToolStripMenuItem("Generate...", null, (s, e) =>
@@ -418,7 +435,11 @@ public partial class MainForm : Form
             };
             popup.Show(this);
         });
-        sha256Dropdown.DropDownItems.AddRange([sha256GenerateItem]);
+        var sha256GenerateIntoClipboard = new ToolStripMenuItem("Generate from selection into clipboard", null, (s, e) =>
+        {
+            Clipboard.SetText(ComputeHash(CurrentEditor?.SelectedText ?? "", SHA256.Create()));
+        });
+        sha256Dropdown.DropDownItems.AddRange([sha256GenerateItem, sha256GenerateIntoClipboard]);
 
         var sha512Dropdown = new ToolStripMenuItem("SHA-512");
         var sha512GenerateItem = new ToolStripMenuItem("Generate...", null, (s, e) =>
@@ -430,7 +451,11 @@ public partial class MainForm : Form
             };
             popup.Show(this);
         });
-        sha512Dropdown.DropDownItems.AddRange([sha512GenerateItem]);
+        var sha512GenerateIntoClipboard = new ToolStripMenuItem("Generate from selection into clipboard", null, (s, e) =>
+        {
+            Clipboard.SetText(ComputeHash(CurrentEditor?.SelectedText ?? "", SHA512.Create()));
+        });
+        sha512Dropdown.DropDownItems.AddRange([sha512GenerateItem, sha512GenerateIntoClipboard]);
 
         toolsMenu.DropDownItems.AddRange([
             md5Dropdown,
@@ -632,6 +657,13 @@ public partial class MainForm : Form
             item.Checked = false;
         }
         clickedItem.Checked = true;
+    }
+
+    string ComputeHash(string input, HashAlgorithm algorithm)
+    {
+        byte[] inputBytes = Encoding.UTF8.GetBytes(input);
+        byte[] hashBytes = algorithm.ComputeHash(inputBytes);
+        return Convert.ToHexStringLower(hashBytes);
     }
 
     #endregion
