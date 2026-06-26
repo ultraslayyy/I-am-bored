@@ -1,8 +1,14 @@
 #pragma once
 #ifdef WIN32
+#include <d3d11.h>
+#include <d3d11on12.h>
+#include <d2d1_1.h>
+#include <dwrite.h>
 #include <d3d12.h>
 #include <dxgi1_6.h>
 #include <wrl.h>
+#include <unordered_map>
+#include <cstdint>
 #include "../core/renderer.h"
 
 class D3D12Renderer : public IRenderer {
@@ -12,7 +18,7 @@ public:
     void present() override;
     void resize(int w, int h) override;
     void drawRect(int x, int y, int w, int h, int r, int g, int b) override;
-    void drawText(const char* text, float x, float y, float size, int r, int g, int b) override {}
+    void drawText(const char* text, float x, float y, float size, int r, int g, int b) override;
 
     ~D3D12Renderer();
 
@@ -21,6 +27,9 @@ public:
 
 private:
     void waitForGPU();
+
+    void beginD2D();
+    void endD2D();
 
     HWND hwnd = nullptr;
     int width = 0;
@@ -67,5 +76,23 @@ private:
     FrameContext frames[FrameCount];
 
     BOOL allowTearing = FALSE;
+
+    Microsoft::WRL::ComPtr<ID3D11Device> d3d11Device;
+    Microsoft::WRL::ComPtr<ID3D11DeviceContext> d3d11Context;
+    Microsoft::WRL::ComPtr<ID3D11On12Device> d3d11On12Device;
+
+    Microsoft::WRL::ComPtr<ID3D11Resource> wrappedBackBuffers[FrameCount];
+
+    Microsoft::WRL::ComPtr<ID2D1Factory1> d2dFactory;
+    Microsoft::WRL::ComPtr<ID2D1Device> d2dDevice;
+    Microsoft::WRL::ComPtr<ID2D1DeviceContext> d2dContext;
+    Microsoft::WRL::ComPtr<ID2D1Bitmap1> d2dTargetBitmap;
+
+    Microsoft::WRL::ComPtr<IDWriteFactory> dwriteFactory;
+    Microsoft::WRL::ComPtr<ID2D1SolidColorBrush> textBrush;
+
+    std::unordered_map<uint32_t, Microsoft::WRL::ComPtr<IDWriteTextFormat>> textCache;
+
+    Microsoft::WRL::ComPtr<ID2D1Bitmap1> d2dBitmaps[FrameCount];
 };
 #endif

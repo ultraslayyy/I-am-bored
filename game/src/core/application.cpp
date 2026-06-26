@@ -10,18 +10,27 @@
 #if USE_DIRECT2D
 #include "../renderer/d2d_renderer.h"
 D2DRenderer renderer;
+const char* rendT = "(Direct2D)";
 #elif USE_DIRECT3D11
 #include "../renderer/d3d11_renderer.h"
 D3D11Renderer renderer;
+const char* rendT = "(DirectX11)";
 #elif USE_DIRECT3D12
 #include "../renderer/d3d12_renderer.h"
 D3D12Renderer renderer;
+const char* rendT = "(DirectX12)";
 #elif USE_GDI
 #include "../renderer/gdi_renderer.h"
 GDIRenderer renderer;
+const char* rendT = "(Legacy GDI)";
 #elif USE_OPENGL
 #include "../renderer/gl_renderer.h"
 GLRenderer renderer;
+#if USE_OPENGL_11
+const char* rendT = "(OpenGL 1.1)";
+#elif USE_OPENGL_33
+const char* rendT = "(OpenGL 3.3)";
+#endif
 #endif
 
 Game game;
@@ -32,7 +41,10 @@ bool Application::init() {
     width = 800;
     height = 600;
 
-    if (!window.create(width, height, "Game")) return false;
+    char name[50] = "Game ";
+    strcat(name, rendT);
+
+    if (!window.create(width, height, name)) return false;
 
     window.onResize = [&](int w, int h) {
         width = w;
@@ -61,8 +73,9 @@ void Application::run() {
 
     while (window.isRunning()) {
         window.pollEvents();
-        ITime::update();
+        if (!window.isRunning()) break;
 
+        ITime::update();
         game.update(ITime::deltaTime);
         
         renderer.clear(0, 0, 0);

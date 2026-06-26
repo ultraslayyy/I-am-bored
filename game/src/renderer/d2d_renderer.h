@@ -30,5 +30,7 @@ private:
     ID2D1HwndRenderTarget* pRenderTarget = nullptr;
     IDWriteFactory* writeFactory = nullptr;
     IDWriteTextFormat* textFormat = nullptr;
+
+    ID2D1SolidColorBrush* brush = nullptr;
 };
 #endif

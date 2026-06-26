@@ -33,6 +33,8 @@ bool D2DRenderer::init(IWindow* window_p, int w, int h) {
         &textFormat
     );
 
+    pRenderTarget->CreateSolidColorBrush(D2D1::ColorF(1, 1, 1), &brush);
+
     return true;
 }
 
@@ -52,10 +54,8 @@ void D2DRenderer::drawRect(int x, int y, int w, int h, int r, int g, int b) {
     
     D2D1_RECT_F rect = D2D1::RectF((FLOAT)x, (FLOAT)y, (FLOAT)(x + w), (FLOAT)(y + h));
 
-    ID2D1SolidColorBrush* brush = nullptr;
-    pRenderTarget->CreateSolidColorBrush(D2D1::ColorF(rf, gf, bf), &brush);
+    brush->SetColor(D2D1::ColorF(rf, gf, bf));
     pRenderTarget->FillRectangle(&rect, brush);
-    brush->Release();
 }
 
 void D2DRenderer::drawText(const char* text, float x, float y, float size, int r, int g, int b) {
@@ -67,8 +67,7 @@ void D2DRenderer::drawText(const char* text, float x, float y, float size, int r
     std::wstring wtext(len, 0);
     MultiByteToWideChar(CP_UTF8, 0, text, -1, &wtext[0], len);
     
-    ID2D1SolidColorBrush* brush = nullptr;
-    pRenderTarget->CreateSolidColorBrush(D2D1::ColorF(rf, gf, bf), &brush);
+    brush->SetColor(D2D1::ColorF(rf, gf, bf));
 
     IDWriteTextFormat* format = nullptr;
     writeFactory->CreateTextFormat(
@@ -87,7 +86,6 @@ void D2DRenderer::drawText(const char* text, float x, float y, float size, int r
     pRenderTarget->DrawTextA(wtext.c_str(), (UINT32)wcslen(wtext.c_str()), format, &layoutRect, brush);
 
     format->Release();
-    brush->Release();
 }
 
 void D2DRenderer::present() {
@@ -115,6 +113,7 @@ D2DRenderer::~D2DRenderer() {
     if (factory) factory->Release();
     if (textFormat) textFormat->Release();
     if (writeFactory) writeFactory->Release();
+    if (brush) brush->Release();
 }
 #endif
 #endif

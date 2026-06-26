@@ -230,6 +230,7 @@ D3D11Renderer::~D3D11Renderer() {
     if (d2dRenderTarget) d2dRenderTarget->Release();
     if (d2dFactory) d2dFactory->Release();
     if (writeFactory) writeFactory->Release();
+    if (textBrush) textBrush->Release();
 
     for (auto& [k, v] : textFormatCache) {
         if (v) v->Release();

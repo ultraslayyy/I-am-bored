@@ -2,6 +2,7 @@
 #ifdef USE_DIRECT3D12
 #include "d3d12_renderer.h"
 #include <d3dcompiler.h>
+#include <string>
 
 #define HR(x) do { HRESULT hr__ = (x); if (FAILED(hr__)) { __debugbreak(); } } while(0)
 
@@ -116,6 +117,28 @@ bool D3D12Renderer::init(IWindow* window_p, int w, int h) {
         handle.ptr += rtvDescriptorSize;
     }
 
+    D3D11_CREATE_DEVICE_FLAG d3d11Flags = D3D11_CREATE_DEVICE_BGRA_SUPPORT;
+
+    D3D_FEATURE_LEVEL featureLevels[] = {
+        D3D_FEATURE_LEVEL_11_0
+    };
+
+    Microsoft::WRL::ComPtr<ID3D11Device> baseDevice;
+    Microsoft::WRL::ComPtr<ID3D11DeviceContext> baseContext;
+
+    HR(D3D11On12CreateDevice(device.Get(), d3d11Flags, featureLevels, _countof(featureLevels), (IUnknown**)&queue, 1, 0, &baseDevice, &baseContext, nullptr));
+
+    HR(baseDevice.As(&d3d11Device));
+    HR(baseContext.As(&d3d11Context));
+    HR(d3d11Device.As(&d3d11On12Device));
+
+    D3D11_RESOURCE_FLAGS flags = {};
+    flags.BindFlags = D3D11_BIND_RENDER_TARGET;
+
+    for (int i = 0; i < FrameCount; ++i) {
+        HR(d3d11On12Device->CreateWrappedResource(backBuffers[i].Get(), &flags, D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PRESENT, IID_PPV_ARGS(&wrappedBackBuffers[i])));
+    }
+
     for (int i = 0; i < FrameCount; ++i) {
         HR(device->CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE_DIRECT, IID_PPV_ARGS(&frames[i].allocator)));
     }
@@ -135,6 +158,16 @@ bool D3D12Renderer::init(IWindow* window_p, int w, int h) {
 
     D3D12_ROOT_SIGNATURE_DESC rsDesc = {};
     rsDesc.Flags = D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT;
+
+    D3D12_ROOT_PARAMETER rootParam = {};
+    rootParam.ParameterType = D3D12_ROOT_PARAMETER_TYPE_32BIT_CONSTANTS;
+    rootParam.Constants.Num32BitValues = 1;
+    rootParam.Constants.ShaderRegister = 0;
+    rootParam.Constants.RegisterSpace = 0;
+    rootParam.ShaderVisibility = D3D12_SHADER_VISIBILITY_ALL;
+
+    rsDesc.NumParameters = 1;
+    rsDesc.pParameters = &rootParam;
 
     Microsoft::WRL::ComPtr<ID3DBlob> sigBlob;
     Microsoft::WRL::ComPtr<ID3DBlob> errBlob;
@@ -190,8 +223,7 @@ bool D3D12Renderer::init(IWindow* window_p, int w, int h) {
         D3D12_COLOR_WRITE_ENABLE_ALL
     };
 
-    for (int i = 0; i < D3D12_SIMULTANEOUS_RENDER_TARGET_COUNT; ++i)
-    {
+    for (int i = 0; i < D3D12_SIMULTANEOUS_RENDER_TARGET_COUNT; ++i) {
         blend.RenderTarget[i] = defaultRenderTargetBlendDesc;
     }
 
@@ -207,6 +239,9 @@ bool D3D12Renderer::init(IWindow* window_p, int w, int h) {
     psoDesc.SampleDesc.Count = 1;
 
     device->CreateGraphicsPipelineState(&psoDesc, IID_PPV_ARGS(&pso));
+
+    ID3D12DescriptorHeap* heaps[] = { rtvHeap.Get() };
+    cmd->SetDescriptorHeaps(1, heaps);
 
 
     UINT vbSize = sizeof(Vertex) * 6 * MaxRects;
@@ -241,7 +276,55 @@ bool D3D12Renderer::init(IWindow* window_p, int w, int h) {
         HR(vertexUpload[i]->Map(0, nullptr, (void**)&mappedPtr[i]));
     }
 
+    D2D1_FACTORY_OPTIONS options = {};
+#ifdef _DEBUG
+    options.debugLevel = D2D1_DEBUG_LEVEL_INFORMATION;
+#endif
+
+    HR(D2D1CreateFactory(D2D1_FACTORY_TYPE_SINGLE_THREADED, __uuidof(ID2D1Factory1), &options, &d2dFactory));
+
+    HR(DWriteCreateFactory(DWRITE_FACTORY_TYPE_SHARED, __uuidof(IDWriteFactory), (IUnknown**)&dwriteFactory));
+
+    Microsoft::WRL::ComPtr<IDXGIDevice> dxgiDevice;
+    HR(d3d11Device.As(&dxgiDevice));
+
+    HR(d2dFactory->CreateDevice(dxgiDevice.Get(), &d2dDevice));
+    HR(d2dDevice->CreateDeviceContext(D2D1_DEVICE_CONTEXT_OPTIONS_NONE, &d2dContext));
+
     return true;
+}
+
+void D3D12Renderer::beginD2D() {
+    ID3D11Resource* wrapped = wrappedBackBuffers[frameIndex].Get();
+
+    d3d11On12Device->AcquireWrappedResources(&wrapped, 1);
+
+    Microsoft::WRL::ComPtr<IDXGISurface> surface;
+    HR(wrapped->QueryInterface(IID_PPV_ARGS(&surface)));
+
+    D2D1_BITMAP_PROPERTIES1 props = D2D1::BitmapProperties1(D2D1_BITMAP_OPTIONS_TARGET | D2D1_BITMAP_OPTIONS_CANNOT_DRAW, D2D1::PixelFormat(DXGI_FORMAT_R8G8B8A8_UNORM, D2D1_ALPHA_MODE_IGNORE));
+
+    d2dTargetBitmap.Reset();
+
+    if (!d2dBitmaps[frameIndex]) {
+        HR(d2dContext->CreateBitmapFromDxgiSurface(surface.Get(), &props, &d2dBitmaps[frameIndex]));
+    }
+
+    d2dTargetBitmap = d2dBitmaps[frameIndex];
+
+    d2dContext->SetTarget(d2dTargetBitmap.Get());
+    d2dContext->BeginDraw();
+}
+
+void D3D12Renderer::endD2D() {
+    d2dContext->EndDraw();
+    d2dContext->SetTarget(nullptr);
+
+    ID3D11Resource* wrapped = wrappedBackBuffers[frameIndex].Get();
+    d3d11On12Device->ReleaseWrappedResources(&wrapped, 1);
+
+    d3d11Context->Flush();
+    d3d11Context->ClearState();
 }
 
 void D3D12Renderer::clear(int r, int g, int b) {
@@ -269,6 +352,8 @@ void D3D12Renderer::clear(int r, int g, int b) {
     barrier.Transition.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;
 
     cmd->ResourceBarrier(1, &barrier);
+
+    beginD2D();
 
     D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle = rtvHeap->GetCPUDescriptorHandleForHeapStart();
     rtvHandle.ptr += frameIndex * rtvDescriptorSize;
@@ -307,6 +392,13 @@ void D3D12Renderer::present() {
 
     cmd->ResourceBarrier(1, &barrier);
     HR(cmd->Close());
+
+    ID3D11Resource* release[] = { wrappedBackBuffers[frameIndex].Get() };
+    d3d11On12Device->ReleaseWrappedResources(release, 1);
+    d3d11Context->Flush();
+    d3d11Context->ClearState();
+
+    endD2D();
 
     ID3D12CommandList* lists[] = { cmd.Get() };
     queue->ExecuteCommandLists(1, lists);
@@ -355,6 +447,8 @@ void D3D12Renderer::resize(int w, int h) {
         device->CreateRenderTargetView(backBuffers[i].Get(), nullptr, handle);
         handle.ptr += rtvDescriptorSize;
     }
+
+    for (auto& b : d2dBitmaps) b.Reset();
 }
 
 D3D12Renderer::~D3D12Renderer() {
@@ -367,7 +461,7 @@ D3D12Renderer::~D3D12Renderer() {
 }
 
 void D3D12Renderer::drawRect(int x, int y, int w, int h, int r, int g, int b) {
-    if (currentVertexOffset + 6 > MaxRects * 6) return; // TODO: Draw and keep going, check D3D11
+    if (currentVertexOffset + 6 > MaxRects * 6) return; // TODO: flush + draw first
 
     float nx = (float)x / width * 2.0f - 1.0f;
     float ny = 1.0f - (float)y / height * 2.0f;
@@ -392,6 +486,50 @@ void D3D12Renderer::drawRect(int x, int y, int w, int h, int r, int g, int b) {
     memcpy(dst, quad, sizeof(quad));
 
     currentVertexOffset += 6;
+}
+
+void D3D12Renderer::drawText(const char* text, float x, float y, float size, int r, int g, int b) {
+    if (!d2dContext) return;
+
+    float rf = r / 255.0f;
+    float gf = g / 255.0f;
+    float bf = b / 255.0f;
+
+    if (!textBrush) {
+        d2dContext->CreateSolidColorBrush(D2D1::ColorF(1, 1, 1, 1), &textBrush);
+    }
+    textBrush->SetColor(D2D1::ColorF(rf, gf, bf, 1.0f));
+
+    int len = MultiByteToWideChar(CP_UTF8, 0, text, -1, nullptr, 0);
+    std::wstring wtext(len, L'\0');
+    MultiByteToWideChar(CP_UTF8, 0, text, -1, wtext.data(), len);
+    wtext.pop_back();
+
+    Microsoft::WRL::ComPtr<IDWriteTextFormat> format;
+
+    int key = (int)(size * 10.0f);
+
+    auto it = textCache.find(key);
+    if (it != textCache.end()) {
+        format = it->second;
+    } else {
+        dwriteFactory->CreateTextFormat(
+            L"Segoe UI",
+            nullptr,
+            DWRITE_FONT_WEIGHT_NORMAL,
+            DWRITE_FONT_STYLE_NORMAL,
+            DWRITE_FONT_STRETCH_NORMAL,
+            size,
+            L"en-us",
+            &format
+        );
+
+        textCache[key] = format;
+    }
+
+    D2D1_RECT_F rect = D2D1::RectF(x, y, x + 1000, y + 1000);
+
+    d2dContext->DrawTextA(wtext.c_str(), (UINT32)wtext.size(), format.Get(), &rect, textBrush.Get());
 }
 #endif
 #endif
