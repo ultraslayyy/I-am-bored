@@ -2,6 +2,8 @@
 #include "string.h"
 #include <lib/stdint.h>
 
+#define __fallback __attribute__((weak))
+
 size_t strlen(const char *s) {
     size_t len = 0;
     while (s[len]) ++len;
@@ -211,27 +213,71 @@ int snprintf(char *buf, size_t size, const char *fmt, ...) {
     return (int)written;
 }
 
-void *memcpy(void *dst, const void *src, size_t size) {
-    unsigned char *d = (unsigned char *)dst;
-    const unsigned char *s = (const unsigned char *)src;
+__fallback void *memcpy(void *restrict dst, const void *restrict src, size_t size) {
+    uint8_t *d = (uint8_t *)dst;
+    const uint8_t *s = (const uint8_t *)src;
 
-    for (size_t i = 0; i < size; ++i) {
-        d[i] = s[i];
+    while (size && ((uintptr_t)d & 3)) {
+        *d++ = *s++;
+        size--;
     }
+
+    uint32_t *d32 = (uint32_t *)d;
+    const uint32_t *s32 = (const uint32_t *)s;
+    while (size >= 4) {
+        *d32++ = *s32++;
+        size -= 4;
+    }
+
+    d = (uint8_t *)d32;
+    s = (const uint8_t *)s32;
+    while (size--) {
+        *d++ = *s++;
+    }
+
     return dst;
 }
 
-void *memset(void *dst, int val, size_t size) {
-    unsigned char *d = (unsigned char *)dst;
-    unsigned char v = (unsigned char)val;
+__fallback void *memset(void *dst, int val, size_t size) {
+    uint8_t *d = (uint8_t *)dst;
+    uint8_t  v = (uint8_t)val;
 
-    for (size_t i = 0; i < size; ++i) {
-        d[i] = v;
+    // For tiny buffers just loop
+    if (size < 16) {
+        for (size_t i = 0; i < size; ++i) {
+            d[i] = v;
+        }
+        return dst;
     }
+
+    // Align to 4 bytes (word)
+    while (size && ((uintptr_t)d & 3)) {
+        *d++ = v;
+        size--;
+    }
+
+    // Word fill
+    // woohoo `movzx eax, dil` `imul eax, eax, 0x01010101`
+    // same as `uint32_t v32 = (uint32_t)v * 16843009;`
+    // I'm ranting
+    uint32_t v32 = v | (v << 8) | (v << 16) | (v << 24);
+
+    uint32_t *d32 = (uint32_t *)d;
+    while (size >= 4) {
+        *d32++ = v32;
+        size -= 4;
+    }
+
+    d = (uint8_t *)d32;
+
+    while (size--) {
+        *d++ = v;
+    }
+
     return dst;
 }
 
-void *memmove(void *dst, const void *src, size_t size) {
+__fallback void *memmove(void *dst, const void *src, size_t size) {
     unsigned char *d = (unsigned char *)dst;
     const unsigned char *s = (const unsigned char *)src;
 
@@ -248,14 +294,31 @@ void *memmove(void *dst, const void *src, size_t size) {
     return dst;
 }
 
-int memcmp(const void *buf1, const void *buf2, size_t size) {
-    const unsigned char *pb1 = (const unsigned char *)buf1;
-    const unsigned char *pb2 = (const unsigned char *)buf2;
+__fallback int memcmp(const void *buf1, const void *buf2, size_t size) {
+    const uint8_t *pb1 = (const uint8_t *)buf1;
+    const uint8_t *pb2 = (const uint8_t *)buf2;
 
-    for (size_t i = 0; i < size; ++i) {
-        if (pb1[i] != pb2[i]) {
-            return (int)pb1[i] - (int)pb2[i];
+    // Align to 4-byte boundary
+    const uint32_t *pb1_32 = (const uint32_t *)pb1;
+    const uint32_t *pb2_32 = (const uint32_t *)pb2;
+
+    while (size >= 4) {
+        if (*pb1_32 != *pb2_32) {
+            break;
         }
+        pb1_32++;
+        pb2_32++;
+        size -= 4;
+    }
+
+    pb1 = (const uint8_t *)pb1_32;
+    pb2 = (const uint8_t *)pb2_32;
+    while (size--) {
+        if (*pb1 != *pb2) {
+            return (int)*pb1 - (int)*pb2;
+        }
+        pb1++;
+        pb2++;
     }
 
     return 0;

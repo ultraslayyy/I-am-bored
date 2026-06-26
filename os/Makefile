@@ -1,15 +1,15 @@
-# === Toolchain ===
+# Toolchain
 CC := gcc
 LD := ld
 AS := nasm
 
-# === Architecture selection ===
+# Architecture selection
 ARCH ?= x86
 
-# === GDB usage ===
+# GDB
 GDB ?= 0
 
-# === Architecture-specific flags ===
+# Architecture-specific flags
 ifeq ($(ARCH),x86)
   CFLAGS_ARCH   := -m32
   LDFLAGS_ARCH  := -m elf_i386
@@ -30,7 +30,7 @@ else
   $(error Unsupported ARCH=$(ARCH))
 endif
 
-# === General flags ===
+# General flags
 CFLAGS := $(CFLAGS_ARCH) -ffreestanding -fno-stack-protector -fno-pic \
           -nostdlib -nostdinc -Wall -Wextra -ffunction-sections -fdata-sections \
           -Ikernel -Iinclude
@@ -39,11 +39,11 @@ LDFLAGS := $(LDFLAGS_ARCH) -T $(LINKER_SCRIPT) --gc-sections
 ISO        := ultraos.iso
 ISO_DIR    := iso
 
-# === Source files ===
+# Source files
 C_SOURCES   := $(shell find kernel -name '*.c')
 ASM_SOURCES := $(shell find kernel -name '*.s')
 
-# === Separate arch-specific and shared files ===
+# Separate arch-specific files
 X86_C_SRC    := $(shell find kernel/arch/x86 -name '*.c')
 X86_ASM_SRC  := $(shell find kernel/arch/x86 -name '*.s')
 X86_64_C_SRC := $(shell find kernel/arch/x86_64 -name '*.c')
@@ -78,9 +78,11 @@ QEMUFLAGS := -m 512 -serial stdio -no-reboot -drive file=disk.img,format=raw -de
 ifeq ($(GDB),1)
   CFLAGS += -O0 -g
   QEMUFLAGS += -S -s
+else
+  CFLAGS += -O2
 endif
 
-# === Targets ===
+# Targets
 all: $(ISO)
 
 $(ISO): $(KERNEL_ELF)
@@ -92,7 +94,7 @@ $(ISO): $(KERNEL_ELF)
 $(KERNEL_ELF): $(OBJECTS)
 	$(LD) $(LDFLAGS_ARCH) -T $(LINKER_SCRIPT) --gc-sections -o $@ $^
 
-# === Build rules ===
+# Build
 $(BUILD_DIR)/%.o: kernel/%.c
 	mkdir -p $(dir $@)
 	$(CC) $(CFLAGS) -c $< -o $@
