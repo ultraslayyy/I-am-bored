@@ -1,0 +1,6 @@
+PUSH 5
+
+loop:
+    PUSH 1
+    ADD
+    JMP loop
