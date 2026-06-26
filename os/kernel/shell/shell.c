@@ -1,5 +1,8 @@
+#include <arch.h>
+#include <fs/vfs.h>
 #include <io/kernel_io.h>
 #include <lib/stdarg.h>
+#include <lib/stdlib.h>
 #include <lib/string.h>
 #include <shell/alias.h>
 
@@ -94,6 +97,23 @@ void process_command(char *cmd, ...) {
     char expanded[128];
     char *argv[16];
     int argc;
+
+    if (cmd[0] == '.' && (cmd[1] == '/' || cmd[1] == '\\')) {
+        fs_node_t *elf = vfs_resolve(cmd);
+        if (elf == NULL) {
+            put_string("File not found\n", DEFAULT_ATTR);
+            return;
+        }
+
+        char *file_data = malloc(elf->size);
+        size_t read = vfs_read(elf, 0, file_data, elf->size);
+        if (read != elf->size) {
+            put_string("short read\n", DEFAULT_ATTR);
+        }
+
+        load_elf((uint8_t *)file_data);
+        return;
+    }
 
     const char *alias = alias_lookup(cmd);
     if (alias) {

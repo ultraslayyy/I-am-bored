@@ -87,6 +87,7 @@ void e1000_send_frame(uint8_t *data, size_t len) {
     desc->status = 0;
 
     uint32_t old_tail = tx_tail;
+    (void)old_tail;
     tx_tail = (tx_tail + 1) % E1000_NUM_TX_DESC;
 
     put_string("e1000_send_frame\n", DEFAULT_ATTR);
@@ -115,11 +116,13 @@ int e1000_recv_frame(uint8_t *buffer, size_t max_len) {
 }
 
 static int e1000_net_send(netdev_t *dev, const void *data, size_t len) {
+    (void)dev;
     e1000_send_frame((uint8_t *)data, len);
     return (int)len;
 }
 
 static int e1000_net_recv(netdev_t *dev, void *buf, size_t max_len) {
+    (void)dev;
     return e1000_recv_frame(buf, max_len);
 }
 
@@ -145,7 +148,7 @@ void e1000_init(void) {
     put_string(text, DEFAULT_ATTR);
 
     for (uint32_t i = 0; i < E1000_MMIO_PAGES; ++i) {
-        map_page(mmio_base + i * 0x1000, mmio_base + i * 0x1000, PAGE_PRESENT | PAGE_RW);
+        map_page(mmio_base + i * PAGE_SIZE, mmio_base + i * PAGE_SIZE, PAGE_PRESENT | PAGE_RW);
     }
 
     e1000_write(E1000_REG_CTRL, e1000_read(E1000_REG_CTRL) | (1 << 26));

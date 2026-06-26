@@ -38,6 +38,7 @@ static uint32_t rtl_tx_cur = 0;
 static netdev_t rtl_dev;
 
 static int rtl8139_send(netdev_t *dev, const void *data, size_t len) {
+    (void)dev;
     if (len > 2048) {
         return -1;
     }
@@ -58,6 +59,8 @@ static int rtl8139_send(netdev_t *dev, const void *data, size_t len) {
 }
 
 static int rtl8139_recv(netdev_t *dev, void *buf, size_t max_len) {
+    (void)dev;
+    
     if (inb(rtl_io + RTL_REG_COMMAND) & 0x01) {
         return 0;
     }

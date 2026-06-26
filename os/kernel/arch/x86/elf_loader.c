@@ -3,20 +3,18 @@
 #include "paging.h"
 #include "user.h"
 
-#define USER_PROGRAM_VADDR 0x400000
 #define USER_PROGRAM_STACK 0x500000
 #define PAGE_FLAGS (PAGE_PRESENT | PAGE_RW | PAGE_USER)
 
 typedef struct {
-    uint32_t magic;
-    uint8_t  elf[12];
+    uint8_t  ident[16];
     uint16_t type;
     uint16_t machine;
-    uint16_t version;
-    uint16_t entry;
-    uint16_t phoff;
-    uint16_t shoff;
-    uint16_t flags;
+    uint32_t version;
+    uint32_t entry;
+    uint32_t phoff;
+    uint32_t shoff;
+    uint32_t flags;
     uint16_t ehsize;
     uint16_t phentsize;
     uint16_t phnum;
@@ -39,32 +37,38 @@ typedef struct {
 void load_elf(uint8_t *elf_data) {
     elf_header_t *eh = (elf_header_t *)elf_data;
 
-    // Iterate over program headers
+    if (eh->ident[0] != 0x7F || eh->ident[1] != 'E' || eh->ident[2] != 'L' || eh->ident[3] != 'F') {
+        return;
+    }
+
+    if (eh->ident[4] != 1) return; // e_ident[EI_CLASS] = 1 means 32-bit, 2 is 64-bit
+
+    if (eh->phnum > 32) return;
+    if (eh->phoff > 0x100000) return;
+
     for (uint16_t i = 0; i < eh->phnum; ++i) {
         program_header_t *ph = (program_header_t *)(elf_data + eh->phoff + i * eh->phentsize);
 
-        if (ph->type != 1) continue; // Only loadable segments
+        if (ph->type != 1) continue;
 
-        uint32_t pages = (ph->memsz + 0xFFF) / 0x1000;
+        uint32_t pages = (ph->memsz + 0xFFF) / PAGE_SIZE;
         for (uint32_t p = 0; p < pages; ++p) {
-            map_page(ph->vaddr + p * 0x1000, ph->paddr + p * 0x1000, PAGE_FLAGS);
+            map_page(ph->vaddr + p * PAGE_SIZE, ph->vaddr + p * PAGE_SIZE, PAGE_FLAGS);
         }
 
-        // Copy segment data
         memcpy((void *)ph->vaddr, elf_data + ph->offset, ph->filesz);
         if (ph->memsz > ph->filesz) {
             memset((uint8_t *)(ph->vaddr) + ph->filesz, 0, ph->memsz - ph->filesz);
         }
-
-        // Zero out remaining bytes in memory
-        for (uint32_t b = ph->filesz; b < ph->memsz; ++b) {
-            ((uint8_t *)ph->vaddr)[b] = 0;
-        }
     }
 
-    // Map user stack
-    map_page(USER_PROGRAM_STACK, USER_PROGRAM_STACK, PAGE_FLAGS);
+    for (int i = 0; i < 4; ++i) {
+        map_page(USER_PROGRAM_STACK - i * PAGE_SIZE, USER_PROGRAM_STACK - i * PAGE_SIZE, PAGE_FLAGS);
+    }
 
-    // Jump to entry
+    if (eh->entry < 0x400000 || eh->entry >= 0x800000) {
+        return;
+    }
+    
     enter_user_mode((void (*)())eh->entry);
 }

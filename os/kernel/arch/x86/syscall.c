@@ -8,7 +8,7 @@
 typedef struct regs {
     uint32_t gs, fs, es, ds;
     uint32_t edi, esi, ebp, esp, ebx, edx, ecx, eax;
-} regs_t;
+} __attribute__((packed)) regs_t;
 
 extern void syscall_stub();
 void syscall_handler(regs_t *r);

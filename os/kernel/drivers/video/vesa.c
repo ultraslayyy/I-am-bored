@@ -17,13 +17,13 @@ void vesa_init(boot_info_t *info) {
     vesa_framebuffer = info->framebuffer_addr;
 
     uint32_t fb_size = vesa_height * vesa_pitch;
-    uint32_t fb_pages = (fb_size + 0xFFF) / 0x1000;
+    uint32_t fb_pages = (fb_size + 0xFFF) / PAGE_SIZE;
     
     extern void map_page(uint32_t virt, uint32_t phys, uint32_t flags);
     
     for (uint32_t i = 0; i < fb_pages; ++i) {
-        uint32_t addr = vesa_framebuffer + (i * 0x1000);
-        map_page(addr, addr, PAGE_PRESENT | PAGE_RW);
+        uint32_t base = vesa_framebuffer & 0xFFFFF000;
+        map_page(base + i * PAGE_SIZE, base + i * PAGE_SIZE, PAGE_PRESENT | PAGE_RW);
     }
 }
 

@@ -1,14 +1,25 @@
 #include <block/block.h>
 #include <drivers/ata/ata.h>
 #include <drivers/memory/memory.h>
+#include <drivers/video/vesa.h>
+#include <drivers/net/e1000.h>
+#include <drivers/net/rtl8139.h>
 #include <fs/fd.h>
 #include <fs/ramfs.h>
 #include <fs/vfs.h>
 #include <fs/fat16/fat16.h>
 #include <io/kernel_io.h>
 #include <lib/string.h>
+#include <net/arp.h>
+#include <net/byteorder.h>
+#include <net/dhcp.h>
+#include <net/dns.h>
+#include <net/ethernet.h>
+#include <net/ipv4.h>
+#include <net/net.h>
+#include <net/netdev.h>
+#include <net/udp.h>
 #include <shell/shell.h>
-#include <drivers/video/vesa.h>
 #include "boot_info.h"
 
 extern uint32_t kernel_stack_end;
@@ -24,17 +35,6 @@ extern uint32_t kernel_stack_end;
     put_string(out, DEFAULT_ATTR);
 } */
 
-#include <drivers/net/e1000.h>
-#include <drivers/net/rtl8139.h>
-#include <net/arp.h>
-#include <net/byteorder.h>
-#include <net/dhcp.h>
-#include <net/dns.h>
-#include <net/ethernet.h>
-#include <net/ipv4.h>
-#include <net/net.h>
-#include <net/netdev.h>
-#include <net/udp.h>
 void kernel_main(boot_info_t *mbi) {
     gdt_init();
     tss_init((uint32_t)&kernel_stack_end);
@@ -45,12 +45,19 @@ void kernel_main(boot_info_t *mbi) {
     vesa_init(mbi);
     clear_screen();
     
+    // Printing after due to screen clear
+    put_string("VESA initialised\n", DEFAULT_ATTR);
+ 
     // vesa_draw_rect(10, 10, 100, 100, 0xFF0000); // Red square
     // vesa_draw_rect(120, 10, 100, 100, 0x00FF00); // Green square
     // vesa_draw_rect(230, 10, 100, 100, 0x0000FF); // Blue square
 
     put_string("Memory initialised\n", DEFAULT_ATTR);
-
+ 
+    idt_init();
+    syscall_init();
+    scheduler_init();
+ 
     e1000_init();
     rtl8139_init();
     uint8_t mac[6];
@@ -59,10 +66,12 @@ void kernel_main(boot_info_t *mbi) {
     ipv4_set_addr(0);
 
     udp_bind(68, dhcp_receive);
-
+ 
     dhcp_init(mac);
     dhcp_start();
-
+ 
+    char buf[128];
+    
     while (g_ip_addr == 0) {
         uint8_t frame[2048];
         int len = netdev_recv(frame, sizeof(frame));
@@ -71,8 +80,7 @@ void kernel_main(boot_info_t *mbi) {
             eth_receive(frame, len);
         }
     }
-
-    char buf[128];
+    
     snprintf(buf, sizeof(buf), "IP %d.%d.%d.%d\n", 
         g_ip_addr & 0xFF,
         (g_ip_addr >> 8) & 0xFF,
@@ -85,7 +93,6 @@ void kernel_main(boot_info_t *mbi) {
 
     ata_init();
     vfs_init();
-    // ramfs_init();
     block_device_t *dev = block_get_device();
     fat16_init(dev);
     fd_init();
@@ -97,10 +104,6 @@ void kernel_main(boot_info_t *mbi) {
     put_char(' ', DEFAULT_ATTR);
     const char *prompt = "$ ";
     put_string(prompt, DEFAULT_ATTR);
-
-    idt_init();
-    syscall_init();
-    scheduler_init();
 
     pit_init(100);
 

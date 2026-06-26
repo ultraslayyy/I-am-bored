@@ -1,5 +1,6 @@
 #include <drivers/video/font.h>
 #include <drivers/video/vesa.h>
+#include <lib/string.h>
 #include "kernel_io.h"
 
 uint32_t cursor_x = 0;
@@ -127,11 +128,7 @@ void clear_screen(void) {
     view_line = 0;
     is_scrolled_up = 0;
     
-    for (uint32_t l = 0; l < MAX_TERM_LINES; ++l) {
-        for (uint32_t c = 0; c < MAX_TERM_COLS; ++c) {
-            text_buffer[l][c].c = 0;
-        }
-    }
+    memset(text_buffer, 0, sizeof(text_buffer));
 }
 
 void scroll_up(void) {
