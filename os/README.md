@@ -16,7 +16,7 @@ sudo pacman -S base-devel nasm grub xorriso mtools qemu gdb dosfstools
 
 ## Building
 You build using `make`.
-> ![IMPORTANT]
+> [!IMPORTANT]
 > The x86_64 architecture currently does not work and is unsupported.
 
 By default, `make` will build `x86`, but you can also specify an arch
