@@ -1,6 +1,7 @@
 #include <block/block.h>
 #include <drivers/ata/ata.h>
 #include <drivers/memory/memory.h>
+#include <drivers/mouse/ps2.h>
 #include <drivers/video/vesa.h>
 #include <drivers/net/e1000.h>
 #include <drivers/net/rtl8139.h>
@@ -98,6 +99,9 @@ void kernel_main(boot_info_t *mbi) {
     fat16_init(dev);
     fd_init();
 
+    mouse_init();
+    put_string("Mouse initialised via PS/2\n", DEFAULT_ATTR);
+
     char path[MAX_PATH_LEN];
     vfs_get_path(kernel_cwd, path, sizeof(path));
 
@@ -117,6 +121,20 @@ void kernel_main(boot_info_t *mbi) {
             eth_receive(frame, len);
         }
 
+        mouse_state_t m = mouse_get_state();
+        if (m.enabled) {
+            vesa_draw_rect(m.x, m.y, 5, 5, 0xFFFFFF);
+            if (m.left_b) {
+                vesa_draw_rect(m.x, m.y, 5, 5, 0xFF0000);
+            }
+            if (m.middle_b) {
+                vesa_draw_rect(m.x, m.y, 5, 5, 0x00FF00);
+            }
+            if (m.right_b) {
+                vesa_draw_rect(m.x, m.y, 5, 5, 0x0000FF);
+            }
+        }
+        
         __asm__ volatile("hlt");
     }
 }

@@ -12,6 +12,7 @@
 #include "history.h"
 #include "ls.h"
 #include "mkdir.h"
+#include "mouse.h"
 #include "pci.h"
 #include "ping.h"
 #include "rm.h"
@@ -42,6 +43,7 @@ static command_t commands[] = {
     {"history",  cmd_history,  "Print command history"},
     {"ls",       cmd_ls,       "List directory contents"},
     {"mkdir",    cmd_mkdir,    "Create a new directory"},
+    {"mouse",    cmd_mouse,    "Enable and disable mouse (for testing only)"},
     {"pci",      cmd_pci,      "List PCI devices"},
     {"ping",     cmd_ping,     "Ping an IP/domain"},
     {"rm",       cmd_rm,       "Remove a file/directory"},

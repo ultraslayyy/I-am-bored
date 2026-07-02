@@ -23,3 +23,5 @@ test/
 kernel/drivers/usb/
 kernel/drivers/net/rtl8169.*
 scripts/font.*
+elib/
+*.later

@@ -1,9 +1,11 @@
+#include <drivers/mouse/ps2.h>
+#include <io/kernel_io.h>
 #include "idt.h"
 #include "io.h"
-#include <io/kernel_io.h>
 
 extern void irq0(void);
 extern void irq1(void);
+extern void irq12(void);
 extern uint32_t schedule(uint32_t esp);
 
 extern void keyboard_callback(void);
@@ -45,9 +47,10 @@ static void pic_remap(void) {
     outb(0xA1, 0x01);
     io_wait();
 
-    // Mask all except IRQ 0 (Timer) and IRQ 1 (Keyboard)
-    outb(0x21, 0xFC); // 1111 1100
-    outb(0xA1, 0xFF); // Mask the entire slave
+    // Mask all except IRQ 0 (Timer), IRQ 1 (Keyboard), and IRQ2 (cascade from slave triggering)
+    outb(0x21, 0xF8); // 1111 1000
+    // Mask all except IRQ12 (mouse on PS/2)
+    outb(0xA1, 0xEF); // 1110 1111 
 }
 
 void idt_init(void) {
@@ -69,6 +72,8 @@ void idt_init(void) {
     idt_set_gate(32, (uint32_t)irq0, 0x08, 0x8E); // 0x08 is kernel code segment, 0x8E is 32-bit intr gate
     // Install IRQ 1 (Keyboard) at 33 (0x21)
     idt_set_gate(33, (uint32_t)irq1, 0x08, 0x8E); // 0x08 is kernel code segment, 0x8E is 32-bit intr gate
+    // Install IRQ 12 (mouse via PS/2) at 44 (0x2C)
+    idt_set_gate(44, (uint32_t)irq12, 0x08, 0x8E); // 0x08 is kernel code segment, 0x8E is 32-bit intr gate
 
     __asm__ volatile("lidt %0" : : "m"(idtr));
     __asm__ volatile("sti");
@@ -81,6 +86,10 @@ void *isr_handler(uint32_t int_num, uint32_t esp) {
     
     if (int_num == 33) {
         keyboard_callback();
+    }
+
+    if (int_num == 44) {
+        mouse_handler();
     }
 
     // Send EOI to PIC

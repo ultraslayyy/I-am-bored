@@ -32,15 +32,15 @@ endif
 
 # General flags
 CFLAGS := $(CFLAGS_ARCH) -ffreestanding -fno-stack-protector -fno-pic \
-          -nostdlib -nostdinc -Wall -Wextra -ffunction-sections -fdata-sections \
-          -Ikernel -Iinclude
+          -nostdlib -nostdinc -Wall -Wextra -Wshadow -ffunction-sections \
+          -fdata-sections -Ikernel -Iinclude
 LDFLAGS := $(LDFLAGS_ARCH) -T $(LINKER_SCRIPT) --gc-sections
 
 ISO        := ultraos.iso
 ISO_DIR    := iso
 
 # Source files
-C_SOURCES   := $(shell find kernel -name '*.c')
+C_SOURCES   := $(filter-out kernel/usr/%,$(shell find kernel -name '*.c'))
 ASM_SOURCES := $(shell find kernel -name '*.s')
 
 # Separate arch-specific files
@@ -69,7 +69,7 @@ else
 endif
 
 QEMUFLAGS := -m 512 -serial stdio -no-reboot -drive file=disk.img,format=raw -device rtl8139,netdev=net0 -netdev user,id=net0 \
-             -object filter-dump,id=f1,netdev=net0,file=packets.pcap
+             -object filter-dump,id=f1,netdev=net0,file=packets.pcap -serial file:serial.log # -d int,guest_errors -D qemu.log # -device usb-ehci,id=ehci -device usb-kbd,bus=ehci.0
 # Can do wireshark with packets.pcap
 # Do multiple NICs by adding -device <e1000|rtl8139>,netdev=net1 -netdev user,id=net1 (increase the netX number for each card)
 # Would need to still capture each individually on wireshark, so a duplicate of -object is required. For example:

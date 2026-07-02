@@ -1,5 +1,6 @@
 global irq0
 global irq1
+global irq12
 
 global syscall_stub
 extern isr_handler
@@ -65,13 +66,41 @@ irq1:
     popa
     iret
 
-syscall_stub:
+irq12:
     pusha
     push ds
     push es
     push fs
     push gs
 
+    mov ax, 0x10
+    mov ds, ax
+    mov es, ax
+    mov fs, ax
+    mov gs, ax
+
+    push esp
+    mov eax, 44
+    push eax
+
+    call isr_handler
+
+    add esp, 8
+    mov esp, eax
+
+    pop gs
+    pop fs
+    pop es
+    pop ds
+    popa
+    iret
+
+syscall_stub:
+    pusha
+    push ds
+    push es
+    push fs
+    push gs
 
     push esp
     call syscall_handler
