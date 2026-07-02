@@ -1,7 +1,8 @@
 #include <io/kernel_io.h>
-#include "shell.h"
 #include <lib/string.h>
 #include <fs/vfs.h>
+#include <io/keyboard.h>
+#include "shell.h"
 
 void handle_input_char(char c, char *input_buffer, size_t *input_pos) {
     if (c == '\b') {
@@ -39,4 +40,16 @@ static size_t s_input_pos = 0;
 
 void shell_handle_char(char c) {
     handle_input_char(c, s_input_buffer, &s_input_pos);
+}
+
+void update_shell_input(void) {
+    key_event_t ev;
+    while (keyboard_pop_event(&ev)) {
+        if (ev.pressed) {
+            char c = keycode_to_char(ev.scancode, shift_pressed);
+            if (c) {
+                shell_handle_char(c);
+            }
+        }
+    }
 }

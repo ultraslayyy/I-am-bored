@@ -19,6 +19,7 @@
 #include <net/net.h>
 #include <net/netdev.h>
 #include <net/udp.h>
+#include <shell/input.h>
 #include <shell/shell.h>
 #include "boot_info.h"
 
@@ -47,17 +48,17 @@ void kernel_main(boot_info_t *mbi) {
     
     // Printing after due to screen clear
     put_string("VESA initialised\n", DEFAULT_ATTR);
- 
+    
     // vesa_draw_rect(10, 10, 100, 100, 0xFF0000); // Red square
     // vesa_draw_rect(120, 10, 100, 100, 0x00FF00); // Green square
     // vesa_draw_rect(230, 10, 100, 100, 0x0000FF); // Blue square
 
     put_string("Memory initialised\n", DEFAULT_ATTR);
- 
+    
     idt_init();
     syscall_init();
     scheduler_init();
- 
+    
     e1000_init();
     rtl8139_init();
     uint8_t mac[6];
@@ -66,10 +67,10 @@ void kernel_main(boot_info_t *mbi) {
     ipv4_set_addr(0);
 
     udp_bind(68, dhcp_receive);
- 
+    
     dhcp_init(mac);
     dhcp_start();
- 
+    
     char buf[128];
     
     while (g_ip_addr == 0) {
@@ -108,11 +109,14 @@ void kernel_main(boot_info_t *mbi) {
     pit_init(100);
 
     while (1) {
-        __asm__ volatile("hlt");
+        update_shell_input();
+
         uint8_t frame[2048];
         int len = netdev_recv(frame, sizeof(frame));
         if (len > 0) {
             eth_receive(frame, len);
         }
+
+        __asm__ volatile("hlt");
     }
 }
