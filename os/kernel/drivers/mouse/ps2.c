@@ -2,9 +2,9 @@
 #include <drivers/video/vesa.h>
 #include "ps2.h"
 
-#define PS2_DATA    0x60
-#define PS2_STATUS  0x64
 #define PS2_COMMAND 0x64
+
+#define PS2_TIMEOUT 100000
 
 static volatile mouse_state_t mouse;
 
@@ -12,45 +12,59 @@ static uint8_t packet[4];
 static uint8_t cycle = 0;
 static uint8_t packet_size = 3;
 
-static void ps2_wait_input() {
-    while (inb(PS2_STATUS) & 0x02);
+static int ps2_wait_input() {
+    for (int i = 0; i < PS2_TIMEOUT; ++i) {
+        if (!(inb(PS2_STATUS) & 0x02)) return 1;
+    }
+    return 0;
 }
 
-static void ps2_wait_output() {
-    while (!(inb(PS2_STATUS) & 0x01));
+static int ps2_wait_output() {
+    for (int i = 0; i < PS2_TIMEOUT; ++i) {
+        if (inb(PS2_STATUS) & 0x01) return 1;
+    }
+    return 0;
 }
 
-static void mouse_write(uint8_t data) {
-    ps2_wait_input();
+static int mouse_write(uint8_t data) {
+    if (!ps2_wait_input()) return 0;
+
     outb(PS2_COMMAND, 0xD4);
 
-    ps2_wait_input();
+    if (!ps2_wait_input()) return 0;
+
     outb(PS2_DATA, data);
+    return 1;
 }
 
-static uint8_t mouse_read() {
-    ps2_wait_output();
-    return inb(PS2_DATA);
+static int mouse_read(uint8_t *data) {
+    if (!ps2_wait_output()) return 0;
+    *data = inb(PS2_DATA);
+    return 1;
 }
 
-static uint8_t mouse_expect_ack(void) {
-    return mouse_read() == 0xFA;
+static int mouse_expect_ack(void) {
+    uint8_t b;
+    return mouse_read(&b) && b == 0xFA;
 }
 
-void mouse_handler(void) {
+static int mouse_reset(uint8_t *id) {
+    uint8_t data;
+
+    if (!mouse_write(0xFF) || !mouse_expect_ack()) return 0;
+
+    if (!mouse_read(&data) || data != 0xAA) return 0;
+
+    if (!mouse_read(id)) return 0;
+
+    return 1;
+}
+
+void mouse_handler(uint8_t data) {
     if (!mouse.enabled) return;
 
-    uint8_t data = inb(PS2_DATA);
-
     // desync check
-    if (cycle == 0) {
-        if (!(data & 0x08)) return;
-    } else {
-        if ((data & 0x08) && cycle != 0) {
-            cycle = 0;
-            return;
-        }
-    }
+    if (cycle == 0 && !(data & 0x08)) return;
 
     packet[cycle] = data;
     cycle++;
@@ -62,6 +76,12 @@ void mouse_handler(void) {
     mouse.dx = (int8_t)packet[1];
     mouse.dy = (int8_t)packet[2];
 
+    // Apply 9th sign bit from packet[0]
+    // manual sign check just in case compiler output of cast
+    // isn't correct or fails or something idk what I'm doing help me
+    if (packet[0] & 0x10) mouse.dx |= 0xFFFFFF00;
+    if (packet[0] & 0x20) mouse.dy |= 0xFFFFFF00;
+
     mouse.x += mouse.dx;
     mouse.y -= mouse.dy; // Invert Y
 
@@ -71,11 +91,11 @@ void mouse_handler(void) {
     if (mouse.y < 0) {
         mouse.y = 0;
     }
-    if (mouse.x > vesa_width) {
-        mouse.x = vesa_width;
+    if (mouse.x > vesa_width - 1) {
+        mouse.x = vesa_width - 1;
     }
-    if (mouse.y > vesa_height) {
-        mouse.y = vesa_height;
+    if (mouse.y > vesa_height - 1) {
+        mouse.y = vesa_height - 1;
     }
 
     mouse.left_b   = packet[0] & 0x1;
@@ -94,62 +114,93 @@ void mouse_handler(void) {
 }
 
 mouse_state_t mouse_get_state(void) {
-    return mouse;
+    disable_interrupts();
+    mouse_state_t m = mouse;
+    enable_interrupts();
+    return m;
 }
 
-void set_mouse_enabled(int enabled) {
-    mouse.enabled = enabled;
+int mouse_set_enabled(int enabled) {
+    if (mouse.exists) {
+        mouse.enabled = enabled;
+        return 1;
+    } else {
+        return 0;
+    }
 }
 
-static uint8_t mouse_probe_intellimouse(void) {
-    mouse_write(0xF3);
+static uint8_t mouse_set_rate(uint8_t rate) {
+    if (!mouse_write(0xF3))  return 0x00;
     if (!mouse_expect_ack()) return 0x00;
-
-    mouse_write(200);
-    if (!mouse_expect_ack()) return 0x00;
-
-    mouse_write(0xF3);
-    if (!mouse_expect_ack()) return 0x00;
-
-    mouse_write(100);
-    if (!mouse_expect_ack()) return 0x00;
-
-    mouse_write(0xF3);
-    if (!mouse_expect_ack()) return 0x00;
-
-    mouse_write(80);
-    if (!mouse_expect_ack()) return 0x00;
-
-    mouse_write(0xF2);
-    return mouse_read();
-}
-
-void mouse_init(void) {
     
-    ps2_wait_input();
+    if (!mouse_write(rate))  return 0x00;
+    if (!mouse_expect_ack()) return 0x00;
+
+    return 0x01;
+}
+
+static uint8_t mouse_get_id(uint8_t *id) {
+    if (!mouse_write(0xF2))  return 0xFF;
+    if (!mouse_expect_ack()) return 0xFF;
+    if (!mouse_read(id))     return 0xFF;
+    return 0x00;
+}
+
+static uint8_t mouse_probe_intellimouse(int im2) {
+    if (!mouse_set_rate(200))             return 0xFF;
+    if (!mouse_set_rate(im2 ? 200 : 100)) return 0xFF;
+    if (!mouse_set_rate(80))              return 0xFF;
+
+    uint8_t id = 0;
+    mouse_get_id(&id);
+
+    return id;
+}
+
+// Check Intellimouse Extension support
+static uint8_t mouse_check_ime(void) {
+    uint8_t id = mouse_probe_intellimouse(0);
+    if (id == 0xFF) return 0xFF;
+
+    if (id == 0x03) {
+        id = mouse_probe_intellimouse(1);
+        if (id == 0xFF) return 0xFF;
+    }
+
+    return id;
+}
+
+int mouse_init(void) {
+    mouse.enabled = 0;
+
+    if (!ps2_wait_input())  goto fail;
+
     outb(PS2_COMMAND, 0xA8);
     
-    ps2_wait_input();
+    if (!ps2_wait_input())  goto fail;
     outb(PS2_COMMAND, 0x20);
-    ps2_wait_output();
+    if (!ps2_wait_output()) goto fail;
     
     uint8_t status = inb(PS2_DATA);
     status |= 0x02;  // Enable IRQ12 (PS/2)
     status |= 0x01;  // Enable IRQ1 (keyboard)
     status &= ~0x20; // enable mouse clock
     
-    ps2_wait_input();
+    if (!ps2_wait_input()) goto fail;
     outb(PS2_COMMAND, 0x60);
 
-    ps2_wait_input();
+    if (!ps2_wait_input()) goto fail;
     outb(PS2_DATA, status);
 
+    uint8_t id;
+
+    if (!mouse_reset(&id)) goto fail;
+
     // Reset scaling
-    mouse_write(0xE6);
-    mouse_expect_ack();
+    if (!mouse_write(0xE6) || !mouse_expect_ack()) goto fail;
 
     // Check for intellimouse support
-    uint8_t id = mouse_probe_intellimouse();
+    id = mouse_check_ime();
 
     if (id == 0x00) {
         mouse.type = PS2_IM_NONE;
@@ -160,18 +211,24 @@ void mouse_init(void) {
     } else if (id == 0x04) {
         mouse.type = PS2_IM_EXTRABTNS;
         packet_size = 4;
+    } else {
+        goto fail;
     }
 
     // Default settings
-    mouse_write(0xF6);
-    mouse_expect_ack();
+    if (!mouse_write(0xF6) || !mouse_expect_ack()) goto fail;
     
     // Enable streaming
-    mouse_write(0xF4);
-    mouse_expect_ack();
+    if (!mouse_write(0xF4) || !mouse_expect_ack()) goto fail;
 
-    mouse.x = vesa_width / 2;
+    mouse.x = vesa_width  / 2;
     mouse.y = vesa_height / 2;
 
+    mouse.exists = 1;
+    return 1;
+
+fail:
     mouse.enabled = 0;
+    mouse.exists  = 0;
+    return 0;
 }

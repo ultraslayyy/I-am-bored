@@ -9,10 +9,10 @@ int cmd_mouse(int argc, char **argv) {
     }
 
     if (strcmp(argv[1], "enable") == 0) {
-        set_mouse_enabled(1);
+        mouse_set_enabled(1);
         return 0;
     } else if (strcmp(argv[1], "disable") == 0) {
-        set_mouse_enabled(0);
+        mouse_set_enabled(0);
         return 0;
     }
 

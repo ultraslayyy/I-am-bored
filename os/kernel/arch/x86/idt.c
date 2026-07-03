@@ -8,7 +8,7 @@ extern void irq1(void);
 extern void irq12(void);
 extern uint32_t schedule(uint32_t esp);
 
-extern void keyboard_callback(void);
+extern void keyboard_callback(uint8_t sc);
 
 idt_entry_t idt[IDT_ENTRIES];
 idtr_t idtr;
@@ -85,11 +85,22 @@ void *isr_handler(uint32_t int_num, uint32_t esp) {
     }
     
     if (int_num == 33) {
-        keyboard_callback();
+        // put_string("KBD IQR\n", DEFAULT_ATTR);
+        uint8_t sc = inb(0x60);
+        keyboard_callback(sc);
     }
 
     if (int_num == 44) {
-        mouse_handler();
+        // Bit 5 (0x20) must be set in 0x60 if mouse data
+        // If it's 0, it's a keyboard byte or controller noise
+        //uint8_t status = inb(PS2_STATUS);
+        //if ((status & 0x21) == 0x21) {
+        uint8_t data = inb(PS2_DATA);
+        mouse_handler(data);
+        //} else {
+            // Read byte/packet to clear buffer
+        //    inb(0x60);
+        //}
     }
 
     // Send EOI to PIC

@@ -99,7 +99,9 @@ void kernel_main(boot_info_t *mbi) {
     fat16_init(dev);
     fd_init();
 
+    disable_interrupts();
     mouse_init();
+    enable_interrupts();
     put_string("Mouse initialised via PS/2\n", DEFAULT_ATTR);
 
     char path[MAX_PATH_LEN];
@@ -124,15 +126,12 @@ void kernel_main(boot_info_t *mbi) {
         mouse_state_t m = mouse_get_state();
         if (m.enabled) {
             vesa_draw_rect(m.x, m.y, 5, 5, 0xFFFFFF);
-            if (m.left_b) {
-                vesa_draw_rect(m.x, m.y, 5, 5, 0xFF0000);
-            }
-            if (m.middle_b) {
-                vesa_draw_rect(m.x, m.y, 5, 5, 0x00FF00);
-            }
-            if (m.right_b) {
-                vesa_draw_rect(m.x, m.y, 5, 5, 0x0000FF);
-            }
+            if (m.left_b)   vesa_draw_rect(m.x, m.y, 5, 5, 0xFF0000);
+            if (m.middle_b) vesa_draw_rect(m.x, m.y, 5, 5, 0x00FF00);
+            if (m.right_b)  vesa_draw_rect(m.x, m.y, 5, 5, 0x0000FF);
+            if (m.b4)       vesa_draw_rect(m.x, m.y, 5, 5, 0xFFFF00);
+            if (m.b5)       vesa_draw_rect(m.x, m.y, 5, 5, 0xFF00FF);
+            if (m.wheel)    vesa_draw_rect(m.x, m.y, 5, 5, 0x00FFFF);
         }
         
         __asm__ volatile("hlt");

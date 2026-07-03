@@ -25,9 +25,9 @@ char scancode_table_shift[128] = {
     'C','V','B','N','M','<','>','?',0,'*',0,' ',0
 };
 
-char keycode_to_char(uint8_t scancode, uint8_t shift_pressed) {
+char keycode_to_char(uint8_t scancode, uint8_t shift) {
     if (scancode >= 128) return 0;
-    return shift_pressed ? scancode_table_shift[scancode] : scancode_table[scancode];
+    return shift ? scancode_table_shift[scancode] : scancode_table[scancode];
 }
 
 void handle_key_release(uint8_t released, uint8_t *shift) {
@@ -52,8 +52,7 @@ int keyboard_pop_event(key_event_t *event) {
     return 1;
 }
 
-void keyboard_callback(void) {
-    uint8_t sc = inb(0x60);
+void keyboard_callback(uint8_t sc) {
     uint8_t pressed = !(sc & 0x80);
     uint8_t scancode = sc & 0x7F;
     

@@ -79,7 +79,7 @@ ifeq ($(GDB),1)
   CFLAGS += -O0 -g
   QEMUFLAGS += -S -s
 else
-  CFLAGS += -O2
+  CFLAGS += -O0 # -02 crashes during dhcp_start TODO: Investigate and fix
 endif
 
 # Targets

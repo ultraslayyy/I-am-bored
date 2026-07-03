@@ -107,10 +107,10 @@ void put_char(char c, uint8_t attr) {
         
         uint32_t r = lines_per_screen - 1;
         uint32_t idx = term_line % MAX_TERM_LINES;
-        for (uint32_t c = 0; c < cols_per_line; ++c) {
-            char ch = text_buffer[idx][c].c;
+        for (uint32_t col = 0; col < cols_per_line; ++c) {
+            char ch = text_buffer[idx][col].c;
             if (ch == 0) continue;
-            vesa_draw_char(ch, c * FONT_WIDTH, r * FONT_HEIGHT, text_buffer[idx][c].fg, text_buffer[idx][c].bg);
+            vesa_draw_char(ch, col * FONT_WIDTH, r * FONT_HEIGHT, text_buffer[idx][col].fg, text_buffer[idx][col].bg);
         }
     }
 }
