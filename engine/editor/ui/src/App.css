@@ -1,0 +1,157 @@
+body, html, #root {
+  margin: 0;
+  height: 100%;
+  font-family: sans-serif;
+}
+
+.editor-root {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.topbar {
+  height: 30px;
+  background: #1b1b1b;
+  color: white;
+  display: flex;
+  align-items: center;
+  padding: 0 8px;
+  position: relative;
+}
+
+.menu {
+  display: flex;
+  gap: 10px;
+}
+
+.menu button {
+  background: none;
+  border: none;
+  color: white;
+  cursor: pointer;
+}
+
+.menu button:hover {
+  background: #333;
+}
+
+.dropdown {
+  position: absolute;
+  top: 30px;
+  left: 0;
+  background: #2a2a2a;
+  padding: 6px;
+  border: 1px solid #444;
+}
+
+.dropdown div {
+  padding: 4px 10px;
+  cursor: pointer;
+}
+
+.dropdown div:hover {
+  background: #444;
+}
+
+.main {
+  flex: 1;
+  display: flex;
+}
+
+.left {
+  width: 200px;
+  background: #2d2d2d;
+  color: white;
+  overflow: auto;
+}
+
+.center {
+  flex: 1;
+  background: #1e1e1e;
+}
+
+.right {
+  width: 250px;
+  background: #2d2d2d;
+  color: white;
+  overflow: auto;
+}
+
+.bottom {
+  height: 240px;
+  background: #111;
+  color: white;
+  overflow: auto;
+}
+
+.panel {
+  padding: 8px;
+}
+
+.entity {
+  padding: 4px;
+  cursor: pointer;
+}
+
+.entity:hover {
+  background: #555;
+}
+
+.entity.selected {
+  background: #444
+}
+
+.entity.selected:hover {
+  background: #555
+}
+
+.scene-panel {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow: hidden;
+}
+
+.panel-header {
+  height: 24px;
+  flex-shrink: 0;
+}
+
+.scene-canvas {
+  flex: 1;
+  width: 100%;
+  display: block;
+}
+
+.settings {
+  padding: 8px;
+}
+
+.settings-tabs {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 10px;
+  border-bottom: 1px solid #444;
+}
+
+.settings-content {
+  padding-top: 10px;
+}
+
+input {
+  width: 100%;
+  background: #222;
+  border: 1px solid #444;
+  color: white;
+  padding: 4px;
+}
+
+.context-item {
+  padding: 4px 10px;
+  cursor: pointer;
+}
+
+.context-item:hover {
+  background: #444;
+}
