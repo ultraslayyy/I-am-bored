@@ -1,4 +1,4 @@
-import { CPU } from './cpu.js';
+import { CPU } from './cpu.ts';
 
 const cpu = new CPU();
 

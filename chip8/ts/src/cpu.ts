@@ -11,6 +11,25 @@ process.stdin.on('data', (key) => {
     setTimeout(() => keysPressed.delete(strKey), 100);
 });
 
+const FONT = new Uint8Array([
+    0xF0, 0x90, 0x90, 0x90, 0xF0, // 0
+	0x20, 0x60, 0x20, 0x20, 0x70, // 1
+	0xF0, 0x10, 0xF0, 0x80, 0xF0, // 2
+	0xF0, 0x10, 0xF0, 0x10, 0xF0, // 3
+	0x90, 0x90, 0xF0, 0x10, 0x10, // 4
+	0xF0, 0x80, 0xF0, 0x10, 0xF0, // 5
+	0xF0, 0x80, 0xF0, 0x90, 0xF0, // 6
+	0xF0, 0x10, 0x20, 0x40, 0x40, // 7
+	0xF0, 0x90, 0xF0, 0x90, 0xF0, // 8
+	0xF0, 0x90, 0xF0, 0x10, 0xF0, // 9
+	0xF0, 0x90, 0xF0, 0x90, 0x90, // A
+	0xE0, 0x90, 0xE0, 0x90, 0xE0, // B
+	0xF0, 0x80, 0x80, 0x80, 0xF0, // C
+	0xE0, 0x90, 0x90, 0x90, 0xE0, // D
+	0xF0, 0x80, 0xF0, 0x80, 0xF0, // E
+	0xF0, 0x80, 0xF0, 0x80, 0x80  // F
+]);
+
 function isKeyPressed(chip8Key: number) {
     const map: Record<number, string> = {
         0x0: '0', 0x1: '1', 0x2: '2', 0x3: '3',
@@ -26,22 +45,29 @@ export class CPU {
     V: Uint8Array;
     I: number;
     pc: number;
-    stack: number[];
+    stack: Uint16Array;
     sp: number;
     delayTimer: number;
     soundTimer: number;
-    display: boolean[][];
+    display: Uint8Array;
 
     constructor() {
         this.memory = new Uint8Array(4096);
         this.V = new Uint8Array(16);
         this.I = 0;
         this.pc = 0x200;
-        this.stack = [];
+        this.stack = new Uint16Array(16);
         this.sp = 0;
         this.delayTimer = 0;
         this.soundTimer = 0;
-        this.display = Array.from({ length: 32 }, () => Array(64).fill(false));
+        this.display = new Uint8Array(64 * 32);
+
+        this.memory.set(FONT, 0);
+
+        setInterval(() => {
+            if (this.delayTimer > 0) this.delayTimer--;
+            if (this.soundTimer > 0) this.soundTimer--;
+        }, 1000 / 60);
     }
 
     loadProgram(program: Uint8Array) {
@@ -64,16 +90,24 @@ export class CPU {
         switch (opcode & 0xF000) {
             case 0x0000:
                 if (opcode === 0x00E0) {
-                    this.display.forEach(row => row.fill(false));
+                    this.display.fill(0);
                 } else if (opcode === 0x00EE) {
-                    this.pc = this.stack.pop()!;
+                    if (this.sp === 0) {
+                        throw new Error('Stack underflow');
+                    }
+
+                    this.pc = this.stack[--this.sp];
                 }
                 break;
             case 0x1000:
                 this.pc = NNN;
                 break;
             case 0x2000:
-                this.stack.push(this.pc);
+                if (this.sp >= 16) {
+                    throw new Error('Stack overflow');
+                }
+
+                this.stack[this.sp++] = this.pc;
                 this.pc = NNN;
                 break;
             case 0x3000:
@@ -83,6 +117,10 @@ export class CPU {
                 if (this.V[X] !== NN) this.pc += 2;
                 break;
             case 0x5000:
+                if (N !== 0) {
+                    throw new Error(`Unknown opcode 0x${opcode.toString(16).padStart(4, '0')}`);
+                }
+
                 if (this.V[X] === this.V[Y]) this.pc += 2;
                 break;
             case 0x6000:
@@ -97,30 +135,37 @@ export class CPU {
                     case 0x1: this.V[X] |= this.V[Y]; break;
                     case 0x2: this.V[X] &= this.V[Y]; break;
                     case 0x3: this.V[X] ^= this.V[Y]; break;
-                    case 0x4:
+                    case 0x4: {
                         const sum = this.V[X] + this.V[Y];
                         this.V[0xF] = sum > 0xFF ? 1 : 0;
                         this.V[X] = sum & 0xFF;
                         break;
+                    }
                     case 0x5:
-                        this.V[0xF] = this.V[X] > this.V[Y] ? 1 : 0;
+                        this.V[0xF] = this.V[X] >= this.V[Y] ? 1 : 0;
                         this.V[X] = (this.V[X] - this.V[Y]) & 0xFF;
                         break;
                     case 0x6:
-                        this.V[0xF] = this.V[Y] > this.V[X] ? 1 : 0;
+                        this.V[0xF] = this.V[X] & 1;
                         this.V[X] >>= 1;
                         break;
                     case 0x7:
-                        this.V[0xF] = this.V[Y] > this.V[X] ? 1 : 0;
+                        this.V[0xF] = this.V[Y] >= this.V[X] ? 1 : 0;
                         this.V[X] = (this.V[Y] - this.V[X]) & 0xFF;
                         break;
                     case 0xE: 
-                        this.V[0xF] = this.V[Y] > this.V[X] ? 1 : 0;
+                        this.V[0xF] = (this.V[X] >> 7) & 1;
                         this.V[X] = (this.V[X] << 1) & 0xFF;
                         break;
+                    default:
+                        throw new Error(`Unknown opcode 0x${opcode.toString(16).padStart(4, '0')}`);
                 }
                 break;
             case 0x9000:
+                if (N !== 0) {
+                    throw new Error(`Unknown opcode 0x${opcode.toString(16).padStart(4, '0')}`);
+                }
+
                 if (this.V[X] !== this.V[Y]) this.pc += 2;
                 break;
             case 0xA000:
@@ -141,8 +186,9 @@ export class CPU {
                         if ((spriteByte & mask) !== 0) {
                             const px = (this.V[X] + col) % 64;
                             const py = (this.V[Y] + row) % 32;
-                            if (this.display[py][px]) this.V[0xF] = 1;
-                            this.display[py][px] = this.display[py][px] !== true;
+                            const idx = py * 64 + px;
+                            if (this.display[idx]) this.V[0xF] = 1;
+                            this.display[idx] ^= 1;
                         }
                     }
                 }
@@ -152,6 +198,8 @@ export class CPU {
                     this.pc += 2;
                 } else if (NN === 0xA1 && !isKeyPressed(this.V[X])) {
                     this.pc += 2;
+                } else {
+                    throw new Error(`Unknown opcode 0x${opcode.toString(16).padStart(4, '0')}`);
                 }
                 break;
             case 0xF000:
@@ -171,21 +219,26 @@ export class CPU {
                     case 0x18: this.soundTimer = this.V[X]; break;
                     case 0x1E: this.I = (this.I + this.V[X]) & 0xFFFF; break;
                     case 0x29: this.I = this.V[X] * 5; break;
-                    case 0x33:
-                        this.memory[this.I] = Math.floor(this.V[X] / 1000)
-                        this.memory[this.I + 1] = Math.floor((this.V[X] & 100) / 10);
-                        this.memory[this.I + 2] = this.V[X] & 10;
+                    case 0x33: {
+                        const value = this.V[X];
+
+                        this.memory[this.I] = Math.floor(value / 100);
+                        this.memory[this.I + 1] = Math.floor((value % 100) / 10);
+                        this.memory[this.I + 2] = value % 10;
                         break;
+                    }
                     case 0x55:
                         for (let i = 0; i <= X; i++) this.memory[this.I + i] = this.V[i];
                         break;
                     case 0x65:
-                        for (let i = 0; i <= X; i++) this.V[i] = this.memory[this.I = i];
+                        for (let i = 0; i <= X; i++) this.V[i] = this.memory[this.I + i];
                         break;
+                    default:
+                        throw new Error(`Unknown opcode 0x${opcode.toString(16).padStart(4, '0')}`);
                 }
                 break;
             default:
-                console.log(`Unknown opcode: ${opcode.toString(16)}`);
+                throw new Error(`Unknown opcode: 0x${opcode.toString(16).padStart(4, '0')}`);
         }
     }
 }
