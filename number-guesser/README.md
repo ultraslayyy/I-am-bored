@@ -10,6 +10,7 @@ The current languages I've written this in are:
 - [C](./main.c)
 - [C#](./c#/Program.cs)
 - [C++](./main.cpp)
+- [Carbon](./carbon/main.carbon)
 - [Clojure](./main.clj)
 - [COBOL](./main.cbl)
 - [CoffeeScript](./main.coffee)
@@ -58,15 +59,145 @@ The current languages I've written this in are:
 - [Swift](./main.swift)
 - [Tcl](./main.tcl)
 - [TypeScript](./typescript/main.ts)
-- [Verilog](./main.v) <!-- These two are hardware based so logic only, can't run  -->
+- [V](./main.v)
+- [Verilog](./main.verilog) <!-- These two are hardware based so logic only, can't run  -->
 - [VHDL](./main.vhd)  <!-- simply in a terminal, requires a lot more setup to run -->
 - [Visual Basic](./main.vb)
 - [Wolfram](./main.wl)
 - [Zig](./main.zig)
 
 ### Todo
-- Comtran
-- Speakeasy
+- Modula-2
+- Modula-3
+- Oberon
+- Oberon-2
+- D
+- Odin
+- Vale
+- Cyclone
+- Jai
+- Pony
+- Mercury
+- ATS
+- C3
+- Beef
+- Chapel
+- Regent
+- Scheme
+- Racket
+- Common Lisp (over generic)
+- Shen
+- ClojureScript
+- Idris
+- Idris 2
+- Agda
+- Lean 4
+- Coq (Gallina)
+- F*
+- Clean
+- Miranda
+- Hope
+- Purescript
+- Unison
+- Koka
+- Curry
+- AWK
+- GNU Awk
+- Sed
+- Rexx
+- JScript
+- VBScript
+- Io
+- Janet
+- Wren
+- Squirrel
+- AngelScript
+- ChaiScript
+- Ring
+- GDScript
+- Haxe
+- AutoIt
+- MoonScript
+- Hy
+- Nushell
+- Fish shell
+- Zsh
+- FreeBASIC
+- QB64
+- BBC BASIC
+- Liberty BASIC
+- PureBasic
+- Xojo
+- BlitzBasic
+- BlitzMax
+- DarkBASIC
+- Free Pascal
+- Turbo Pascal
+- Oxygene (RemObjects Pascal)
+- ReasonML
+- ReScript
+- J
+- K
+- Q
+- BQN
+- GNU Octave
+- Yorick
+- Scilab
+- Maple
+- Maxima
+- Datalog
+- CLIPS
+- Jess
+- Mercury
+- ASP (Answer Set Programming)
+- Picat
+- SystemVerilog
+- Chisel
+- Bluespec
+- SpinalHDL
+- nMigen (Amaranth HDL)
+- Clash (Haskell HDL)
+- Ceylon
+- Gosu
+- Xtend
+- Fantom
+- Mirah
+- Frege
+- Boo
+- IronPython
+- IronRuby
+- AssemblyScript
+- WebAssembly Text Format (WAT)
+- TeaScript
+- ALGOL 60
+- ALGOL 68
+- BCPL
+- CPL
+- Simula
+- SNOBOL
+- Icon
+- Inform
+- Euclid
+- PL/I
+- Eiffel
+- Io
+- Genie
+- Red
+- Red/System
+- Seed7
+- Spin
+- Falcon
+- Pike
+- Harbour
+- XBase++
+- OpenEdge ABL
+- LiveCode
+- Turing
+- eC
+- Ecere
+- Icon
+- Genie
+- Golo
 
 ## Rules
 - Non-built-in dependencies are **prohibited**
