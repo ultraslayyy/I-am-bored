@@ -97,7 +97,6 @@ op_print:
   mov rsi, print_buf
   call itoa
 
-
   mov rdi, rax
   call strlen
 
