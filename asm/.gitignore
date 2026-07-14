@@ -1,4 +1,6 @@
 *
-!to-machine/*
-!vm/*
+!to-machine/
+!to-machine/**
+!vm/
+!vm/**
 !.gitignore

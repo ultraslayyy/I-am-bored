@@ -1,0 +1,137 @@
+## Excludes bss obv
+## Also just pretends it uses 32-bit (exx) instead of 64-bit (rxx)
+
+## _start
+xx
+xx
+
+## dispatch_loop
+0F B6 06
+FF C6
+
+85 C0
+0F 84 2D 00
+
+3C 01
+0F 84 2D 00
+
+3C 02
+0F 84 xx xx
+
+3C 03
+0F 84 xx xx
+
+3C 04
+0F 84 xx xx
+
+3C 05
+0F 84 xx xx
+
+3C 06
+0F 84 xx xx
+
+3C 0A
+0F 84 xx xx
+
+EB C9
+
+## op_halt
+B8 3C
+31 FF
+0F 05
+
+## op_push
+0F B6 06
+FF C6
+
+89 03
+83 C3 08
+
+EB B8
+
+## op_add
+83 EB 08
+8B 03
+
+83 EB 08
+8B 0B
+
+01 C8
+
+89 03
+83 C3 08
+
+xx
+
+## op_print
+83 EB 08
+8B 03
+
+89 C7
+89 F2
+
+xx
+xx
+
+89 C7
+xx
+
+89 C2
+
+B8 01
+BF 01
+xx
+0F 05
+
+89 D6
+
+xx
+
+## op_mul
+83 EB 08
+8B 03
+
+83 EB 08
+8B 0B
+
+0F AF C1
+
+89 03
+83 C3 08
+
+xx
+
+## op_div
+83 EB 08
+8B 03
+99
+
+83 EB 08
+8B 0B
+
+F7 F9
+
+89 03
+83 C3 08
+
+xx
+
+## op_sub
+83 EB 08
+8B 03
+
+83 EB 08
+8B 0B
+
+29 C8
+
+89 03
+83 C3 08
+
+xx
+
+## op_jmp
+0F B6 06
+xx
+01 C6
+xx

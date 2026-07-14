@@ -1,0 +1,158 @@
+B8 01 00 00 00
+B9 FF 00 00 00
+BF EF BE AD DE
+
+50
+55
+57
+
+5E
+5B
+
+90
+C3
+FA
+FB
+F4
+CC
+
+89 D8
+89 C3
+89 F9
+89 D6
+89 E5
+89 CF
+
+01 C8
+01 C1
+01 DF
+01 F5
+
+29 D8
+29 FE
+29 CA
+
+31 C0
+31 CB
+31 F7
+
+09 D8
+09 CE
+
+21 E8
+21 D7
+
+39 D8
+39 D1
+39 FE
+
+85 C0
+85 CB
+
+05 0A 00 00 00    // maybe
+81 C3 0A 00 00 00
+83 C7 7F          // also maybe
+
+2D 01 00 00 00    // also maybe
+81 E9 0A 00 00 00
+81 EE 40 00 00 00
+
+3D 64 00 00 00    // also maybe
+83 FB 00
+83 FF 2A
+
+25 FF 00 00 00    // also maybe
+83 C9 01
+83 F2 55
+
+A9 01 00 00 00    // also maybe
+F7 C3 80 00 00 00
+
+89 18
+89 01
+89 3E
+
+8B 0E
+8B 39
+8B 16
+
+01 18
+01 0F
+
+39 03
+85 11
+
+8B 43 04          // ask about when to use 01
+8B 4E 08          // vs 10 for mod
+8B B8 04
+
+8B 45 00          // 00 instead of 08 since m=00,rm=101 means disp32
+8B 9C 03          // TODO: SIB because r/m = 100 (ESP)
+
+03 87 08
+39 5E 7F
+
+8B 04 0B
+8B 04 4B
+8B 04 8B
+8B 04 CB
+
+8B 1C 06
+8B 04 8F
+
+03 04 7E
+39 0C C3
+
+FF C0
+FF C7
+FF CB
+FF CE
+
+F7 D8
+F7 D9
+
+F7 D3
+F7 D7
+
+0F AF C3
+0F AF CE
+
+6B C3 05          // also maybe
+6B F9 0A          // also maybe
+
+F7 FB
+F7 E1
+F7 F6
+
+8D 45 04
+8D BC 88 04       // huge maybe
+
+E8 00 00
+EB 00 
+74 00
+75 00
+7F 00
+7C 00
+
+E2 00
+
+55
+89 E5
+83 EC 10
+
+8B 45 08
+8B 8D 03
+
+01 C8
+
+89 45 FC          // 2's compliment (00000100 -> 11111011 + 1)
+
+31 C0
+
+C9
+C3
+
+8B 45 F8
+89 5E F0
+8B 4F 78
+8B 83 4B
