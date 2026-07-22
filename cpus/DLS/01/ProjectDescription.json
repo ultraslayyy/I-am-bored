@@ -1,0 +1,327 @@
+{
+  "ProjectName": "8-bit CPU",
+  "DLSVersion_LastSaved": "2.0.3",
+  "DLSVersion_EarliestCompatible": "2.0.0",
+  "CreationTime": "2025-04-13T14:21:52.128+10:00",
+  "LastSaveTime": "2026-07-22T18:21:04.329+10:00",
+  "Prefs_MainPinNamesDisplayMode": 1,
+  "Prefs_ChipPinNamesDisplayMode": 1,
+  "Prefs_SimPaused": false,
+  "Prefs_SimTargetStepsPerSecond": 1000,
+  "Prefs_SimStepsPerClockTick": 250,
+  "AllCustomChipNames":[
+    "AND",
+    "NOT",
+    "OR",
+    "NOR",
+    "D-LATCH",
+    "FLIP-FLOP",
+    "MEM-16",
+    "DECODER 2-4",
+    "MEM-1",
+    "MEM-256",
+    "RAM-256x8 (async)",
+    "EQUALS-8",
+    "XOR",
+    "XNOR",
+    "REGISTER-1",
+    "REGISTER-8",
+    "OR3",
+    "OR4",
+    "DIGIT DISPLAY",
+    "7-SEGMENT DRIVER",
+    "DABBLE",
+    "DOUBLE-DABBLE",
+    "8BIT-DISPLAY",
+    "RAM-256x8 (sync)",
+    "16-BIT DABBLE",
+    "16BIT-DISPLAY",
+    "REGISTER-16",
+    "I'M DUMB",
+    "32-BIT DABBLE",
+    "32-BIT DISPLAY",
+    "REGISTER FILE (OLD)",
+    "ISA Decoder",
+    "MEM2-1",
+    "MEM-16-2 (WIP)",
+    "AND4",
+    "MUX4-1",
+    "ADDER",
+    "4-BIT ADDER",
+    "4-BIT ALU",
+    "8-BIT ADDER",
+    "8-BIT ALU",
+    "CPU",
+    "MUX8-1",
+    "8-BIT 3-STATE BUFFER",
+    "REGISTER FILE",
+    "AND3",
+    "IP",
+    "MUX2-2",
+    "FLAG REGISTER"
+  ],
+  "StarredList":[
+    {
+      "Name":"IN/OUT",
+      "IsCollection":true
+    },
+    {
+      "Name":"BUS",
+      "IsCollection":true
+    },
+    {
+      "Name":"MERGE/SPLIT",
+      "IsCollection":true
+    },
+    {
+      "Name":"CPU",
+      "IsCollection":true
+    },
+    {
+      "Name":"NAND",
+      "IsCollection":false
+    },
+    {
+      "Name":"AND",
+      "IsCollection":false
+    },
+    {
+      "Name":"NOT",
+      "IsCollection":false
+    },
+    {
+      "Name":"OR",
+      "IsCollection":false
+    },
+    {
+      "Name":"NOR",
+      "IsCollection":false
+    },
+    {
+      "Name":"D-LATCH",
+      "IsCollection":false
+    },
+    {
+      "Name":"FLIP-FLOP",
+      "IsCollection":false
+    },
+    {
+      "Name":"MEM-16",
+      "IsCollection":false
+    },
+    {
+      "Name":"DECODER 2-4",
+      "IsCollection":false
+    },
+    {
+      "Name":"MEM-1",
+      "IsCollection":false
+    },
+    {
+      "Name":"MEM-256",
+      "IsCollection":false
+    },
+    {
+      "Name":"RAM-256x8 (async)",
+      "IsCollection":false
+    },
+    {
+      "Name":"EQUALS-8",
+      "IsCollection":false
+    },
+    {
+      "Name":"XOR",
+      "IsCollection":false
+    },
+    {
+      "Name":"XNOR",
+      "IsCollection":false
+    },
+    {
+      "Name":"REGISTER-1",
+      "IsCollection":false
+    },
+    {
+      "Name":"REGISTER-8",
+      "IsCollection":false
+    },
+    {
+      "Name":"OR3",
+      "IsCollection":false
+    },
+    {
+      "Name":"OR4",
+      "IsCollection":false
+    },
+    {
+      "Name":"DIGIT DISPLAY",
+      "IsCollection":false
+    },
+    {
+      "Name":"7-SEGMENT DRIVER",
+      "IsCollection":false
+    },
+    {
+      "Name":"DABBLE",
+      "IsCollection":false
+    },
+    {
+      "Name":"DOUBLE-DABBLE",
+      "IsCollection":false
+    },
+    {
+      "Name":"8BIT-DISPLAY",
+      "IsCollection":false
+    },
+    {
+      "Name":"RAM-256x8 (sync)",
+      "IsCollection":false
+    },
+    {
+      "Name":"16-BIT DABBLE",
+      "IsCollection":false
+    },
+    {
+      "Name":"16BIT-DISPLAY",
+      "IsCollection":false
+    },
+    {
+      "Name":"REGISTER-16",
+      "IsCollection":false
+    },
+    {
+      "Name":"I'M DUMB",
+      "IsCollection":false
+    },
+    {
+      "Name":"32-BIT DABBLE",
+      "IsCollection":false
+    },
+    {
+      "Name":"32-BIT DISPLAY",
+      "IsCollection":false
+    },
+    {
+      "Name":"REGISTER FILE",
+      "IsCollection":false
+    },
+    {
+      "Name":"REGISTER FILE (OLD)",
+      "IsCollection":false
+    },
+    {
+      "Name":"ISA Decoder",
+      "IsCollection":false
+    },
+    {
+      "Name":"MEM2-1",
+      "IsCollection":false
+    },
+    {
+      "Name":"MEM-16-2 (WIP)",
+      "IsCollection":false
+    },
+    {
+      "Name":"AND4",
+      "IsCollection":false
+    },
+    {
+      "Name":"MUX4-1",
+      "IsCollection":false
+    },
+    {
+      "Name":"ADDER",
+      "IsCollection":false
+    },
+    {
+      "Name":"4-BIT ADDER",
+      "IsCollection":false
+    },
+    {
+      "Name":"4-BIT ALU",
+      "IsCollection":false
+    },
+    {
+      "Name":"8-BIT ADDER",
+      "IsCollection":false
+    },
+    {
+      "Name":"8-BIT ALU",
+      "IsCollection":false
+    },
+    {
+      "Name":"CPU",
+      "IsCollection":false
+    },
+    {
+      "Name":"MUX8-1",
+      "IsCollection":false
+    },
+    {
+      "Name":"3-STATE BUFFER",
+      "IsCollection":false
+    },
+    {
+      "Name":"8-BIT 3-STATE BUFFER",
+      "IsCollection":false
+    },
+    {
+      "Name":"AND3",
+      "IsCollection":false
+    },
+    {
+      "Name":"IP",
+      "IsCollection":false
+    },
+    {
+      "Name":"MUX2-2",
+      "IsCollection":false
+    },
+    {
+      "Name":"FLAG REGISTER",
+      "IsCollection":false
+    }
+  ],
+  "ChipCollections":[
+    {
+      "Chips":["NAND","CLOCK","KEY","3-STATE BUFFER"],
+      "IsToggledOpen":false,
+      "Name":"BASIC"
+    },
+    {
+      "Chips":["IN-1","IN-4","IN-8","OUT-1","OUT-4","OUT-8"],
+      "IsToggledOpen":false,
+      "Name":"IN/OUT"
+    },
+    {
+      "Chips":["1-4BIT","1-8BIT","4-8BIT","4-1BIT","8-4BIT","8-1BIT"],
+      "IsToggledOpen":false,
+      "Name":"MERGE/SPLIT"
+    },
+    {
+      "Chips":["BUS-1","BUS-4","BUS-8"],
+      "IsToggledOpen":false,
+      "Name":"BUS"
+    },
+    {
+      "Chips":["7-SEGMENT","DOT DISPLAY","RGB DISPLAY"],
+      "IsToggledOpen":true,
+      "Name":"DISPLAY"
+    },
+    {
+      "Chips":["ROM 256×16","RAM-256x8 (sync)"],
+      "IsToggledOpen":true,
+      "Name":"MEMORY"
+    },
+    {
+      "Chips":["AND","NOT","OR","NOR","D-LATCH","FLIP-FLOP","MEM-16","DECODER 2-4","MEM-1","MEM-256","RAM-256x8 (async)","EQUALS-8","XOR","XNOR","REGISTER-1","REGISTER-8","OR3","OR4","DIGIT DISPLAY","7-SEGMENT DRIVER","DABBLE","DOUBLE-DABBLE","8BIT-DISPLAY","16-BIT DABBLE","16BIT-DISPLAY","REGISTER-16","I'M DUMB","32-BIT DABBLE","32-BIT DISPLAY","MEM2-1","MEM-16-2 (WIP)","AND4","MUX4-1","ADDER","4-BIT ADDER","4-BIT ALU","8-BIT ADDER","8-BIT ALU","MUX8-1","8-BIT 3-STATE BUFFER","AND3","MUX2-2"],
+      "IsToggledOpen":true,
+      "Name":"OTHER"
+    },
+    {
+      "Chips":["REGISTER FILE (OLD)","REGISTER FILE","ISA Decoder","IP","FLAG REGISTER","CPU"],
+      "IsToggledOpen":false,
+      "Name":"CPU"
+    }
+  ]
+}
