@@ -138,7 +138,6 @@ out
 .pnp.*
 
 # Uncompleted projects
-routing/
 /c/
 TODO.md
 
