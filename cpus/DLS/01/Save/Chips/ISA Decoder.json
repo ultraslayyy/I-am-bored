@@ -167,7 +167,7 @@
       "ValueDisplayMode":0
     },
     {
-      "Name":"LOAD",
+      "Name":"STORE",
       "ID":298498138,
       "Position":{
         "x":21.875,
@@ -178,7 +178,7 @@
       "ValueDisplayMode":0
     },
     {
-      "Name":"STORE",
+      "Name":"LOAD",
       "ID":685579410,
       "Position":{
         "x":21.875,
@@ -538,7 +538,7 @@
     {
       "Name":"AND4",
       "ID":436906502,
-      "Label":"LOAD imm8, Rs",
+      "Label":"STORE imm8, Rs",
       "Position":{
         "x":17.2475,
         "y":-3.5625
@@ -549,7 +549,7 @@
     {
       "Name":"AND4",
       "ID":687143062,
-      "Label":"STORE Rd, imm8",
+      "Label":"LOAD Rd, imm8",
       "Position":{
         "x":17.2475,
         "y":-5.0

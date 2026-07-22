@@ -4,4 +4,4 @@
 
 DLS CPUs are just CPUs I have made inside of Digital Logic Sim. Some of them may contain a lot of fluff from stuff I've just made for fun whilst working on a CPU (see [01](./01/) as an example). All major CPU components are contained within the `CPU` category, and should be easily spottable and inspectable.
 
-To load this save, open DLS and press `Ctrl+Alt+Shift+O` (or `Ctrl+Option+Shift+O` on MacOS), opening the save folder and dragging the save into a new folder (final path should be `[saves_location]/any_name/ProjectDescription.json`).
+To load saves, open DLS and press `Ctrl+Alt+Shift+O` (or `Ctrl+Option+Shift+O` on MacOS), opening the save folder and dragging the save (e.g., `./01/Save/`) into a new folder (final path should be `[saves_location]/any_name/ProjectDescription.json`).
