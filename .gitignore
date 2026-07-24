@@ -139,6 +139,7 @@ out
 
 # Uncompleted projects
 /c/
+machine/
 TODO.md
 
 # githooks
