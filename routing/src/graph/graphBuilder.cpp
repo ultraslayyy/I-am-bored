@@ -1,5 +1,6 @@
 #include "graphBuilder.h"
 #include <unordered_map>
+#include <unordered_set>
 #include <cmath>
 #include <iostream>
 #include "../geo/geo.h"
@@ -64,11 +65,21 @@ Graph GraphBuilder::build(const OSMData& data) {
     return graph;
 }
 
+static const std::unordered_set<std::string> allowed = {
+    "motorway",
+    "trunk",
+    "primary",
+    "secondary",
+    "tertiary",
+    "residential",
+    "unclassified"
+};
+
 bool GraphBuilder::isDrivable(const OSMWay& way) {
     auto it = way.tags.find("highway");
     if (it == way.tags.end()) return false;
 
-    return true;
+    return allowed.find(it->second) != allowed.end();
 }
 
 double GraphBuilder::defaultSpeed(const OSMWay& way) {
