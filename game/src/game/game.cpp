@@ -129,6 +129,7 @@ void Game::update(float dt) {
             randomiseGreenBox();
             return;
         }
+        return;
     }
 
     if (Input::isKeyDown(Key::Left) || Input::isKeyDown(Key::A))

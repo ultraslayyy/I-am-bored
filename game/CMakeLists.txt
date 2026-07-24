@@ -10,7 +10,7 @@ include(CheckLibraryExists)
 check_include_file(X11/Xlib.h HAS_X11)
 Check_library_exists(X11 XOpenDisplay "" HAS_XOPEN_DISPLAY)
 
-set(RENDERER "VULKAN" CACHE STRING "Renderer")
+set(RENDERER "D3D11" CACHE STRING "Renderer")
 set_property(CACHE RENDERER PROPERTY STRINGS GDI D2D D3D11 D3D12 GL "GL1.1" "GL3.3" VULKAN)
 
 set(OPT_PROFILE "PERF" CACHE STRING "Option Profile")
