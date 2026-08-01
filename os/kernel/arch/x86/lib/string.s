@@ -19,6 +19,7 @@ memset:
   test ecx, ecx
   jz .memset_done
 
+  cld
   rep stosb
 
 .memset_done:
@@ -112,8 +113,8 @@ memcmp:
   ; If they are not equal, cmpsb still incremented
   ; /decremented the pointers by 1 past the mismatch. We read
   ; the mismatched bytes
-  mov al, [esi - 1]
-  mov dl, [edi - 1]
+  movzx eax, byte [esi - 1]
+  movzx edx, byte [edi - 1]
   sub eax, edx ; eax = buf1[i] - buf2[i]
 
 .memcmp_done:
