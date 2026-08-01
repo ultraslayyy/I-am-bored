@@ -1,1 +1,0 @@
-Console.WriteLine("Sample C# game");
