@@ -1,0 +1,23 @@
+#ifndef RUNA_RESULT_H
+#define RUNA_RESULT_H
+
+#include "types.h"
+
+typedef enum runa_result_t {
+    RUNA_SUCCESS = 0,
+
+    RUNA_ERROR_UNKOWN,
+
+    RUNA_ERROR_INVALID_ARGUMENT,
+    RUNA_ERROR_NULL_POINTER,
+
+    RUNA_ERROR_ALREADY_INITIALISED,
+    RUNA_ERROR_NOT_INITIALISED,
+
+    RUNA_ERROR_OUT_OF_MEMORY,
+
+    RUNA_ERROR_PLATFORM,
+    RUNA_ERROR_INTERNAL
+} runa_result_t;
+
+#endif // RUNA_RESULT_H
