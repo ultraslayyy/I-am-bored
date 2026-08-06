@@ -1,76 +1,42 @@
-// gcc -Os -s -nostdlib -mwindows -fdata-sections -ffunction-sections -fno-unwind-tables -fno-asynchronous-unwind-tables -fno-ident -Wl,--gc-sections -Wl,--build-id=none -Wl,-e,mainCRTStartup main.c -o screenshot.exe -luser32 -lgdi32 -lkernel32
+// gcc -Os -s -nostdlib -mwindows -fno-unwind-tables -fno-asynchronous-unwind-tables -fno-ident -fno-stack-protector -fomit-frame-pointer -Wl,--gc-sections -Wl,--build-id=none -Wl,-e,mainCRTStartup -Wl,--no-insert-timestamp -Wl,--file-alignment,512 -Wl,--section-alignment,512 -Wl,--no-seh -Wl,--disable-reloc-section main.c -o screenshot -luser32 -lgdi32 -lkernel32
 
 #include <windows.h>
 
-BOOL SaveBitmapToFile(HBITMAP hBitmap, HDC hDC, const char *filename) {
-    BITMAP bmp;
-    GetObject(hBitmap, sizeof(BITMAP), &bmp);
+int mainCRTStartup(void) {
+    int w  = GetSystemMetrics(SM_CXSCREEN);
+    int h = GetSystemMetrics(SM_CYSCREEN);
 
-    BITMAPINFOHEADER bi = {0};
-    bi.biSize        = sizeof(BITMAPINFOHEADER);
-    bi.biWidth       = bmp.bmWidth;
-    bi.biHeight      = bmp.bmHeight;
-    bi.biPlanes      = 1;
-    bi.biBitCount    = 32;
-    bi.biCompression = BI_RGB;
+    HDC hScreen  = GetDC(0);
+    HDC hMem     = CreateCompatibleDC(hScreen);
+    HBITMAP hBmp = CreateCompatibleBitmap(hScreen, w, h);
 
-    DWORD dwBmpSize = ((bmp.bmWidth * bi.biBitCount + 31) / 32) * 4 * bmp.bmHeight;
-    bi.biSizeImage = dwBmpSize;
+    SelectObject(hMem, hBmp);
+    BitBlt(hMem, 0, 0, w, h, hScreen, 0, 0, SRCCOPY | CAPTUREBLT);
 
-    HANDLE hDIB = GlobalAlloc(GHND, dwBmpSize);
-    if (!hDIB) return FALSE;
+    DWORD imgSize = w * h * 4;
+    DWORD totalSize = sizeof(BITMAPFILEHEADER) + sizeof(BITMAPINFOHEADER) + imgSize;
 
-    char *lpbitmap = (char *)GlobalLock(hDIB);
+    void *buf = VirtualAlloc(0, totalSize, MEM_COMMIT | MEM_RESERVE, PAGE_READWRITE);
 
-    if (!GetDIBits(hDC, hBitmap, 0, (UINT)bmp.bmHeight, lpbitmap, (BITMAPINFO *)&bi, DIB_RGB_COLORS)) {
-        GlobalUnlock(hDIB);
-        GlobalFree(hDIB);
-        return FALSE;
-    }
+    BITMAPFILEHEADER *bfh = (BITMAPFILEHEADER *)buf;
+    BITMAPINFOHEADER *bi  = (BITMAPINFOHEADER *)(bfh + 1);
+    char *pixels = (char *)(bi + 1);
 
-    BITMAPFILEHEADER bfh = {0};
-    bfh.bfType    = 0x4D42; // "BM"
-    bfh.bfSize    = sizeof(BITMAPFILEHEADER) + sizeof(BITMAPINFOHEADER) + dwBmpSize;
-    bfh.bfOffBits = sizeof(BITMAPFILEHEADER) + sizeof(BITMAPINFOHEADER);
+    bfh->bfType    = 0x4D42; // "BM"
+    bfh->bfSize    = totalSize;
+    bfh->bfOffBits = sizeof(BITMAPFILEHEADER) + sizeof(BITMAPINFOHEADER);
 
-    HANDLE hFile = CreateFileA(filename, GENERIC_WRITE, 0, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
-    if (hFile == INVALID_HANDLE_VALUE) {
-        GlobalUnlock(hDIB);
-        GlobalFree(hDIB);
-        return FALSE;
-    }
+    bi->biSize     = sizeof(BITMAPINFOHEADER);
+    bi->biWidth    = w;
+    bi->biHeight   = h;
+    bi->biPlanes   = 1;
+    bi->biBitCount = 32;
 
-    DWORD dwWritten;
-    WriteFile(hFile, &bfh, sizeof(BITMAPFILEHEADER), &dwWritten, NULL);
-    WriteFile(hFile, &bi, sizeof(BITMAPINFOHEADER), &dwWritten, NULL);
-    WriteFile(hFile, lpbitmap, dwBmpSize, &dwWritten, NULL);
+    GetDIBits(hMem, hBmp, 0, h, pixels, (BITMAPINFO *)bi, DIB_RGB_COLORS);
 
-    CloseHandle(hFile);
-    GlobalUnlock(hDIB);
-    GlobalFree(hDIB);
+    HANDLE hFile = CreateFileA("screenshot.bmp", GENERIC_WRITE, 0, 0, CREATE_ALWAYS, 0, 0);
+    DWORD written;
+    WriteFile(hFile, buf, totalSize, &written, 0);
 
-    return TRUE;
-}
-
-int mainCRTStartup() {
-    HDC hScreenDC = GetDC(NULL);
-    HDC hMemoryDC = CreateCompatibleDC(hScreenDC);
-    
-    int width  = GetSystemMetrics(SM_CXSCREEN);
-    int height = GetSystemMetrics(SM_CYSCREEN);
-
-    HBITMAP hBitmap    = CreateCompatibleBitmap(hScreenDC, width, height);
-    HBITMAP hOldBitmap = (HBITMAP)SelectObject(hMemoryDC, hBitmap);
-
-    BitBlt(hMemoryDC, 0, 0, width, height, hScreenDC, 0, 0, SRCCOPY | CAPTUREBLT);
-
-    SelectObject(hMemoryDC, hOldBitmap);
-
-    SaveBitmapToFile(hBitmap, hMemoryDC, "screenshot.bmp");
-
-    DeleteObject(hBitmap);
-    DeleteDC(hMemoryDC);
-    ReleaseDC(NULL, hScreenDC);
-
-    return 0;
+    ExitProcess(0);
 }
