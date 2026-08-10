@@ -169,3 +169,7 @@ int atoi(const char *s) {
     
     return sign * result;
 }
+
+int abs(int n) {
+    return (n < 0) ? -n : n;
+}

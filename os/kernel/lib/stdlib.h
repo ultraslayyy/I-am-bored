@@ -5,3 +5,4 @@ void *malloc(size_t size);
 void *realloc(void *ptr, size_t size);
 void free(void *ptr);
 int atoi(const char *s);
+int abs(int number);

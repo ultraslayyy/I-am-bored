@@ -1,4 +1,5 @@
 #include <arch.h>
+#include <lib/stdlib.h>
 #include <lib/string.h>
 #include "font.h"
 #include "vesa.h"
@@ -38,6 +39,39 @@ void vesa_draw_pixel(uint32_t x, uint32_t y, uint32_t color) {
         fb[0] = color & 0xFF;           // Blue
         fb[1] = (color >> 8) & 0xFF;    // Green
         fb[2] = (color >> 16) & 0xFF;   // Red
+    }
+}
+
+void vesa_draw_line(uint32_t x1, uint32_t y1, uint32_t x2, uint32_t y2, uint32_t color) {
+    int32_t dx = abs((int32_t)x2 - (int32_t)x1);
+    int32_t sx = x1 < x2 ? 1 : -1;
+
+    int32_t dy = abs((int32_t)y2 - (int32_t)y1);
+    int32_t sy = y1 < y2 ? 1 : -1;
+
+    int32_t err = dx + dy;
+
+    int32_t x = x1;
+    int32_t y = y1;
+
+    for (;;) {
+        vesa_draw_pixel(x, y, color);
+
+        if (x == (int32_t)x2 && y == (int32_t)y2) {
+            break;
+        }
+
+        int32_t e2 = 2 * err;
+
+        if (e2 >= dy) {
+            err += dy;
+            x += sx;
+        }
+
+        if (e2 <= dx) {
+            err += dx;
+            y += sy;
+        }
     }
 }
 
