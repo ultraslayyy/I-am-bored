@@ -7,8 +7,14 @@
 void handle_input_char(char c, char *input_buffer, size_t *input_pos) {
     if (c == '\b') {
         if (*input_pos > 0) {
-            (*input_pos)--;
-            put_char('\b', 0);
+            if (ctrl_pressed) {
+                do {
+                    put_char('\b', 0);
+                } while (input_buffer[--(*input_pos)] != ' ' && *input_pos > 0);
+            } else {
+                (*input_pos)--;
+                put_char('\b', 0);
+            }
         }
         return;
     }

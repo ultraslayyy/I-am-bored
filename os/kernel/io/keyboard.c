@@ -12,6 +12,7 @@ typedef struct {
     uint64_t next_repeat;
 } key_state_t;
 
+uint8_t ctrl_pressed  = 0;
 uint8_t shift_pressed = 0;
 static key_state_t keys[128];
 
@@ -63,14 +64,14 @@ int keyboard_pop_event(key_event_t *event) {
 void keyboard_callback(uint8_t sc) {
     uint8_t pressed = !(sc & 0x80);
     uint8_t scancode = sc & 0x7F;
+
+    if (scancode == 0x1D) {
+        ctrl_pressed = pressed;
+    }
     
-    if (sc == 0x2A || sc == 0x36) {
+    if (scancode == 0x2A || scancode == 0x36) {
         shift_pressed = pressed;
     }
-
-    /*char buf[80];
-    snprintf(buf, sizeof(buf), "%llu\n", timer_ms());
-    put_string(buf, DEFAULT_ATTR); */
 
     // Ignore typematic repeat flags
     if (pressed && keys[scancode].pressed) {

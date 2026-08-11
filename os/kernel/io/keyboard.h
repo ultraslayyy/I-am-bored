@@ -8,6 +8,7 @@ typedef struct {
 
 #define KEY_QUEUE_SIZE 64
 
+extern uint8_t ctrl_pressed;
 extern uint8_t shift_pressed;
 
 int keyboard_pop_event(key_event_t *event);
