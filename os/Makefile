@@ -14,18 +14,20 @@ ifeq ($(ARCH),x86)
   CFLAGS_ARCH   := -m32
   LDFLAGS_ARCH  := -m elf_i386
   NASM_FMT      := elf32
+  NASMFLAGS     :=
   QEMU_BIN      := qemu-system-i386
   LINKER_SCRIPT := kernel/arch/x86/linker.ld
   BUILD_DIR     := build/x86
   KERNEL_ELF    := $(BUILD_DIR)/kernel_x86.elf
 else ifeq ($(ARCH),x86_64)
-  CFLAGS_ARCH  := -m64 -mno-red-zone
-  LDFLAGS_ARCH := -m elf_x86_64
-  NASM_FMT     := elf64
-  QEMU_BIN     := qemu-system-x86_64
-  LINKER_SCRIPT:= kernel/arch/x86_64/linker.ld
+  CFLAGS_ARCH   := -m64 -mno-red-zone
+  LDFLAGS_ARCH  := -m elf_x86_64
+  NASM_FMT      := elf64
+  NASMFLAGS     :=
+  QEMU_BIN      := qemu-system-x86_64
+  LINKER_SCRIPT := kernel/arch/x86_64/linker.ld
   BUILD_DIR     := build/x86_64
-  KERNEL_ELF   := $(BUILD_DIR)/kernel_x86_64.elf
+  KERNEL_ELF    := $(BUILD_DIR)/kernel_x86_64.elf
 else
   $(error Unsupported ARCH=$(ARCH))
 endif
@@ -78,6 +80,7 @@ QEMUFLAGS := -m 512 -serial stdio -no-reboot -drive file=disk.img,format=raw -de
 ifeq ($(GDB),1)
   CFLAGS += -O0 -g
   QEMUFLAGS += -S -s
+  NASMFLAGS += -g -F dwarf
 else
   CFLAGS += -O0 # -02 crashes during dhcp_start TODO: Investigate and fix
 endif
@@ -101,7 +104,7 @@ $(BUILD_DIR)/%.o: kernel/%.c
 
 $(BUILD_DIR)/%.o: kernel/%.s
 	mkdir -p $(dir $@)
-	$(AS) -f $(NASM_FMT) $< -o $@
+	$(AS) -f $(NASM_FMT) $(NASMFLAGS) $< -o $@
 
 run: $(ISO)
 	$(QEMU_BIN) -boot d -cdrom $(ISO) $(QEMUFLAGS)
