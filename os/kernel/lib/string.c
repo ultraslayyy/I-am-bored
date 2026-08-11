@@ -1,6 +1,6 @@
 #include <lib/stdarg.h>
-#include "string.h"
 #include <lib/stdint.h>
+#include "string.h"
 
 #define __fallback __attribute__((weak))
 
@@ -126,6 +126,45 @@ static void buf_putu(char **buf, size_t *left, unsigned int val, int base, size_
     }
 }
 
+/*
+static uint64_t udiv64_u32(uint64_t n, uint32_t d, uint32_t *rem) {
+    uint64_t q = 0;
+    uint32_t r = 0;
+
+    for (int i = 63; i >= 0; --i) {
+        r = (r << 1) | ((n >> 1) & 1);
+
+        if (r >= d) {
+            r -= d;
+            q |= (uint64_t)1 << i;
+        }
+    }
+
+    *rem = r;
+    return q;
+}
+
+static void buf_putu64(char **buf, size_t *left, uint64_t val, int base, size_t *written) {
+    char tmp[64];
+    int i = 0;
+
+    if (val == 0) {
+        buf_putc(buf, left, '0', written);
+        return;
+    }
+
+    while (val && i < (int)sizeof(tmp)) {
+        uint32_t digit;
+        val = udiv64_u32(val, (uint32_t)base, &digit);
+
+        tmp[i++] = (digit < 10) ? ('0' + digit) : ('a' + digit - 10);
+    }
+
+    while (i--) {
+        buf_putc(buf, left, tmp[i], written);
+    }
+} */
+
 static void buf_putd(char **buf, size_t *left, int val, size_t *written) {
     unsigned int u;
 
@@ -165,6 +204,13 @@ int snprintf(char *buf, size_t size, const char *fmt, ...) {
             continue;
         }
 
+        /*int long_long = 0;
+
+        if (fmt[0] == 'l' && fmt[1] == 'l') {
+            long_long = 1;
+            fmt += 2;
+        } */
+
         switch (*fmt) {
             case 's': {
                 const char *s = va_arg(args, const char *);
@@ -184,13 +230,23 @@ int snprintf(char *buf, size_t size, const char *fmt, ...) {
                 break;
             }
             case 'u': {
-                unsigned int v = va_arg(args, unsigned int);
-                buf_putu(&out, &left, v, 10, &written);
+                /*if (long_long) {
+                    uint64_t v = va_arg(args, uint64_t);
+                    buf_putu64(&out, &left, v, 10, &written);
+                } else { */
+                    unsigned int v = va_arg(args, unsigned int);
+                    buf_putu(&out, &left, v, 10, &written);
+                //}
                 break;
             }
             case 'x': {
-                unsigned int v = va_arg(args, unsigned int);
-                buf_putu(&out, &left, v, 16, &written);
+                //if (long_long) {
+                //    uint64_t v = va_arg(args, uint64_t);
+                //    buf_putu64(&out, &left, v, 16, &written);
+                //} else {
+                    unsigned int v = va_arg(args, unsigned int);
+                    buf_putu(&out, &left, v, 16, &written);
+                //}
                 break;
             }
             default:
