@@ -115,7 +115,9 @@ void kernel_main(boot_info_t *mbi) {
     pit_init(100);
 
     while (1) {
-        update_shell_input();
+        if (kbd_shell_control) {
+            update_shell_input();
+        }
 
         uint8_t frame[2048];
         int len = netdev_recv(frame, sizeof(frame));

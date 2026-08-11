@@ -20,6 +20,8 @@
 #include "shutdown.h"
 #include "touch.h"
 
+int kbd_shell_control = 1;
+
 int cmd_help(int argc, char **argv);
 int cmd_cls(int argc, char **argv);
 
@@ -86,6 +88,7 @@ int parse_args(char *cmd, char **argv, int max) {
 }
 
 void process_command(char *cmd, ...) {
+    kbd_shell_control = 0;
     if (cmd[0] != 0) {
         va_list args;
         va_start(args, cmd);
@@ -104,6 +107,7 @@ void process_command(char *cmd, ...) {
         fs_node_t *elf = vfs_resolve(cmd);
         if (elf == NULL) {
             put_string("File not found\n", DEFAULT_ATTR);
+            kbd_shell_control = 1;
             return;
         }
 
@@ -114,6 +118,7 @@ void process_command(char *cmd, ...) {
         }
 
         load_elf((uint8_t *)file_data);
+        kbd_shell_control = 1;
         return;
     }
 
@@ -122,23 +127,30 @@ void process_command(char *cmd, ...) {
         if (recur_level++ > MAX_ALIAS_RECURSION) {
             put_string("Alias recursion limit exceeded\n", DEFAULT_ATTR);
             recur_level--;
+            kbd_shell_control = 1;
             return;
         }
         strcpy(expanded, alias);
         process_command(expanded, HIST_ALIAS);
         recur_level--;
+        kbd_shell_control = 1;
         return;
     }
 
     argc = parse_args(cmd, argv, 16);
-    if (argc == 0) return;
+    if (argc == 0) {
+        kbd_shell_control = 1;
+        return;
+    }
 
     for (size_t i = 0; i < COMMAND_COUNT; ++i) {
         if (strcmp(argv[0], commands[i].name) == 0) {
             commands[i].handler(argc, argv);
+            kbd_shell_control = 1;
             return;
         }
     }
 
     put_string("Unknown command\n", DEFAULT_ATTR);
+    kbd_shell_control = 1;
 }

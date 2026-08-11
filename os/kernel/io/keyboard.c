@@ -1,11 +1,19 @@
-#include <lib/stdint.h>
 #include <arch.h>
-#include <shell/input.h>
+#include <lib/stdint.h>
 #include <io/kernel_io.h>
+#include <shell/input.h>
+#include <timer/timer.h>
+
+#include <lib/string.h>
 #include "keyboard.h"
 
+typedef struct {
+    uint8_t pressed;
+    uint64_t next_repeat;
+} key_state_t;
+
 uint8_t shift_pressed = 0;
-static uint8_t key_pressed[128] = {0};
+static key_state_t keys[128];
 
 static key_event_t key_queue[KEY_QUEUE_SIZE];
 static uint32_t queue_head = 0;
@@ -60,12 +68,19 @@ void keyboard_callback(uint8_t sc) {
         shift_pressed = pressed;
     }
 
+    /*char buf[80];
+    snprintf(buf, sizeof(buf), "%llu\n", timer_ms());
+    put_string(buf, DEFAULT_ATTR); */
+
     // Ignore typematic repeat flags
-    if (pressed && key_pressed[scancode]) {
+    if (pressed && keys[scancode].pressed) {
         return;
     }
 
-    key_pressed[scancode] = pressed;
+    keys[scancode].pressed = pressed;
+    if (pressed) {
+        keys[scancode].next_repeat = timer_ms() + 400;
+    }
 
     if (pressed) {
         if (scancode == 0x48 && !shift_pressed) {
@@ -78,4 +93,19 @@ void keyboard_callback(uint8_t sc) {
     }
 
     queue_push_event(scancode, pressed);
+}
+
+void keyboard_timer_tick(void) {
+    uint64_t now = timer_ms();
+
+    for (int i = 0; i < 128; ++i) {
+        if (!keys[i].pressed) {
+            continue;
+        }
+
+        if (now >= keys[i].next_repeat) {
+            queue_push_event(i, 1);
+            keys[i].next_repeat += 40;
+        }
+    }
 }

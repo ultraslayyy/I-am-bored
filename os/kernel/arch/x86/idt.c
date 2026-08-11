@@ -1,5 +1,6 @@
 #include <drivers/mouse/ps2.h>
 #include <io/kernel_io.h>
+#include <timer/timer.h>
 #include "idt.h"
 #include "io.h"
 
@@ -81,6 +82,7 @@ void idt_init(void) {
 
 void *isr_handler(uint32_t int_num, uint32_t esp) {
     if (int_num == 32) {
+        timer_tick();
         esp = schedule(esp);
     }
     
