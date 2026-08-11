@@ -1,3 +1,4 @@
+#include <arch.h>
 #include <io/keyboard.h>
 #include <io/kernel_io.h>
 
@@ -13,5 +14,5 @@ uint64_t timer_ticks(void) {
 }
 
 uint64_t timer_ms(void) {
-    return ticks * 10; // PIT at 100 Hz
+    return ticks * (1000 / PIT_INIT_FREQ);
 }

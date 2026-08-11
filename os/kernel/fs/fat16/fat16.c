@@ -9,9 +9,9 @@ typedef struct {
     block_device_t *dev;
 
     uint16_t bytes_per_sector;
-    uint8_t sectors_per_cluster;
+    uint8_t  sectors_per_cluster;
     uint16_t reserved_sectors;
-    uint8_t num_fats;
+    uint8_t  num_fats;
     uint16_t root_entries;
     uint16_t sectors_per_fat;
 
@@ -30,7 +30,7 @@ typedef struct {
 
 typedef struct {
     char name[12];
-    uint8_t attr;
+    uint8_t  attr;
     uint16_t first_cluster;
     uint32_t size;
 } fat16_dirent_t;

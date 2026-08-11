@@ -112,7 +112,7 @@ void kernel_main(boot_info_t *mbi) {
     const char *prompt = "$ ";
     put_string(prompt, DEFAULT_ATTR);
 
-    pit_init(100);
+    pit_init(PIT_INIT_FREQ);
 
     while (1) {
         if (kbd_shell_control) {
