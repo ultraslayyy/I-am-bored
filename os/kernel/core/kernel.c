@@ -42,12 +42,19 @@ void kernel_main(boot_info_t *mbi) {
     tss_init((uint32_t)&kernel_stack_end);
     
     memory_init(mbi);
+    
+    RSDP1 *rsdp = rsdp_get();
+    if (!rsdp) return;
+    
+   // if (!acpi_init(rsdp)) return; // triple fault for some reason
+    
     paging_init();
 
     vesa_init(mbi);
     clear_screen();
     
     // Printing after due to screen clear
+    // put_string("ACPI initialised\n", DEFAULT_ATTR);
     put_string("VESA initialised\n", DEFAULT_ATTR);
     
     // vesa_draw_rect(10, 10, 100, 100, 0xFF0000); // Red square

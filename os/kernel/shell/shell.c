@@ -48,6 +48,7 @@ static command_t commands[] = {
     {"mouse",    cmd_mouse,    "Enable and disable mouse (for testing only)"},
     {"pci",      cmd_pci,      "List PCI devices"},
     {"ping",     cmd_ping,     "Ping an IP/domain"},
+    {"reboot",   cmd_reboot,   "Reboot"},
     {"rm",       cmd_rm,       "Remove a file/directory"},
     {"shutdown", cmd_shutdown, "Shutdown computer (currently QEMU only)"},
     {"touch",    cmd_touch,    "Create a new file"}

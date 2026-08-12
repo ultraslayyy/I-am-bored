@@ -52,11 +52,14 @@ drivers:
 - USB support (just start by listing USB devices)
 - Maybe HDMI support (just listing connected displays, not using them till much later)
 - RTL8169 support (check net section)
+- AHCI for SATA (uses DMA)
 - Stub for unimplemented drivers
 
 fs:
 - fat12
 - fat32
+- ext**2** (not 3, 4, or 1, *yet*)
+- ntfs some day
 - Actual mounting
 - Detect FS on boot and init that FS
 - Work outside of QEMU
@@ -67,10 +70,11 @@ net:
 - Single network device initialisation function for initialising all network devices (if present)
 - RTL8169 support
 - Loopback interface
+- TCP
+  - Basic HTTP client on top later
 
 Power management/`shutdown`:
 - Actually shut down computer (work outside QEMU):
-  - Find RSDP
   - Parse RSDT/XSDT
   - Locate FADT
   - Get PM1a and PM1b control block addresses from DSDT
@@ -81,6 +85,14 @@ Power management/`shutdown`:
 - `reboot` and `sleep` functionality
 - Battery status and ACPI power events
   - For laptops
+
+visuals:
+- Window Server / Compositor
+- TTF rasteriser
+  - Maybe port something like stb_truetype
+
+misc:
+- DOOM
 
 <!--
 
