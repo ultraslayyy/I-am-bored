@@ -76,12 +76,6 @@ void mouse_handler(uint8_t data) {
     mouse.dx = (int8_t)packet[1];
     mouse.dy = (int8_t)packet[2];
 
-    // Apply 9th sign bit from packet[0]
-    // manual sign check just in case compiler output of cast
-    // isn't correct or fails or something idk what I'm doing help me
-    if (packet[0] & 0x10) mouse.dx |= 0xFFFFFF00;
-    if (packet[0] & 0x20) mouse.dy |= 0xFFFFFF00;
-
     mouse.x += mouse.dx;
     mouse.y -= mouse.dy; // Invert Y
 
@@ -98,9 +92,9 @@ void mouse_handler(uint8_t data) {
         mouse.y = vesa_height - 1;
     }
 
-    mouse.left_b   = packet[0] & 0x1;
-    mouse.right_b  = packet[0] & 0x2;
-    mouse.middle_b = packet[0] & 0x4;
+    mouse.left_b   = !!(packet[0] & 0x1);
+    mouse.right_b  = !!(packet[0] & 0x2);
+    mouse.middle_b = !!(packet[0] & 0x4);
 
     if (mouse.type == PS2_IM_EXTRABTNS) {
         mouse.b4 = (packet[3] & 0x10) ? 1 : 0;
@@ -152,7 +146,9 @@ static uint8_t mouse_probe_intellimouse(int im2) {
     if (!mouse_set_rate(80))              return 0xFF;
 
     uint8_t id = 0;
-    mouse_get_id(&id);
+    if (!mouse_get_id(&id)) {
+        return 0xFF;
+    }
 
     return id;
 }
