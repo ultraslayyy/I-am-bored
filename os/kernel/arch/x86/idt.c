@@ -88,7 +88,7 @@ void *isr_handler(uint32_t int_num, uint32_t esp) {
     
     if (int_num == 33) {
         // put_string("KBD IQR\n", DEFAULT_ATTR);
-        uint8_t sc = inb(0x60);
+        uint8_t sc = inb(PS2_DATA);
         keyboard_callback(sc);
     }
 

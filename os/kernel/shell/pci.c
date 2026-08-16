@@ -77,6 +77,7 @@ int cmd_pci(int argc, char **argv) {
     } else if (strcmp(argv[1], "info") == 0) {
         if (argc != 3) {
             put_string("Usage: pci info <slot>\n", DEFAULT_ATTR);
+            return 1;
         }
 
         size_t slot = (size_t)atoi(argv[2]);

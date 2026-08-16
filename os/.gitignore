@@ -27,4 +27,3 @@ elib/
 *.later
 
 kernel/io/stb_truetype.*
-kernel/lib/math.*

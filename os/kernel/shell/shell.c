@@ -18,6 +18,7 @@
 #include "rm.h"
 #include "shell.h"
 #include "shutdown.h"
+#include "time.h"
 #include "touch.h"
 
 int kbd_shell_control = 1;
@@ -51,6 +52,7 @@ static command_t commands[] = {
     {"reboot",   cmd_reboot,   "Reboot"},
     {"rm",       cmd_rm,       "Remove a file/directory"},
     {"shutdown", cmd_shutdown, "Shutdown computer (currently QEMU only)"},
+    {"time",     cmd_time,     "Show current time"},
     {"touch",    cmd_touch,    "Create a new file"}
 };
 

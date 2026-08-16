@@ -56,7 +56,15 @@ void kernel_main(boot_info_t *mbi) {
     // Printing after due to screen clear
     // put_string("ACPI initialised\n", DEFAULT_ATTR);
     put_string("VESA initialised\n", DEFAULT_ATTR);
-    
+    char buf[128];
+    snprintf(buf, sizeof(buf), "Framebuffer: %ux%u %ubpp pitch=%u addr=%x\n",
+             mbi->framebuffer_width,
+             mbi->framebuffer_height,
+             mbi->framebuffer_bpp,
+             mbi->framebuffer_pitch,
+             (uint32_t)mbi->framebuffer_addr);
+    put_string(buf, DEFAULT_ATTR);
+
     // vesa_draw_rect(10, 10, 100, 100, 0xFF0000); // Red square
     // vesa_draw_rect(120, 10, 100, 100, 0x00FF00); // Green square
     // vesa_draw_rect(230, 10, 100, 100, 0x0000FF); // Blue square
@@ -78,8 +86,6 @@ void kernel_main(boot_info_t *mbi) {
     
     dhcp_init(mac);
     dhcp_start();
-    
-    char buf[128];
     
     while (g_ip_addr == 0) {
         uint8_t frame[2048];
@@ -120,6 +126,8 @@ void kernel_main(boot_info_t *mbi) {
     put_string(prompt, DEFAULT_ATTR);
 
     pit_init(PIT_INIT_FREQ);
+
+    rtc_init();
 
     while (1) {
         if (kbd_shell_control) {

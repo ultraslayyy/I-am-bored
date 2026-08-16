@@ -18,6 +18,8 @@ framebuffer_tag_start:
     dw 5
     dw 0
     dd 20
+    ; dd 1920
+    ; dd 1080
     dd 0
     dd 0
     dd 32
