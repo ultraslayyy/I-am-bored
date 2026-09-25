@@ -99,9 +99,9 @@ void mouse_handler(uint8_t data) {
     if (mouse.type == PS2_IM_EXTRABTNS) {
         mouse.b4 = (packet[3] & 0x10) ? 1 : 0;
         mouse.b5 = (packet[3] & 0x20) ? 1 : 0;
-        mouse.wheel = (int8_t)(packet[3] << 4) >> 4;
+        mouse.wheel += (int8_t)(packet[3] << 4) >> 4;
     } else if (mouse.type == PS2_IM_WHEEL) {
-        mouse.wheel = (int8_t)packet[3];
+        mouse.wheel += (int8_t)packet[3];
     } else {
         mouse.wheel = 0;
     }
@@ -112,6 +112,17 @@ mouse_state_t mouse_get_state(void) {
     mouse_state_t m = mouse;
     enable_interrupts();
     return m;
+}
+
+int mouse_get_wheel(void) {
+    disable_interrupts();
+
+    int wheel = mouse.wheel;
+    mouse.wheel = 0;
+
+    enable_interrupts();
+
+    return wheel;
 }
 
 int mouse_set_enabled(int enabled) {
@@ -146,7 +157,7 @@ static uint8_t mouse_probe_intellimouse(int im2) {
     if (!mouse_set_rate(80))              return 0xFF;
 
     uint8_t id = 0;
-    if (!mouse_get_id(&id)) {
+    if (mouse_get_id(&id) == 0xFF) {
         return 0xFF;
     }
 

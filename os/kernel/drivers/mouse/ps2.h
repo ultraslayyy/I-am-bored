@@ -37,3 +37,4 @@ void mouse_handler(uint8_t data);
 
 mouse_state_t mouse_get_state(void);
 int mouse_set_enabled(int enabled);
+int mouse_get_wheel(void);
