@@ -3,6 +3,7 @@
 #include <drivers/serial/serial.h>
 #include <drivers/memory/memory.h>
 #include <drivers/mouse/ps2.h>
+#include <drivers/usb/usb.h>
 #include <drivers/video/vesa.h>
 #include <drivers/net/e1000.h>
 #include <drivers/net/rtl8139.h>
@@ -124,6 +125,8 @@ void kernel_main(boot_info_t *mbi) {
     } else {
         put_string("Mouse initialised via PS/2\n", DEFAULT_ATTR);
     }
+
+    // usb_init();
 
     char path[MAX_PATH_LEN];
     vfs_get_path(kernel_cwd, path, sizeof(path));

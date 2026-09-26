@@ -73,9 +73,9 @@ int pci_find_class(uint8_t class_code, uint8_t subclass, uint8_t prog_if, uint8_
                 uint16_t v = pci_read_word(bus, slot, func, 0x00);
                 if (v == 0xFFFF) continue;
 
-                uint8_t cls  = pci_read_byte(bus, slot, 0, 0x0B);
-                uint8_t sub  = pci_read_byte(bus, slot, 0, 0x0A);
-                uint8_t prog = pci_read_byte(bus, slot, 0, 0x09);
+                uint8_t cls  = pci_read_byte(bus, slot, func, 0x0B);
+                uint8_t sub  = pci_read_byte(bus, slot, func, 0x0A);
+                uint8_t prog = pci_read_byte(bus, slot, func, 0x09);
         
                 if (cls == class_code && sub == subclass && prog == prog_if) {
                     *out_bus = bus;
