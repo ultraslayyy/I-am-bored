@@ -1,5 +1,6 @@
 #include <block/block.h>
 #include <drivers/ata/ata.h>
+#include <drivers/serial/serial.h>
 #include <drivers/memory/memory.h>
 #include <drivers/mouse/ps2.h>
 #include <drivers/video/vesa.h>
@@ -43,12 +44,14 @@ void kernel_main(boot_info_t *mbi) {
     
     memory_init(mbi);
     
+    paging_init();
+
+    serial_init();
+
     RSDP1 *rsdp = rsdp_get();
     if (!rsdp) return;
     
    // if (!acpi_init(rsdp)) return; // triple fault for some reason
-    
-    paging_init();
 
     vesa_init(mbi);
     clear_screen();

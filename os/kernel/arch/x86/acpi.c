@@ -175,7 +175,7 @@ int acpi_init(void *rsdp_ptr) {
 
     reset_address = fadt->reset_reg.address;
     reset_value   = fadt->reset_value;
-    reset_space   = fadt->reset_reg.access_size;
+    reset_space   = fadt->reset_reg.address_space;
 
     PM1a_CNT = (uint16_t)fadt->pm1a_cnt_blk;
     PM1b_CNT = (uint16_t)fadt->pm1b_cnt_blk;
@@ -205,8 +205,12 @@ void acpi_shutdown(void) {
 
 void acpi_reboot(void) {
     if (reset_address != 0) {
-        if (reset_space == 1) {
-            outb((uint16_t)reset_address, reset_value);
+        switch (reset_space) {
+            case 1: // System I/O
+                outb((uint16_t)reset_address, reset_value);
+                break;
+            case 0: // System memory
+                break;
         }
     }
 }
