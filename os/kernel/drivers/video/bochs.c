@@ -4,8 +4,8 @@
 uint32_t bochs_vbe_width       = 0;
 uint32_t bochs_vbe_height      = 0;
 uint32_t bochs_vbe_pitch       = 0;
-uint32_t bochs_vbe_bpp         = 0;
-uint32_t bochs_vbe_framebuffer = 0;
+uint8_t  bochs_vbe_bpp         = 0;
+uint64_t bochs_vbe_framebuffer = 0;
 
 static void bochs_vbe_write(uint16_t index, uint16_t value) {
     outw(BOCHS_VBE_INDEX_PORT, index);

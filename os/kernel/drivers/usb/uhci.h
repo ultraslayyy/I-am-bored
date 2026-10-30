@@ -66,6 +66,8 @@
 #define UHCI_PID_IN    0x69
 #define UHCI_PID_OUT   0xE1
 
+#define UHCI_MAX_TDS 34
+
 typedef struct {
     uint16_t io_base;
     uint8_t  initialised;
@@ -75,10 +77,9 @@ typedef struct {
 
 typedef struct {
     uint32_t link;
-    uint32_t status;
+    volatile uint32_t status;
     uint32_t token;
     uint32_t buffer;
-    uint32_t reserved[4];
 } __attribute__((packed, aligned(16))) uhci_td_t;
 
 typedef struct {

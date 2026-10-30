@@ -5,3 +5,4 @@
 void timer_tick(void);
 uint64_t timer_ticks(void);
 uint64_t timer_ms(void);
+void delay_ms(uint32_t ms);

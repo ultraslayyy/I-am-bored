@@ -1,10 +1,8 @@
 #include <arch.h>
 #include <lib/stdint.h>
 #include <io/kernel_io.h>
-#include <shell/input.h>
 #include <timer/timer.h>
-
-#include <lib/string.h>
+#include <drivers/mouse/ps2.h>
 #include "keyboard.h"
 
 typedef struct {
@@ -14,6 +12,7 @@ typedef struct {
 
 uint8_t ctrl_pressed  = 0;
 uint8_t shift_pressed = 0;
+uint8_t caps_lock     = 0;
 static key_state_t keys[128];
 
 static key_event_t key_queue[KEY_QUEUE_SIZE];
@@ -36,7 +35,14 @@ char scancode_table_shift[128] = {
 
 char keycode_to_char(uint8_t scancode, uint8_t shift) {
     if (scancode >= 128) return 0;
-    return shift ? scancode_table_shift[scancode] : scancode_table[scancode];
+
+    char normal = scancode_table[scancode];
+
+    if (normal >= 'a' && normal <= 'z') {
+        return (shift ^ caps_lock) ? scancode_table_shift[scancode] : normal;
+    }
+
+    return shift ? scancode_table_shift[scancode] : normal;
 }
 
 void handle_key_release(uint8_t released, uint8_t *shift) {
@@ -61,7 +67,75 @@ int keyboard_pop_event(key_event_t *event) {
     return 1;
 }
 
+enum {
+    LED_IDLE,
+    LED_SEND_COMMAND,
+    LED_WAIT_COMMAND_ACK,
+    LED_SEND_DATA,
+    LED_WAIT_DATA_ACK
+};
+
+static uint8_t led_state = LED_IDLE;
+static uint8_t led_value     = 0;
+static uint8_t led_dirty     = 0;
+
+static void keyboard_led_service(void) {
+    if (inb(PS2_STATUS) & 2) return;
+
+    switch (led_state) {
+        case LED_SEND_COMMAND:
+            outb(PS2_DATA, 0xED);
+            led_state = LED_WAIT_COMMAND_ACK;
+            break;
+        case LED_SEND_DATA:
+            outb(PS2_DATA, led_value);
+            led_state = LED_WAIT_DATA_ACK;
+            break;
+    }
+}
+
+void keyboard_set_leds(uint8_t leds) {
+    if (led_value != leds) {
+        led_value = leds;
+        led_dirty = 1;
+    }
+
+    if (led_state == LED_IDLE) {
+        led_dirty = 0;
+        led_state = LED_SEND_COMMAND;
+    }
+
+    keyboard_led_service();
+}
+
 void keyboard_callback(uint8_t sc) {
+    if (sc == 0xFA) { // ACK
+        if (led_state == LED_WAIT_COMMAND_ACK) {
+            led_state = LED_SEND_DATA;
+        } else if (led_state == LED_WAIT_DATA_ACK) {
+            if (led_dirty) {
+                led_dirty = 0;
+                led_state = LED_SEND_COMMAND;
+            } else {
+                led_state = LED_IDLE;
+            }
+        }
+
+        keyboard_led_service();
+        return;
+    }
+
+    if (sc == 0xFE) { // RESEND
+        if (led_state == LED_WAIT_COMMAND_ACK) {
+            led_state = LED_SEND_COMMAND;
+        } else if (led_state == LED_WAIT_DATA_ACK) {
+            led_state = LED_SEND_DATA;
+        }
+
+        keyboard_led_service();
+        return;
+    }
+
     uint8_t pressed = !(sc & 0x80);
     uint8_t scancode = sc & 0x7F;
 
@@ -81,9 +155,12 @@ void keyboard_callback(uint8_t sc) {
     keys[scancode].pressed = pressed;
     if (pressed) {
         keys[scancode].next_repeat = timer_ms() + 400;
-    }
 
-    if (pressed) {
+        if (scancode == 0x3A) {
+            caps_lock ^= 1;
+            keyboard_set_leds(caps_lock ? 0x04 : 0x00);
+        }
+
         if (scancode == 0x48 && !shift_pressed) {
             scroll_up();
             return;
@@ -109,4 +186,6 @@ void keyboard_timer_tick(void) {
             keys[i].next_repeat += 40;
         }
     }
+
+    keyboard_led_service();
 }
