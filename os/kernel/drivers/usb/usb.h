@@ -7,6 +7,7 @@
 #define USB_DESC_INTERFACE     0x04
 #define USB_DESC_ENDPOINT      0x05
 #define USB_DESC_HID           0x21
+#define USB_DESC_HID_REPORT    0x22
 
 #define USB_CLASS_HID         0x03
 #define USB_SUBCLASS_BOOT     0x01
@@ -17,11 +18,19 @@
 
 #define USB_REQ_GET_DESCRIPTOR 0x06
 #define USB_REQ_SET_ADDRESS    0x05
+#define USB_REQ_SET_CONFIG     0x09
 
 #define USB_MAX_DEVICES     127
 #define USB_MAX_PACKET_SIZE 64
 
 #define USB_CONFIG_BUFFER_SIZE 256
+
+#define USB_PROTOCOL_MOUSE 0x02
+
+#define USB_HID_REQ_SET_IDLE     0x0A
+#define USB_HID_REQ_SET_PROTOCOL 0x0B
+#define USB_HID_PROTOCOL_BOOT    0
+#define USB_HID_PROTOCOL_REPORT  1
 
 typedef struct {
     uint8_t length;

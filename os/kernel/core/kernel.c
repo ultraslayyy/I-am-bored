@@ -12,6 +12,7 @@
 #include <fs/vfs.h>
 #include <fs/fat16/fat16.h>
 #include <io/kernel_io.h>
+#include <io/keyboard.h>
 #include <lib/string.h>
 #include <net/arp.h>
 #include <net/byteorder.h>
@@ -125,6 +126,8 @@ void kernel_main(boot_info_t *mbi) {
     } else {
         put_string("Mouse initialised via PS/2\n", DEFAULT_ATTR);
     }
+
+    keyboard_init();
 
     // usb_init();
 

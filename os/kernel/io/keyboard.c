@@ -12,7 +12,11 @@ typedef struct {
 
 uint8_t ctrl_pressed  = 0;
 uint8_t shift_pressed = 0;
-uint8_t caps_lock     = 0;
+
+uint8_t caps_lock   = 0;
+uint8_t num_lock    = 0;
+uint8_t scroll_lock = 0;
+
 static key_state_t keys[128];
 
 static key_event_t key_queue[KEY_QUEUE_SIZE];
@@ -108,6 +112,22 @@ void keyboard_set_leds(uint8_t leds) {
     keyboard_led_service();
 }
 
+static void keyboard_update_leds(void) {
+    uint8_t leds = 0;
+
+    if (scroll_lock) {
+        leds |= 0x01;
+    }
+    if (num_lock) {
+        leds |= 0x02;
+    }
+    if (caps_lock) {
+        leds |= 0x04;
+    }
+
+    keyboard_set_leds(leds);
+}
+
 void keyboard_callback(uint8_t sc) {
     if (sc == 0xFA) { // ACK
         if (led_state == LED_WAIT_COMMAND_ACK) {
@@ -156,17 +176,27 @@ void keyboard_callback(uint8_t sc) {
     if (pressed) {
         keys[scancode].next_repeat = timer_ms() + 400;
 
-        if (scancode == 0x3A) {
-            caps_lock ^= 1;
-            keyboard_set_leds(caps_lock ? 0x04 : 0x00);
-        }
-
-        if (scancode == 0x48 && !shift_pressed) {
-            scroll_up();
-            return;
-        } else if (scancode == 0x50) {
-            scroll_down();
-            return;
+        switch (scancode) {
+            case 0x3A:
+                caps_lock ^= 1;
+                keyboard_update_leds();
+                break;
+            case 0x45:
+                num_lock ^= 1;
+                keyboard_update_leds();
+                break;
+            case 0x46:
+                scroll_lock ^= 1;
+                keyboard_update_leds();
+                break;
+            case 0x48:
+                if (!shift_pressed) {
+                    scroll_up();
+                    return;
+                }
+            case 0x50:
+                scroll_down();
+                return;
         }
     }
 
@@ -188,4 +218,12 @@ void keyboard_timer_tick(void) {
     }
 
     keyboard_led_service();
+}
+
+void keyboard_init(void) {
+    caps_lock   = 0;
+    num_lock    = 0;
+    scroll_lock = 0;
+
+    keyboard_update_leds();
 }

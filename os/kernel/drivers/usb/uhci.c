@@ -380,11 +380,11 @@ static int uhci_control_transfer(uint8_t device, uint8_t endpoint, uint8_t max_p
             break;
         }
 
-        /* if (!(uhci_transfer_tds[status_index].status & UHCI_TD_ACTIVE)) {
+        if (!(uhci_transfer_tds[status_index].status & UHCI_TD_ACTIVE)) {
             result = 0;
             break;
-        } */
-        //
+        }
+    
         uint32_t status = uhci_transfer_tds[status_index].status;
 
         if ((timeout % 100) == 0) {
