@@ -61,7 +61,7 @@ int pci_find_device(uint16_t vendor, uint16_t device, uint8_t *out_bus, uint8_t 
 }
 
 int pci_find_class(uint8_t class_code, uint8_t subclass, uint8_t prog_if, uint8_t *out_bus, uint8_t *out_slot, uint8_t *out_func) {
-    for (uint8_t bus = 0; bus < 256; ++bus) {
+    for (uint16_t bus = 0; bus < 256; ++bus) {
         for (uint8_t slot = 0; slot < 32; ++slot) {
             uint16_t vendor = pci_read_word(bus, slot, 0, 0x00);
             if (vendor == 0xFFFF) continue;

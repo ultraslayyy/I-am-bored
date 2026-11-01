@@ -1,6 +1,5 @@
 #include <arch.h>
 #include <lib/stdint.h>
-#include <io/kernel_io.h>
 #include <timer/timer.h>
 #include <drivers/mouse/ps2.h>
 #include "keyboard.h"
@@ -189,14 +188,6 @@ void keyboard_callback(uint8_t sc) {
                 scroll_lock ^= 1;
                 keyboard_update_leds();
                 break;
-            case 0x48:
-                if (!shift_pressed) {
-                    scroll_up();
-                    return;
-                }
-            case 0x50:
-                scroll_down();
-                return;
         }
     }
 

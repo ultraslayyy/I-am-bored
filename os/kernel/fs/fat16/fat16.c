@@ -26,6 +26,8 @@ typedef struct {
     fat16_fs_t *fs;
     uint16_t first_cluster;
     uint32_t size;
+    uint32_t dirent_sector;
+    uint32_t dirent_offset;
 } fat16_file_t;
 
 typedef struct {
@@ -61,31 +63,77 @@ static void fat16_read_cluster(fat16_fs_t *fs, uint16_t cluster, uint8_t *buffer
     }
 }
 
-static uint16_t fat16_next_cluster(fat16_fs_t *fs, uint16_t cluster) {
-    uint32_t fat_lba = fs->fat_start + (cluster * 2) / fs->bytes_per_sector;
+static void fat16_update_dirent(fat16_file_t *f) {
+    if (!f || f->dirent_sector == 0) {
+        return;
+    }
+
+    fat16_fs_t *fs = f->fs;
     uint8_t sector[512];
-    fat16_read_sector(fs, fat_lba, sector);
-    uint16_t next = *(uint16_t *)(sector + (cluster * 2 % fs->bytes_per_sector));
-    return next;
+    fat16_read_sector(fs, f->dirent_sector, sector);
+
+    uint8_t *ent = sector + f->dirent_offset;
+    ent[26] =  f->first_cluster & 0xFF;
+    ent[27] = (f->first_cluster >> 8) & 0xFF;
+    ent[28] =  f->size & 0xFF;
+    ent[29] = (f->size >> 8) & 0xFF;
+    ent[30] = (f->size >> 16) & 0xFF;
+    ent[31] = (f->size >> 24) & 0xFF;
+
+    fat16_write_sector(fs, f->dirent_sector, sector);
+}
+
+static uint16_t fat16_next_cluster(fat16_fs_t *fs, uint16_t cluster) {
+    uint32_t offset     = cluster * 2;
+    uint32_t fat_sector = offset / fs->bytes_per_sector;
+    uint32_t fat_offset = offset % fs->bytes_per_sector;
+
+    uint8_t sector[512];
+    fat16_read_sector(fs, fs->fat_start + fat_sector, sector);
+
+    return read16(sector + fat_offset);
 }
 
 static void fat16_set_next_cluster(fat16_fs_t *fs, uint16_t cluster, uint16_t next) {
-    uint32_t fat_lba = fs->fat_start + (cluster * 2) / fs->bytes_per_sector;
-    uint8_t sector[8];
-    fat16_read_sector(fs, fat_lba, sector);
-    *(uint16_t *)(sector + (cluster * 2 % fs->bytes_per_sector)) = next;
-    fat16_write_sector(fs, fat_lba, sector);
+    uint32_t offset     = cluster * 2;
+    uint32_t fat_sector = offset / fs->bytes_per_sector;
+    uint32_t fat_offset = offset % fs->bytes_per_sector;
+
+    uint8_t sector[512];
+
+    for (uint8_t i = 0; i < fs->num_fats; ++i) {
+        uint32_t lba = fs->fat_start + i * fs->sectors_per_fat + fat_sector;
+        fat16_read_sector(fs, lba, sector);
+
+        sector[fat_offset] = next & 0xFF;
+        sector[fat_offset + 1] = (next >> 8) & 0xFF;
+
+        fat16_write_sector(fs, lba, sector);
+    }
 }
 
 static uint16_t fat16_alloc_cluster(fat16_fs_t *fs) {
     uint8_t sector[512];
-    for (uint32_t cl = 2; cl < fs->sectors_per_fat * fs->bytes_per_sector / 2; ++cl) {
-        uint32_t fat_lba = fs->fat_start + (cl * 2) / fs->bytes_per_sector;
-        fat16_read_sector(fs, fat_lba, sector);
-        uint16_t entry = *(uint16_t *)(sector + (cl * 2 % fs->bytes_per_sector));
+    uint32_t entries_per_fat = (fs->sectors_per_fat * fs->bytes_per_sector) / 2;
+
+    for (uint32_t cl = 2; cl < entries_per_fat && cl < 0xFFF0; ++cl) {
+        uint32_t offset = cl * 2;
+        uint32_t lba    = fs->fat_start + offset / fs->bytes_per_sector;
+        uint32_t entry_offset = offset % fs->bytes_per_sector;
+
+        fat16_read_sector(fs, lba, sector);
+        uint16_t entry = read16(sector + entry_offset);
         if (entry == 0) {
-            fat16_set_next_cluster(fs, cl, 0xFFF8);
-            return cl;
+            fat16_set_next_cluster(fs, (uint16_t)cl, 0xFFFF);
+
+            uint8_t zero_sector[512] = {0};
+            uint32_t data_lba = fs->data_start + (cl - 2) * fs->sectors_per_cluster;
+
+            for (uint8_t i = 0; i < fs->sectors_per_cluster; ++i) {
+                fat16_write_sector(fs, data_lba + i, zero_sector);
+            }
+
+            return (uint16_t)cl;
         }
     }
     return 0;
@@ -183,7 +231,8 @@ static fs_node_t *fat16_find_child(fs_node_t *dir, const char *name) {
     if (!dir || dir->type != FS_DIR) return NULL;
 
     for (size_t i = 0; i < dir->child_count; ++i) {
-        if (strcmp(dir->children[i]->name, name) == 0) {
+        //if (strcmp(dir->children[i]->name, name) == 0) {
+        if (strcasecmp(dir->children[i]->name, name)) {
             return dir->children[i];
         }
     }
@@ -237,6 +286,8 @@ static void fat16_scan_dir(fat16_fs_t *fs, fs_node_t *dir, uint16_t first_cluste
                 f->fs = fs;
                 f->first_cluster = read16(ent + 26);
                 f->size = 0;
+                f->dirent_sector = start_lba + i;
+                f->dirent_offset = j * 32;
                 node->private = f;
                 fat16_add_child(dir, node);
 
@@ -252,6 +303,8 @@ static void fat16_scan_dir(fat16_fs_t *fs, fs_node_t *dir, uint16_t first_cluste
                 f->fs = fs;
                 f->first_cluster = read16(ent + 26);
                 f->size = read32(ent + 28);
+                f->dirent_sector = start_lba + i;
+                f->dirent_offset = j * 32;
                 node->private = f;
                 node->size = f->size;
 
@@ -269,6 +322,18 @@ static size_t fat16_read_fs(fs_node_t *node, size_t offset, char *buffer, size_t
     fat16_file_t *f = node->private;
     fat16_fs_t *fs = f->fs;
 
+    if (offset >= f->size || len == 0) {
+        return 0;
+    }
+
+    if (len > f->size - offset) {
+        len = f->size - offset;
+    }
+
+    if (f->first_cluster == 0) {
+        return 0;
+    }
+
     uint32_t cluster_size = fs->sectors_per_cluster * fs->bytes_per_sector;
     uint16_t cluster = f->first_cluster;
 
@@ -282,17 +347,13 @@ static size_t fat16_read_fs(fs_node_t *node, size_t offset, char *buffer, size_t
     }
 
     size_t read_total = 0;
-    uint8_t buf[cluster_size];
+    uint8_t buf[cluster_size]; // TODO: Fixed-size buffer
     while (len > 0 && cluster < 0xFFF8) {
         fat16_read_cluster(fs, cluster, buf);
 
         size_t to_read = cluster_size - cluster_offset;
         if (to_read > len) {
             to_read = len;
-        }
-
-        if (read_total + to_read > f->size - offset) {
-            to_read = f->size - offset - read_total;
         }
 
         memcpy(buffer + read_total, buf + cluster_offset, to_read);
@@ -306,67 +367,108 @@ static size_t fat16_read_fs(fs_node_t *node, size_t offset, char *buffer, size_t
 }
 
 static size_t fat16_write_fs(fs_node_t *node, size_t offset, const char *buffer, size_t len) {
-    if (!node || node->type != FS_FILE || !node->private) {
+    if (!node || node->type != FS_FILE || !node->private || !buffer) {
         return 0;
     }
+
     fat16_file_t *f = node->private;
-    fat16_fs_t *fs = f->fs;
+    fat16_fs_t *fs  = f->fs;
 
     uint32_t cluster_size = fs->sectors_per_cluster * fs->bytes_per_sector;
-    uint16_t cluster = f->first_cluster;
-    size_t cluster_skip = offset / cluster_size;
-    size_t cluster_offset = offset & cluster_size;
+    if (cluster_size == 0 || offset + len < offset) {
+        return 0;
+    }
+
+    if (len == 0) {
+        return 0;
+    }
+
+    // File empty
+    if (f->first_cluster == 0) {
+        f->first_cluster = fat16_alloc_cluster(fs);
+        if (f->first_cluster == 0) {
+            return 0;
+        }
+    }
+
+    uint16_t cluster      = f->first_cluster;
+    size_t cluster_skip   = offset / cluster_size;
+    size_t cluster_offset = offset % cluster_size;
 
     for (size_t i = 0; i < cluster_skip; ++i) {
         uint16_t next = fat16_next_cluster(fs, cluster);
+
         if (next >= 0xFFF8) {
-            uint16_t new_cl = fat16_alloc_cluster(fs);
-            if (!new_cl) {
+            uint16_t new_cluster = fat16_alloc_cluster(fs);
+            if (!new_cluster) {
                 return 0;
             }
-            fat16_set_next_cluster(fs, cluster, new_cl);
-            cluster = new_cl;
+
+            fat16_set_next_cluster(fs, cluster, new_cluster);
+            cluster = new_cluster;
         } else {
             cluster = next;
         }
     }
 
     size_t written = 0;
-    uint8_t buf[cluster_size];
+    uint8_t buf[512];
 
-    while (len > 0) {
-        fat16_read_cluster(fs, cluster, buf);
+    while (written < len) {
+        uint32_t cluster_lba = fs->data_start + (cluster - 2) * fs->sectors_per_cluster;
+        size_t remaining_cluster = cluster_size - cluster_offset;
+        size_t to_write = len - written;
 
-        size_t to_write = cluster_size - cluster_offset;
-        if (to_write > len) {
-            to_write = len;
-        }
-        memcpy(buf + cluster_offset, buffer + written, to_write);
-
-        uint32_t lba = fs->data_start + (cluster - 2) * fs->sectors_per_cluster;
-        for (uint8_t i = 0; i < fs->sectors_per_cluster; ++i) {
-            fat16_write_sector(fs, lba + i, buf + i * fs->bytes_per_sector);
+        if (to_write > remaining_cluster) {
+            to_write = remaining_cluster;
         }
 
-        written += to_write;
-        len -= to_write;
+        size_t position = cluster_offset;
+        size_t remaining = to_write;
+
+        while (remaining > 0) {
+            uint32_t sector_index  = position / fs->bytes_per_sector;
+            uint32_t sector_offset = position % fs->bytes_per_sector;
+
+            size_t chunk = fs->bytes_per_sector - sector_offset;
+            if (chunk > remaining) {
+                chunk = remaining;
+            }
+
+            uint32_t lba = cluster_lba + sector_index;
+            fat16_read_sector(fs, lba, buf);
+            memcpy(buf + sector_offset, buffer + written, chunk);
+            fat16_write_sector(fs, lba, buf);
+
+            written   += chunk;
+            position  += chunk;
+            remaining -= chunk;
+        }
+
         cluster_offset = 0;
 
-        if (len > 0) {
+        if (written < len) {
             uint16_t next = fat16_next_cluster(fs, cluster);
             if (next >= 0xFFF8) {
-                uint16_t new_cl = fat16_alloc_cluster(fs);
-                if (!new_cl) break;
-                fat16_set_next_cluster(fs, cluster, new_cl);
-                cluster = new_cl;
+                uint16_t new_cluster = fat16_alloc_cluster(fs);
+                if (!new_cluster) {
+                    break;
+                }
+
+                fat16_set_next_cluster(fs, cluster, new_cluster);
+                cluster = new_cluster;
             } else {
                 cluster = next;
             }
         }
     }
 
-    if (offset + written > f->size) f->size = offset + written;
+    if (offset + written > f->size) {
+        f->size = offset + written;
+    }
+
     node->size = f->size;
+    fat16_update_dirent(f);
 
     return written;
 }
@@ -443,6 +545,9 @@ static fs_node_t *fat16_create(struct filesystem *fsys, fs_node_t *parent, const
     memcpy(ent, fat_name, 11);
 
     ent[11] = (type == FS_DIR) ? 0x10 : 0x00;
+    // when constructing parent dir entry
+    //ent[26] = f->first_cluster & 0xFF;
+    //ent[27] = f->first_cluster >> 8;
 
     fat16_write_sector(fs, sector, buf);
 
@@ -455,6 +560,41 @@ static fs_node_t *fat16_create(struct filesystem *fsys, fs_node_t *parent, const
     f->fs = fs;
     f->first_cluster = 0;
     f->size = 0;
+    f->dirent_sector = sector;
+    f->dirent_offset = offset;
+
+    if (type == FS_DIR) {
+        uint16_t cluster = fat16_alloc_cluster(fs);
+
+        if (!cluster) {
+            free(f);
+            free(node);
+            return NULL;
+        }
+
+        f->first_cluster = cluster;
+
+        uint8_t dir_sector[512] = {0};
+        uint16_t parent_cluster = parent_f->first_cluster;
+
+        memset(dir_sector, ' ', 11);
+        dir_sector[0]  = '.';
+        dir_sector[11] = 0x10;
+        dir_sector[26] = cluster & 0xFF;
+        dir_sector[27] = cluster >> 8;
+
+        uint8_t *dotdot = dir_sector + 32;
+        memset(dotdot, ' ', 11);
+        dotdot[0]  = '.';
+        dotdot[1]  = '.';
+        dotdot[11] = 0x10;
+        dotdot[26] = parent_cluster & 0xFF;
+        dotdot[27] = parent_cluster >> 8;
+
+        uint32_t lba = fs->data_start + (cluster - 2) * fs->sectors_per_cluster;
+        fat16_write_sector(fs, lba, dir_sector);
+    }
+
     node->private = f;
 
     fat16_add_child(parent, node);

@@ -1,5 +1,4 @@
 #pragma once
-#include <lib/stdint.h>
 
 void enter_user_mode(void (*entry)());
 #define USER_STACK 0x500000

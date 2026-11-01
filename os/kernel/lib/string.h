@@ -11,6 +11,7 @@ void *memmove(void *dst, const void *src, size_t size);
 int memcmp(const void *buf1, const void *buf2, size_t size);
 size_t strlen(const char *s);
 int strcmp(const char *a, const char *b);
+int strcasecmp(const char *a, const char *b);
 int strncmp(const char *a, const char *b, size_t n);
 char *strchr(const char *s, char c);
 char *strrchr(const char *s, char c);

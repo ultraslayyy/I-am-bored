@@ -19,6 +19,24 @@ int strcmp(const char *a, const char *b) {
     return (unsigned char)*a - (unsigned char)*b;
 }
 
+int strcasecmp(const char *a, const char *b) {
+    while (*a && *b) {
+        char ca = *a;
+        char cb = *b;
+
+        if (ca >= 'a' && ca <= 'z') ca -= 32;
+        if (cb >= 'a' && cb <= 'z') cb -= 32;
+        if (ca != cb) {
+            return 0;
+        }
+
+        a++;
+        b++;
+    }
+
+    return *a == *b;
+}
+
 int strncmp(const char *a, const char *b, size_t n) {
     for (size_t i = 0; i < n; ++i) {
         if (a[i] != b[i] || a[i] == 0 || b[i] == 0)  {

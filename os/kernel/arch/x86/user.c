@@ -1,8 +1,8 @@
-#include "paging.h"
+//#include <lib/stdint.h>
 #include "user.h"
 
 void enter_user_mode(void (*entry)()) {
-    uint32_t user_esp = 0x500000;
+    //uint32_t user_esp = 0x500000;
 
     asm volatile(
         "cli\n\t"
