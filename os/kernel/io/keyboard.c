@@ -4,6 +4,9 @@
 #include <drivers/mouse/ps2.h>
 #include "keyboard.h"
 
+// Hopefully print can be removed soon
+#include "kernel_io.h"
+
 typedef struct {
     uint8_t pressed;
     uint64_t next_repeat;
@@ -176,6 +179,15 @@ void keyboard_callback(uint8_t sc) {
         keys[scancode].next_repeat = timer_ms() + 400;
 
         switch (scancode) {
+            case 0x2E:
+                if (ctrl_pressed) {
+                    if (foreground_task != 0) {
+                        task_terminate(foreground_task);
+                        put_string("\n", DEFAULT_ATTR);
+                        return;
+                    }
+                }
+                break;
             case 0x3A:
                 caps_lock ^= 1;
                 keyboard_update_leds();

@@ -12,6 +12,7 @@
 #include <arch/x86/idt.h>
 #include <arch/x86/interrupts.h>
 #include <arch/x86/io.h>
+#include <arch/x86/irq.h>
 #include <arch/x86/paging.h>
 #include <arch/x86/pit.h>
 #include <arch/x86/rsdp.h>

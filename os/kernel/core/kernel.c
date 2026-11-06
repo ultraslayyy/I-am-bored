@@ -1,5 +1,6 @@
 #include <block/block.h>
 #include <drivers/ata/ata.h>
+#include <drivers/audio/audio.h>
 #include <drivers/serial/serial.h>
 #include <drivers/memory/memory.h>
 #include <drivers/mouse/ps2.h>
@@ -28,17 +29,6 @@
 #include "boot_info.h"
 
 extern uint32_t kernel_stack_end;
-
-/* static void print_hex_byte(uint8_t value) {
-    const char *hex = "0123456789ABCDEF";
-
-    char out[3];
-    out[0] = hex[(value >> 4) & 0xF];
-    out[1] = hex[value & 0xF];
-    out[2] = '\0';
-
-    put_string(out, DEFAULT_ATTR);
-} */
 
 void kernel_main(boot_info_t *mbi) {
     gdt_init();
@@ -142,6 +132,8 @@ void kernel_main(boot_info_t *mbi) {
     pit_init(PIT_INIT_FREQ);
 
     rtc_init();
+
+    audio_init();
 
     while (1) {
         if (kbd_shell_control) {

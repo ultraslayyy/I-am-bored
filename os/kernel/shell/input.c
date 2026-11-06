@@ -1,3 +1,4 @@
+#include <drivers/audio/pc_speaker.h>
 #include <io/kernel_io.h>
 #include <lib/string.h>
 #include <fs/vfs.h>
@@ -18,6 +19,8 @@ void handle_input_char(char c, char *input_buffer, size_t *input_pos) {
                 (*input_pos)--;
                 put_char('\b', 0);
             }
+        } else {
+            // speaker_beep(440, 100);
         }
         return;
     }

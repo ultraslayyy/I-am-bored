@@ -1,10 +1,12 @@
-#include <arch.h>
 #include <fs/vfs.h>
 #include <io/kernel_io.h>
 #include <lib/stdarg.h>
 #include <lib/stdlib.h>
 #include <lib/string.h>
 #include <shell/alias.h>
+#include <arch.h>
+
+#include "command_task.h"
 
 #include "cat.h"
 #include "cd.h"
@@ -20,6 +22,7 @@
 #include "shutdown.h"
 #include "time.h"
 #include "touch.h"
+#include "ussr.h"
 
 int kbd_shell_control = 1;
 
@@ -28,13 +31,22 @@ int cmd_cls(int argc, char **argv);
 
 size_t recur_level = 0;
 
-typedef int (*command_fn)(int argc, char **argv);
-
 typedef struct {
-    const char *name;
-    command_fn  handler;
-    const char *help;
+    const char       *name;
+    command_handler_t handler;
+    const char       *help;
 } command_t;
+
+// test
+#include <timer/timer.h>
+int cmd_test(int argc, char **argv) {
+    (void)argc;
+    (void)argv;
+    while (1) {
+        put_string("A", DEFAULT_ATTR);
+        delay_ms(50);
+    }
+}
 
 static command_t commands[] = {
     {"help",     cmd_help,     "Show this help"},
@@ -53,7 +65,10 @@ static command_t commands[] = {
     {"rm",       cmd_rm,       "Remove a file/directory"},
     {"shutdown", cmd_shutdown, "Shutdown computer (currently QEMU only)"},
     {"time",     cmd_time,     "Show current time"},
-    {"touch",    cmd_touch,    "Create a new file"}
+    {"touch",    cmd_touch,    "Create a new file"},
+    {"ussr",     cmd_ussr,     "Need I say more?"},
+
+    {"test",     cmd_test,     "Test rq"}
 };
 
 #define COMMAND_COUNT (sizeof(commands) / sizeof(commands[0]))
@@ -92,26 +107,25 @@ int parse_args(char *cmd, char **argv, int max) {
 
 void process_command(char *cmd, ...) {
     kbd_shell_control = 0;
+
     if (cmd[0] != 0) {
         va_list args;
         va_start(args, cmd);
+        
         int type = va_arg(args, int);
-
+        va_end(args);
         if (type != HIST_ALIAS) {
             add_history(cmd);
         }
     }
 
     char expanded[128];
-    char *argv[16];
-    int argc;
 
     if (cmd[0] == '.' && (cmd[1] == '/' || cmd[1] == '\\')) {
         fs_node_t *elf = vfs_resolve(cmd);
         if (elf == NULL) {
             put_string("File not found\n", DEFAULT_ATTR);
-            kbd_shell_control = 1;
-            return;
+            goto exit;
         }
 
         char *file_data = malloc(elf->size);
@@ -120,9 +134,10 @@ void process_command(char *cmd, ...) {
             put_string("short read\n", DEFAULT_ATTR);
         }
 
-        load_elf((uint8_t *)file_data);
-        kbd_shell_control = 1;
-        return;
+        //load_elf((uint8_t *)file_data);
+        put_string("ELF execution disabled\n", DEFAULT_ATTR);
+        free(file_data);
+        goto exit;
     }
 
     const char *alias = alias_lookup(cmd);
@@ -136,24 +151,63 @@ void process_command(char *cmd, ...) {
         strcpy(expanded, alias);
         process_command(expanded, HIST_ALIAS);
         recur_level--;
-        kbd_shell_control = 1;
-        return;
+        goto exit;
     }
 
-    argc = parse_args(cmd, argv, 16);
-    if (argc == 0) {
-        kbd_shell_control = 1;
-        return;
+    command_context_t *ctx = malloc(sizeof(command_context_t));
+    if (!ctx) {
+        put_string("Failed to create context\n", DEFAULT_ATTR);
+        goto exit;
     }
+
+    if (strlen(cmd) >= sizeof(ctx->cmd)) {
+        put_string("Command too long\n", DEFAULT_ATTR);
+        free(ctx);
+        goto exit;
+    }
+    strcpy(ctx->cmd, cmd);
+
+    ctx->argc = parse_args(ctx->cmd, ctx->argv, 16);
+
+    if (ctx->argc == 0) {
+        free(ctx);
+        goto exit;
+    }
+
+    ctx->handler = NULL;
 
     for (size_t i = 0; i < COMMAND_COUNT; ++i) {
-        if (strcmp(argv[0], commands[i].name) == 0) {
-            commands[i].handler(argc, argv);
-            kbd_shell_control = 1;
-            return;
+        if (strcmp(ctx->argv[0], commands[i].name) == 0) {
+            ctx->handler = commands[i].handler;
+            break;
         }
     }
 
-    put_string("Unknown command\n", DEFAULT_ATTR);
+    if (!ctx->handler) {
+        put_string("Unknown command\n", DEFAULT_ATTR);
+        free(ctx);
+        goto exit;
+    }
+
+    uint32_t flags = irq_save();
+
+    uint32_t pid = task_create(command_task, ctx, free);
+    if (!pid) {
+        put_string("Failed to create task\n", DEFAULT_ATTR);
+        free(ctx);
+        goto exit;
+    }
+
+    foreground_task = pid;
+    irq_restore(flags);
+
+    while (task_exists(pid)) {
+        __asm__ volatile("sti; hlt");
+    }
+
+    foreground_task = 0;
+
+exit:
     kbd_shell_control = 1;
+    return;
 }

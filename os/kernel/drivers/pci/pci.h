@@ -1,6 +1,13 @@
 #pragma once
 #include <lib/stdint.h>
 
+#define PCI_COMMAND 0x04
+#define PCI_BAR0    0x10
+#define PCI_BAR1    0x14
+
+#define PCI_COMMAND_IO     (1 << 0)
+#define PCI_COMMAND_MASTER (1 << 2)
+
 uint32_t pci_read_dword(uint8_t bus, uint8_t slot, uint8_t func, uint8_t offset);
 uint16_t pci_read_word(uint8_t bus, uint8_t slot, uint8_t func, uint8_t offset);
 uint8_t  pci_read_byte(uint8_t bus, uint8_t slot, uint8_t func, uint8_t offset);
