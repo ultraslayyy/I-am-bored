@@ -15,7 +15,7 @@ void usb_init(void) {
     ehci_probe_ports();
     */
 
-    if (!uhci_init()) {
+    if (uhci_init() != 0) {
         put_string("UHCI not found\n", DEFAULT_ATTR);
         return;
     }

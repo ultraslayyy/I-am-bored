@@ -71,8 +71,8 @@ else
 endif
 
 # For Windows replace -audiodev ..... with -audiodev dsound,id=audio0
-QEMUFLAGS := -m 512 -vga std -serial stdio -no-reboot -drive file=disk.img,format=raw -device rtl8139,netdev=net0 -netdev user,id=net0 \
-             -object filter-dump,id=f1,netdev=net0,file=packets.pcap -serial file:serial.log -audiodev pa,id=audio0 -machine pc,pcspk-audiodev=audio0 \
+QEMUFLAGS := -m 512 -device bochs-display -serial stdio -no-reboot -drive file=disk.img,format=raw -device rtl8139,netdev=net0 -netdev user,id=net0 \
+             -object filter-dump,id=f1,netdev=net0,file=packets.pcap -audiodev pa,id=audio0 -machine pc,pcspk-audiodev=audio0 \
              -device AC97,audiodev=audio0 # -device piix3-usb-uhci -device usb-kbd # -d int,guest_errors -D qemu.log # -device usb-ehci,id=ehci -device usb-kbd,bus=ehci.0
 # Can do wireshark with packets.pcap
 # Do multiple NICs by adding -device <e1000|rtl8139>,netdev=net1 -netdev user,id=net1 (increase the netX number for each card)

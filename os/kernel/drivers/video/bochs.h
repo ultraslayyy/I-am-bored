@@ -41,7 +41,3 @@ extern uint8_t  bochs_vbe_bpp;
 extern uint64_t bochs_vbe_framebuffer;
 
 int bochs_vbe_init(void);
-void bochs_vbe_draw_pixel(uint32_t x, uint32_t y, uint32_t color);
-void bochs_vbe_draw_line(uint32_t x1, uint32_t y1, uint32_t x2, uint32_t y2, uint32_t color);
-void bochs_vbe_draw_rect(uint32_t x, uint32_t y, uint32_t width, uint32_t height, uint32_t color);
-void bochs_vbe_clear_screen(uint32_t color);

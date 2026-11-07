@@ -43,14 +43,14 @@ void kernel_main(boot_info_t *mbi) {
     RSDP1 *rsdp = rsdp_get();
     if (!rsdp) return;
     
-   // if (!acpi_init(rsdp)) return; // triple fault for some reason
+    // if (!acpi_init(rsdp)) return; // triple fault for some reason
 
     framebuffer_init(mbi);
     clear_screen();
     
     // Printing after due to screen clear
     // put_string("ACPI initialised\n", DEFAULT_ATTR);
-    put_string("VESA initialised\n", DEFAULT_ATTR);
+    put_string("Framebuffer initialised\n", DEFAULT_ATTR);
     char buf[128];
     snprintf(buf, sizeof(buf), "Framebuffer: %ux%u %ubpp pitch=%u addr=%x\n",
              mbi->framebuffer_width,
@@ -59,10 +59,6 @@ void kernel_main(boot_info_t *mbi) {
              mbi->framebuffer_pitch,
              (uint32_t)mbi->framebuffer_addr);
     put_string(buf, DEFAULT_ATTR);
-
-    // vesa_draw_rect(10, 10, 100, 100, 0xFF0000); // Red square
-    // vesa_draw_rect(120, 10, 100, 100, 0x00FF00); // Green square
-    // vesa_draw_rect(230, 10, 100, 100, 0x0000FF); // Blue square
 
     put_string("Memory initialised\n", DEFAULT_ATTR);
     

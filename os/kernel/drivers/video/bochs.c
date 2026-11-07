@@ -67,34 +67,17 @@ int bochs_vbe_init(void) {
         return -1;
     }
 
-    bochs_vbe_width  = bochs_vbe_read(BOCHS_VBE_INDEX_XRES);
-    bochs_vbe_height = bochs_vbe_read(BOCHS_VBE_INDEX_YRES);
-    bochs_vbe_bpp    = bochs_vbe_read(BOCHS_VBE_INDEX_BPP);
-    bochs_vbe_pitch  = bochs_vbe_read(BOCHS_VBE_INDEX_VIRT_WIDTH) * (bochs_vbe_bpp / 8);
+    bochs_vbe_width       = bochs_vbe_read(BOCHS_VBE_INDEX_XRES);
+    bochs_vbe_height      = bochs_vbe_read(BOCHS_VBE_INDEX_YRES);
+    bochs_vbe_bpp         = bochs_vbe_read(BOCHS_VBE_INDEX_BPP);
+    bochs_vbe_pitch       = bochs_vbe_read(BOCHS_VBE_INDEX_VIRT_WIDTH) * (bochs_vbe_bpp / 8);
     bochs_vbe_framebuffer = BOCHS_VBE_LFB_ADDRESS;
 
     if (bochs_vbe_bpp != 32) {
         return -1;
     }
 
-    uint32_t fb_size  = bochs_vbe_height * bochs_vbe_pitch;
+    uint32_t fb_size = bochs_vbe_height * bochs_vbe_pitch;
     bochs_vbe_map_framebuffer((uint32_t)bochs_vbe_framebuffer, fb_size);
     return 0;
-}
-
-void bochs_vbe_draw_pixel(uint32_t x, uint32_t y, uint32_t color) {
-    if (x >= bochs_vbe_width || y >= bochs_vbe_height) {
-        return;
-    }
-
-    uint32_t *fb = (uint32_t *)(bochs_vbe_framebuffer + y * bochs_vbe_pitch + x * 4);
-    *fb = color;
-}
-
-void bochs_vbe_clear_screen(uint32_t color) {
-    for (uint32_t y = 0; y < bochs_vbe_height; ++y) {
-        for (uint32_t x = 0; x <= bochs_vbe_width; ++x) {
-            bochs_vbe_draw_pixel(x, y, color);
-        }
-    }
 }
