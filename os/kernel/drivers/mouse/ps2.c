@@ -1,5 +1,5 @@
 #include <arch.h>
-#include <drivers/video/vesa.h>
+#include <drivers/video/framebuffer.h>
 #include "ps2.h"
 
 #define PS2_COMMAND 0x64
@@ -85,11 +85,11 @@ void mouse_handler(uint8_t data) {
     if (mouse.y < 0) {
         mouse.y = 0;
     }
-    if (mouse.x > vesa_width - 1) {
-        mouse.x = vesa_width - 1;
+    if (mouse.x > framebuffer.width - 1) {
+        mouse.x = framebuffer.width - 1;
     }
-    if (mouse.y > vesa_height - 1) {
-        mouse.y = vesa_height - 1;
+    if (mouse.y > framebuffer.height - 1) {
+        mouse.y = framebuffer.height - 1;
     }
 
     mouse.left_b   = !!(packet[0] & 0x1);
@@ -228,8 +228,8 @@ int mouse_init(void) {
     // Enable streaming
     if (!mouse_write(0xF4) || !mouse_expect_ack()) goto fail;
 
-    mouse.x = vesa_width  / 2;
-    mouse.y = vesa_height / 2;
+    mouse.x = framebuffer.width  / 2;
+    mouse.y = framebuffer.height / 2;
 
     mouse.exists = 1;
     return 1;

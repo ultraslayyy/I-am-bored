@@ -675,18 +675,18 @@ void fat16_init(block_device_t *dev) {
     uint8_t sector[512];
     dev->read_sector(dev, 0, sector);
 
-    fat16_fs_t *fs = malloc(sizeof(fat16_fs_t));
-    fs->dev = dev;
-    fs->bytes_per_sector = read16(sector + 11);
+    fat16_fs_t *fs          = malloc(sizeof(fat16_fs_t));
+    fs->dev                 = dev;
+    fs->bytes_per_sector    = read16(sector + 11);
     fs->sectors_per_cluster = sector[13];
-    fs->reserved_sectors = read16(sector + 14);
-    fs->num_fats = sector[16];
-    fs->root_entries = read16(sector + 17);
-    fs->sectors_per_fat = read16(sector + 22);
-    fs->fat_start = fs->reserved_sectors;
-    fs->root_dir_start = fs->fat_start + fs->num_fats * fs->sectors_per_fat;
-    fs->root_dir_sectors = (fs->root_entries * 32 + fs->bytes_per_sector - 1) / fs->bytes_per_sector;
-    fs->data_start = fs->root_dir_start + fs->root_dir_sectors;
+    fs->reserved_sectors    = read16(sector + 14);
+    fs->num_fats            = sector[16];
+    fs->root_entries        = read16(sector + 17);
+    fs->sectors_per_fat     = read16(sector + 22);
+    fs->fat_start           = fs->reserved_sectors;
+    fs->root_dir_start      = fs->fat_start + fs->num_fats * fs->sectors_per_fat;
+    fs->root_dir_sectors    = (fs->root_entries * 32 + fs->bytes_per_sector - 1) / fs->bytes_per_sector;
+    fs->data_start          = fs->root_dir_start + fs->root_dir_sectors;
 
     fat16_current_fs = fs;
 
@@ -695,20 +695,20 @@ void fat16_init(block_device_t *dev) {
     strlcpy(fat16_fs.root->name, "/", sizeof(fat16_fs.root->name));
     fat16_fs.root->type = FS_DIR;
 
-    fat16_file_t *root_f = malloc(sizeof(fat16_file_t));
-    root_f->fs = fs;
-    root_f->first_cluster = 0;
-    root_f->size = 0;
+    fat16_file_t *root_f   = malloc(sizeof(fat16_file_t));
+    root_f->fs             = fs;
+    root_f->first_cluster  = 0;
+    root_f->size           = 0;
     fat16_fs.root->private = root_f;
 
     fat16_scan_dir(fs, fat16_fs.root, 0, 1);
 
-    fat16_fs.resolve = fat16_resolve_fs;
+    fat16_fs.resolve      = fat16_resolve_fs;
     fat16_fs.resolve_from = fat16_resolve_from_fs;
-    fat16_fs.read = fat16_read_fs;
-    fat16_fs.write = fat16_write_fs;
-    fat16_fs.create = fat16_create;
-    fat16_fs.remove = fat16_remove;
+    fat16_fs.read         = fat16_read_fs;
+    fat16_fs.write        = fat16_write_fs;
+    fat16_fs.create       = fat16_create;
+    fat16_fs.remove       = fat16_remove;
 
     vfs_mount_root(&fat16_fs);
 }

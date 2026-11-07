@@ -5,7 +5,7 @@
 #include <drivers/memory/memory.h>
 #include <drivers/mouse/ps2.h>
 #include <drivers/usb/usb.h>
-#include <drivers/video/vesa.h>
+#include <drivers/video/framebuffer.h>
 #include <drivers/net/e1000.h>
 #include <drivers/net/rtl8139.h>
 #include <fs/fd.h>
@@ -45,7 +45,7 @@ void kernel_main(boot_info_t *mbi) {
     
    // if (!acpi_init(rsdp)) return; // triple fault for some reason
 
-    vesa_init(mbi);
+    framebuffer_init(mbi);
     clear_screen();
     
     // Printing after due to screen clear
@@ -150,12 +150,12 @@ void kernel_main(boot_info_t *mbi) {
         if (m.enabled) {
             int wheel = mouse_get_wheel();
 
-            vesa_draw_rect(m.x, m.y, 5, 5, 0xFFFFFF);
-            if (m.left_b)   vesa_draw_rect(m.x, m.y, 5, 5, 0xFF0000);
-            if (m.middle_b) vesa_draw_rect(m.x, m.y, 5, 5, 0x00FF00);
-            if (m.right_b)  vesa_draw_rect(m.x, m.y, 5, 5, 0x0000FF);
-            if (m.b4)       vesa_draw_rect(m.x, m.y, 5, 5, 0xFFFF00);
-            if (m.b5)       vesa_draw_rect(m.x, m.y, 5, 5, 0xFF00FF);
+            framebuffer_draw_rect(m.x, m.y, 5, 5, 0xFFFFFF);
+            if (m.left_b)   framebuffer_draw_rect(m.x, m.y, 5, 5, 0xFF0000);
+            if (m.middle_b) framebuffer_draw_rect(m.x, m.y, 5, 5, 0x00FF00);
+            if (m.right_b)  framebuffer_draw_rect(m.x, m.y, 5, 5, 0x0000FF);
+            if (m.b4)       framebuffer_draw_rect(m.x, m.y, 5, 5, 0xFFFF00);
+            if (m.b5)       framebuffer_draw_rect(m.x, m.y, 5, 5, 0xFF00FF);
             
             while (wheel < 0) {
                 scroll_up();

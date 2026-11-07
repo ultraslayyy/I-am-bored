@@ -63,6 +63,13 @@ typedef struct {
     usb_device_descriptor_t descriptor;
 } usb_device_t;
 
+typedef struct {
+    uint8_t  interface_number;
+    uint8_t  endpoint_address;
+    uint16_t max_packet_size;
+    uint8_t  interval;
+} usb_keyboard_info_t;
+
 void usb_init(void);
 void usb_parse_device_descriptor(const uint8_t *data, usb_device_descriptor_t *desc);
 uint16_t usb_read16(const uint8_t *data);

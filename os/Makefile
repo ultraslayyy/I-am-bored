@@ -85,7 +85,7 @@ ifeq ($(GDB),1)
   QEMUFLAGS += -S -s
   NASMFLAGS += -g -F dwarf
 else
-  CFLAGS += -O0 # -02 crashes during dhcp_start TODO: Investigate and fix
+  CFLAGS += -O2
 endif
 
 # Targets

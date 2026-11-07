@@ -16,6 +16,16 @@ static usb_device_t usb_devices[2];
 static uint32_t usb_device_count = 0;
 static uint8_t usb_descriptor_buffer[18] __attribute__((aligned(16)));
 
+static uint8_t usb_config_header[9]   __attribute__((aligned(16)));
+static uint8_t usb_config_buffer[256] __attribute__((aligned(16)));
+
+static usb_keyboard_info_t usb_keyboard;
+static usb_device_t *usb_keyboard_device = 0;
+
+//
+static uint8_t keyboard_report[8] __attribute__((aligned(16)));
+//
+
 static uint32_t uhci_phys(void *ptr) {
     return (uint32_t)ptr;
 }
@@ -82,6 +92,11 @@ static int uhci_find_controller(uint16_t *io_base) {
     }
 
     *io_base = (uint16_t)(bar4 & 0xFFFC);
+
+    uint16_t command = pci_read_word(bus, slot, func, 0x04);
+    command |= (1 << 2);
+    command |= (1 << 0);
+    pci_write_word(bus, slot, func, 0x04, command);
 
     serial_write("UHCI: PCI device at ");
     serial_write_dec((uint32_t)bus);
@@ -361,6 +376,19 @@ static int uhci_control_transfer(uint8_t device, uint8_t endpoint, uint8_t max_p
 
     uhci_write16(UHCI_REG_USBCMD, UHCI_CMD_RS | UHCI_CMD_CONFIG | UHCI_CMD_MAXP);
 
+    // temp
+    uint16_t cmd = uhci_read16(UHCI_REG_USBCMD);
+    uint16_t sts = uhci_read16(UHCI_REG_USBSTS);
+
+    serial_write("UHCI: USBCMD = ");
+    serial_write_hex(cmd);
+    serial_write("\n");
+
+    serial_write("UHCI: USBSTS = ");
+    serial_write_hex(sts);
+    serial_write("\n");
+    //
+
     int result = 1;
     unsigned int timeout;
 
@@ -402,7 +430,6 @@ static int uhci_control_transfer(uint8_t device, uint8_t endpoint, uint8_t max_p
             result = 0;
             break;
         }
-        //
 
         delay_ms(1);
     }
@@ -439,6 +466,280 @@ static int uhci_control_transfer(uint8_t device, uint8_t endpoint, uint8_t max_p
 
         return 1;
     }
+
+    return 0;
+}
+
+int uhci_interrupt_in(uint8_t device, uint8_t endpoint_address, uint8_t toggle, uint8_t max_packet, int low_speed, void *buffer, uint16_t length, uint16_t timeout_ms, uint16_t *actual_length) {
+    uint32_t token;
+    uint32_t status;
+    uint32_t buffer_phys;
+    unsigned int timeout;
+    int result = UHCI_TRANSFER_TIMEOUT;
+
+    if (!buffer || !length || !max_packet || length > max_packet || !(endpoint_address & 0x80)) {
+        return UHCI_TRANSFER_ERROR;
+    }
+
+    buffer_phys = uhci_phys(buffer);
+
+    // TD buffers must not cross a 4 KiB boundary
+    if ((buffer_phys & 0xFFF) + length > 4096) {
+        return UHCI_TRANSFER_ERROR;
+    }
+
+    if (actual_length) {
+        *actual_length = 0;
+    }
+
+    token = uhci_make_token(UHCI_PID_IN, device, endpoint_address & 0x0F, toggle, length);
+    uhci_init_td(&uhci_transfer_tds[0], UHCI_LINK_TERMINATE, token, buffer_phys, low_speed);
+
+    for (uint32_t i = 0; i < UHCI_FRAME_COUNT; ++i) {
+        uhci_frame_list[i] = uhci_phys(&uhci_transfer_tds[0]);
+    }
+
+    uhci_write16(UHCI_REG_FRNUM, 0);
+    uhci_write16(UHCI_REG_USBSTS, UHCI_STS_USBINT | UHCI_STS_ERROR | UHCI_STS_RD | UHCI_STS_HSE | UHCI_STS_HCPE);
+
+    __asm__ volatile("" ::: "memory");
+
+    uhci_write16(UHCI_REG_USBCMD, UHCI_CMD_RS | UHCI_CMD_CONFIG | UHCI_CMD_MAXP);
+
+    for (timeout = 0; timeout < timeout_ms; ++timeout) {
+        status = uhci_transfer_tds[0].status;
+
+        if (status & (UHCI_TD_STALLED | UHCI_TD_DBUFFER | UHCI_TD_BABBLE | UHCI_TD_CRCTIMEO | UHCI_TD_BITSTUFF)) {
+            result = UHCI_TRANSFER_ERROR;
+            break;
+        }
+
+        if (status & UHCI_TD_NAK) {
+            result = UHCI_TRANSFER_NAK;
+            break;
+        }
+
+        if (!(status & UHCI_TD_ACTIVE)) {
+            uint16_t actual = status & 0x7FF;
+            if (actual == 0x7FF) {
+                actual = 0;
+            } else {
+                actual++;
+            }
+
+            if (actual_length) {
+                *actual_length = actual;
+            }
+
+            result = UHCI_TRANSFER_SUCCESS;
+            break;
+        }
+
+        delay_ms(1);
+    }
+
+    uhci_write16(UHCI_REG_USBCMD, uhci_read16(UHCI_REG_USBCMD) & ~UHCI_CMD_RS);
+
+    for (timeout = 0; timeout < 100000; ++timeout) {
+        if (uhci_read16(UHCI_REG_USBSTS) & UHCI_STS_HCH) {
+            break;
+        }
+    }
+
+    __asm__ volatile("" ::: "memory");
+
+    for (uint32_t i = 0; i < UHCI_FRAME_COUNT; ++i) {
+        uhci_frame_list[i] = UHCI_LINK_TERMINATE;
+    }
+
+    if (timeout >= 100000) {
+        serial_write("UHCI: failed to stop controller after interrupt transfer\n");
+        return UHCI_TRANSFER_ERROR;
+    }
+
+    return result;
+}
+
+static int usb_get_configuration_header(const usb_device_t *device, uint16_t *total_length, uint8_t *configuration_value) {
+    for (uint32_t i = 0; i < 9; ++i) {
+        usb_config_header[i] = 0;
+    }
+
+    if (uhci_control_transfer(device->address, 0, device->descriptor.max_packet_size, device->low_speed, 0x80, USB_REQ_GET_DESCRIPTOR, (USB_DESC_CONFIGURATION << 8), 0, usb_config_header, 9) != 0) {
+        serial_write("USB: failed to retrieve configuration header\n");
+        return 1;
+    }
+
+    if (usb_config_header[0] != 9 || usb_config_header[1] != USB_DESC_CONFIGURATION) {
+        serial_write("USB: invalid configuration descriptor\n");
+        return 1;
+    }
+
+    *total_length = (uint16_t)usb_config_header[2] | ((uint16_t)usb_config_header[3] << 8);
+    *configuration_value = usb_config_header[5];
+
+    serial_write("USB: Configuration descriptor:\n");
+
+    serial_write("  Total length: ");
+    serial_write_dec(*total_length);
+    serial_write("\n");
+
+    serial_write("  Interfaces: ");
+    serial_write_dec(usb_config_header[4]);
+    serial_write("\n");
+
+    serial_write("  Configuration value: ");
+    serial_write_dec(*configuration_value);
+    serial_write("\n");
+
+    serial_write("  Attributes: ");
+    serial_write_hex(usb_config_header[7]);
+    serial_write("\n");
+
+    serial_write("  Max power: ");
+    serial_write_dec(usb_config_header[8] * 2);
+    serial_write(" mA\n");
+
+    return 0;
+}
+
+static int usb_get_configuration(const usb_device_t *device, uint16_t total_length) {
+    if (total_length < 9 || total_length > sizeof(usb_config_buffer)) {
+        serial_write("USB: invalid configuration length\n");
+        return 1;
+    }
+
+    for (uint32_t i = 0; i < total_length; ++i) {
+        usb_config_buffer[i] = 0;
+    }
+
+    if (uhci_control_transfer(device->address, 0, device->descriptor.max_packet_size, device->low_speed, 0x80, USB_REQ_GET_DESCRIPTOR, (USB_DESC_CONFIGURATION << 8), 0, usb_config_buffer, total_length) != 0) {
+        serial_write("USB: failed to retrieve full configuration\n");
+        return 1;
+    }
+    
+    if (usb_config_buffer[0] != 9 || usb_config_buffer[1] != USB_DESC_CONFIGURATION) {
+        serial_write("USB: invalid configuration descriptor\n");
+        return 1;
+    }
+
+    return 0;
+}
+
+static int usb_find_keyboard(const usb_device_t *device, uint16_t total_length, usb_keyboard_info_t *keyboard) {
+    uint32_t offset = 0;
+    int is_keyboard_interfacce = 0;
+
+    while (offset + 2 <= total_length) {
+        uint8_t *desc = &usb_config_buffer[offset];
+
+        uint8_t length = desc[0];
+        uint8_t type   = desc[1];
+
+        if (length < 2 || offset + length > total_length) {
+            serial_write("USB: malformed descriptor\n");
+            return 1;
+        }
+
+        switch (type) {
+            case USB_DESC_INTERFACE: {
+                if (length < 9) {
+                    return 1;
+                }
+
+                uint8_t interface_number   = desc[2];
+                uint8_t alternate_setting  = desc[3];
+                uint8_t interface_class    = desc[5];
+                uint8_t interface_subclass = desc[6];
+                uint8_t interface_protocol = desc[7];
+
+                is_keyboard_interfacce = alternate_setting == 0 && interface_class == USB_CLASS_HID && interface_subclass == USB_HID_SUBCLASS_ROOT && interface_protocol == USB_HID_PROTOCOL_KEYBOARD;
+                if (is_keyboard_interfacce) {
+                    keyboard->interface_number = interface_number;
+
+                    serial_write("USB: found boot keyboard interface ");
+                    serial_write_dec(interface_number);
+                    serial_write("\n");
+                }
+
+                break;
+            }
+            case USB_DESC_ENDPOINT: {
+                if (length < 7) {
+                    return 1;
+                }
+
+                if (!is_keyboard_interfacce) {
+                    break;
+                }
+
+                uint8_t endpoint_address = desc[2];
+                uint8_t attributes       = desc[3];
+                uint16_t max_packet_size = (uint16_t)desc[4] | ((uint16_t)desc[5] << 9);
+                uint8_t interval         = desc[6];
+                uint8_t transfer_type    = attributes & 0x03;
+
+                if (!(endpoint_address & USB_ENDPOINT_IN)) {
+                    break;
+                }
+
+                if (transfer_type != USB_ENDPOINT_TYPE_INTERRUPT) {
+                    break;
+                }
+
+                if (max_packet_size == 0) {
+                    return 1;
+                }
+
+                keyboard->endpoint_address = endpoint_address;
+                keyboard->max_packet_size  = max_packet_size & 0x07FF;
+                keyboard->interval         = interval;
+
+                serial_write("USB: keyboard endpoint found:\n");
+
+                serial_write("  Address: ");
+                serial_write_hex(endpoint_address);
+                serial_write("\n");
+
+                serial_write("  Max packet size: ");
+                serial_write_dec(keyboard->max_packet_size);
+                serial_write("\n");
+
+                serial_write("  Polling interval: ");
+                serial_write_dec(interval);
+                serial_write("\n");
+
+                return 0;
+            }
+            default:
+                break;
+        }
+
+        offset += length;
+    }
+
+    serial_write("USB: no boot keyboard endpoint found\n");
+    return 1;
+}
+
+static int usb_configure_keyboard(const usb_device_t *device, uint8_t configuration_value, uint8_t interface_number) {
+    serial_write("USB: configuring keyboard...\n");
+
+    if (uhci_control_transfer(device->address, 0, device->descriptor.max_packet_size, device->low_speed, 0x00, USB_REQ_SET_CONFIGURATION, configuration_value, 0, 0, 0) != 0) {
+        serial_write("USB: SET_CONFIGURATION failed\n");
+        return 1;
+    }
+
+    delay_ms(10);
+
+    serial_write("USB: configuration activated\n");
+
+    if (uhci_control_transfer(device->address, 0, device->descriptor.max_packet_size, device->low_speed, 0x21, USB_HID_REQ_SET_PROTOCOL, USB_HID_PROTOCOL_BOOT, interface_number, 0, 0) != 0) {
+        serial_write("USB: SET_PROTOCOL failed\n");
+        return 1;
+    }
+
+    serial_write("USB: boot protocol selected\n");
 
     return 0;
 }
@@ -526,6 +827,49 @@ static int usb_enumerate_port(unsigned int port, uint8_t address) {
     device->low_speed = low_speed;
 
     usb_parse_device_descriptor(usb_descriptor_buffer, &device->descriptor);
+
+    uint16_t config_length;
+    uint8_t config_value;
+    if (usb_get_configuration_header(device, &config_length, &config_value) == 0) {
+        if (usb_get_configuration(device, config_length) == 0) {
+            if (usb_find_keyboard(device, config_length, &usb_keyboard) == 0) {
+                usb_keyboard_device = device;
+
+                serial_write("USB: boot keyboard detected\n");
+
+                if (usb_configure_keyboard(device, config_value, usb_keyboard.interface_number) != 0) {
+                    serial_write("USB: keyboard configuration failed\n");
+                } else {
+                    usb_keyboard_device = device;
+                    serial_write("USB: keyboard ready for polling\n");
+
+                    // temp
+                    uint16_t received = 0;
+                    serial_write("USB: press and hold a keyboard key in 3 seconds...\n");
+                    delay_ms(3000);
+
+                    int result = uhci_interrupt_in(device->address, usb_keyboard.endpoint_address, 0, usb_keyboard.max_packet_size, device->low_speed, keyboard_report, 0, 100, &received);
+                    if (result == UHCI_TRANSFER_SUCCESS) {
+                        serial_write("USB: received keyboard report!\n");
+
+                        for (uint32_t i = 0; i < received; ++i) {
+                            serial_write_hex(keyboard_report[i]);
+                            serial_write("");
+                        }
+
+                        serial_write("\n");
+                    } else if (result == UHCI_TRANSFER_NAK) {
+                        serial_write("USB: keyboard returned NAK");
+                    } else {
+                        serial_write("USB: interrupt transfer failed: ");
+                        serial_write_dec(result);
+                        serial_write("\n");
+                    }
+                    //
+                }
+            }
+        }
+    }
 
     usb_device_count++;
 

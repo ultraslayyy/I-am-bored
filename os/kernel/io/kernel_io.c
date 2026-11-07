@@ -1,5 +1,5 @@
 #include <drivers/video/font.h>
-#include <drivers/video/vesa.h>
+#include <drivers/video/framebuffer.h>
 #include <lib/string.h>
 #include "kernel_io.h"
 
@@ -24,10 +24,10 @@ static uint32_t view_line = 0;
 static int is_scrolled_up = 0;
 
 void update_screen(void) {
-    uint32_t lines_per_screen = vesa_height / FONT_HEIGHT;
-    uint32_t cols_per_line = vesa_width / FONT_WIDTH;
+    uint32_t lines_per_screen = framebuffer.height / FONT_HEIGHT;
+    uint32_t cols_per_line    = framebuffer.width  / FONT_WIDTH;
 
-    vesa_clear_screen(text_bg);
+    framebuffer_clear(text_bg);
 
     for (uint32_t r = 0; r < lines_per_screen; ++r) {
         uint32_t buf_line = view_line + r;
@@ -37,15 +37,15 @@ void update_screen(void) {
         for (uint32_t c = 0; c < cols_per_line; ++c) {
             char ch = text_buffer[idx][c].c;
             if (ch == 0) continue;
-            vesa_draw_char(ch, c * FONT_WIDTH, r * FONT_HEIGHT, text_buffer[idx][c].fg, text_buffer[idx][c].bg);
+            framebuffer_draw_char(ch, c * FONT_WIDTH, r * FONT_HEIGHT, text_buffer[idx][c].fg, text_buffer[idx][c].bg);
         }
     }
 }
 
 void put_char(char c, uint8_t attr) {
     (void)attr;
-    uint32_t cols_per_line = vesa_width / FONT_WIDTH;
-    uint32_t lines_per_screen = vesa_height / FONT_HEIGHT;
+    uint32_t cols_per_line    = framebuffer.width  / FONT_WIDTH;
+    uint32_t lines_per_screen = framebuffer.height / FONT_HEIGHT;
     
     if (is_scrolled_up) {
         is_scrolled_up = 0;
@@ -71,7 +71,7 @@ void put_char(char c, uint8_t attr) {
             
             cursor_y = (term_line - view_line) * FONT_HEIGHT;
             cursor_x = term_col * FONT_WIDTH;
-            vesa_draw_rect(cursor_x, cursor_y, FONT_WIDTH, FONT_HEIGHT, text_bg);
+            framebuffer_draw_rect(cursor_x, cursor_y, FONT_WIDTH, FONT_HEIGHT, text_bg);
         }
         return;
     } else {
@@ -84,7 +84,7 @@ void put_char(char c, uint8_t attr) {
             cursor_y = (term_line - view_line) * FONT_HEIGHT;
             cursor_x = term_col * FONT_WIDTH;
             
-            vesa_draw_char(c, cursor_x, cursor_y, text_fg, text_bg);
+            framebuffer_draw_char(c, cursor_x, cursor_y, text_fg, text_bg);
             
             term_col++;
         }
@@ -103,14 +103,14 @@ void put_char(char c, uint8_t attr) {
     if (term_line >= view_line + lines_per_screen) {
         view_line = term_line - lines_per_screen + 1;
         
-        vesa_scroll(1, text_bg);
+        framebuffer_scroll(1, text_bg);
         
         uint32_t r = lines_per_screen - 1;
         uint32_t idx = term_line % MAX_TERM_LINES;
         for (uint32_t col = 0; col < cols_per_line; ++col) {
             char ch = text_buffer[idx][col].c;
             if (ch == 0) continue;
-            vesa_draw_char(ch, col * FONT_WIDTH, r * FONT_HEIGHT, text_buffer[idx][col].fg, text_buffer[idx][col].bg);
+            framebuffer_draw_char(ch, col * FONT_WIDTH, r * FONT_HEIGHT, text_buffer[idx][col].fg, text_buffer[idx][col].bg);
         }
     }
 }
@@ -122,7 +122,7 @@ void put_string(const char *str, uint8_t attr) {
 }
 
 void clear_screen(void) {
-    vesa_clear_screen(text_bg);
+    framebuffer_clear(text_bg);
     term_line = 0;
     term_col = 0;
     view_line = 0;
@@ -144,7 +144,7 @@ void scroll_up(void) {
 }
 
 void scroll_down(void) {
-    uint32_t lines_per_screen = vesa_height / FONT_HEIGHT;
+    uint32_t lines_per_screen = framebuffer.height / FONT_HEIGHT;
     uint32_t max_view_line = (term_line >= lines_per_screen) ? (term_line - lines_per_screen + 1) : 0;
     
     if (view_line < max_view_line) {

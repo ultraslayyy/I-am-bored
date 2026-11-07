@@ -30,7 +30,7 @@ SECTIONS {
   .stack (NOLOAD) : {
     . = ALIGN(16);
     kernel_stack_start = .;
-    . = . + 0x1000; /* 4 KB */
+    . = . + 0x4000; /* 16 KB */
     kernel_stack_end = .;
   }
 

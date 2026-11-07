@@ -3,6 +3,8 @@
 #include "irq.h"
 #include "task.h"
 
+#define TASK_STACK_SIZE (16 * 1024)
+
 extern uint32_t kernel_stack_end;
 
 task_t *current_task = NULL;
@@ -25,13 +27,13 @@ uint32_t task_create(void (*entry)(void *), void *arg, void (*arg_cleanup)(void 
         return 0;
     }
 
-    void *stack_base = malloc(4096); // 4 KB stack
+    void *stack_base = malloc(TASK_STACK_SIZE);
     if (!stack_base) {
         free(t);
         return 0;
     }
 
-    uint32_t *stack = (uint32_t *)((uint32_t)stack_base + 4096); // Top of 4 KB stack
+    uint32_t *stack = (uint32_t *)((uint32_t)stack_base + TASK_STACK_SIZE); // Top of task stack
 
     t->pid         = next_pid++;
     t->entry       = entry;
@@ -228,7 +230,7 @@ void task_set_cleanup(task_cleanup_t cleanup) {
     current_task->cleanup = cleanup;
 }
 
-void scheduler_init() {
+void scheduler_init(void) {
     task_t *kernel_task = malloc(sizeof(task_t));
     if (!kernel_task) return;
 

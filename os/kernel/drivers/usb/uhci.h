@@ -3,7 +3,7 @@
 
 #define UHCI_PCI_CLASS    0x0C
 #define UHCI_PCI_SUBCLASS 0x03
-#define UHCI_PCI_PROGIF    0x00
+#define UHCI_PCI_PROGIF   0x00
 
 #define UHCI_REG_USBCMD    0x00
 #define UHCI_REG_USBSTS    0x02
@@ -68,6 +68,26 @@
 
 #define UHCI_MAX_TDS 34
 
+#define USB_DESC_CONFIGURATION 0x02
+#define USB_DESC_INTERFACE     0x04
+#define USB_DESC_ENDPOINT      0x05
+#define USB_DESC_HID           0x21
+
+#define USB_CLASS_HID             0x03
+#define USB_HID_SUBCLASS_ROOT     0x01
+#define USB_HID_PROTOCOL_KEYBOARD 0x01
+
+#define USB_ENDPOINT_IN             0x80
+#define USB_ENDPOINT_TYPE_INTERRUPT 0x03
+
+#define USB_REQ_SET_CONFIGURATION 0x09
+#define USB_HID_REQ_SET_PROTOCOL  0x0B
+
+#define UHCI_TRANSFER_SUCCESS 0
+#define UHCI_TRANSFER_NAK     1
+#define UHCI_TRANSFER_ERROR   2
+#define UHCI_TRANSFER_TIMEOUT 3
+
 typedef struct {
     uint16_t io_base;
     uint8_t  initialised;
@@ -100,3 +120,5 @@ void uhci_write32(uint16_t reg, uint32_t value);
 int uhci_reset(void);
 void uhci_dump_ports(void);
 int uhci_reset_port(unsigned int port);
+
+int uhci_interrupt_in(uint8_t device, uint8_t endpoint_address, uint8_t toggle, uint8_t max_packet, int low_speed, void *buffer, uint16_t length, uint16_t timeout_ms, uint16_t *actual_length);
