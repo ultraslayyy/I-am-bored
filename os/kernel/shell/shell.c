@@ -53,7 +53,7 @@ static command_t commands[] = {
     {"alias",    cmd_alias,    "Alias idk"},
     {"cat",      cmd_cat,      "Print file contents"},
     {"cd",       cmd_cd,       "Change the Current Working Directory"},
-    {"cls",      cmd_cls,      "Clear screen"},
+    {"cls",      cmd_cls,      "CLear Screen"},
     {"echo",     cmd_echo,     "Print text"},
     {"history",  cmd_history,  "Print command history"},
     {"ls",       cmd_ls,       "List directory contents"},
